@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import {
     Search, Plus, Filter, FileOutput,
@@ -12,7 +12,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from 'react';
-import ReferralModal from './ReferralModal';
+
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+;
+import { Label } from "@/components/ui/label";
+
+// Ensure route is typed (for Ziggy)
+declare const route: (name: string, params?: any) => string;
 
 // Define Interface for clarity
 interface CaseRecord {
@@ -30,27 +44,32 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Referral Modal State
-    const [isReferralOpen, setIsReferralOpen] = useState(false);
-    const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
-    const [selectedCaseType, setSelectedCaseType] = useState<string>('VAWC');
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     // Use Props Directly
     const cases = initialCases;
 
-    const handleReferralSuccess = () => {
-        setIsReferralOpen(false);
-    };
+    const submitType = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('admin.abuse-types.store'), {
+            onSuccess: () => {
+                setIsDialogOpen(false);
+                reset();
+            }
+        });
+    }
 
-    const openReferral = (id: number, type: string) => {
-        setSelectedCaseId(id);
-        setSelectedCaseType(type);
-        setIsReferralOpen(true);
-    };
+
+
+
+    // Form for Adding New Abuse Type
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        color: '#000000',
+    });
 
     // Valid Status Options
-    const statusOptions = ['All', 'New', 'Pending', 'On-going', 'Resolved', 'Referred', 'Closed'];
+    const statusOptions = ['All', 'New', 'On-going', 'Resolved', 'Referred', 'Closed'];
 
     // Helper: Normalize status for consistent filtering
     const normalizeStatus = (s: string) => {
@@ -86,7 +105,6 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
         const norm = normalizeStatus(status);
 
         if (norm === 'new') colorClass = "bg-red-100 text-red-700 border-red-200";
-        else if (norm === 'pending') colorClass = "bg-orange-100 text-orange-700 border-orange-200";
         else if (norm === 'on-going') colorClass = "bg-blue-100 text-blue-700 border-blue-200";
         else if (norm === 'resolved') colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
         else if (norm === 'referred') colorClass = "bg-purple-100 text-purple-700 border-purple-200";
@@ -104,13 +122,7 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Case Registry', href: '#' }]}>
             <Head title="Case Registry" />
 
-            <ReferralModal
-                isOpen={isReferralOpen}
-                onClose={() => setIsReferralOpen(false)}
-                caseId={selectedCaseId}
-                caseType={selectedCaseType}
-                onSuccess={handleReferralSuccess}
-            />
+
 
             <div className="p-6 max-w-7xl mx-auto">
                 <div className="flex flex-col space-y-6">
@@ -137,6 +149,9 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                                 </Button>
                             </Link>
                         </div>
+
+
+
                     </div>
 
                     {/* Filters & Search */}
@@ -222,7 +237,7 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                                                 <span className={`text-xs font-bold px-2 py-1 rounded ${item.type === 'VAWC' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
                                                     {item.type}
                                                 </span>
-                                                <div className="text-[10px] text-slate-400 mt-1">{item.subType}</div>
+                                                <div className="text-[15px] text-slate-900 mt-1">{item.subType}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="font-medium text-sm text-slate-900">{item.name}</div>
@@ -243,9 +258,6 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                                                                 <Edit3 className="mr-2 h-4 w-4" /> Manage Case
                                                             </DropdownMenuItem>
                                                         </Link>
-                                                        <DropdownMenuItem onClick={() => openReferral(item.id, item.type)}>
-                                                            <ArrowRight className="mr-2 h-4 w-4" /> Refer
-                                                        </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>

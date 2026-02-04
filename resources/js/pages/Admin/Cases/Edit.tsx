@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Activity, FileText, User } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { route } from 'ziggy-js';
 
 interface CaseData {
     id: number;
@@ -24,25 +25,21 @@ interface CaseData {
     [key: string]: any;
 }
 
-export default function Edit({ caseData }: { caseData: CaseData }) {
-    // We only update status in this specific prompt requirement, 
-    // but typically we'd allow editing other fields too.
+export default function Edit({ caseData, abuseTypes, referralPartners }: { caseData: CaseData, abuseTypes: any[], referralPartners: any[] }) {
     const { data, setData, patch, processing, errors } = useForm({
         type: caseData.type,
-        status: caseData.status, // This might need to be mapped back to UI status if strictly following prompt logic, 
-        // but usually we just start with current or blank. 
-        // Since we don't store "BPO Issued", we might default to "Intake/New" or try to guess.
-        // For now, I'll default to a placeholder or the actual status if it matches.
+        status: caseData.status,
     });
+
+    const isVawc = caseData.type === 'VAWC';
 
     // "Smart Status" Options
     const workflowSteps = [
         "Intake/New",
-        "Under Mediation",
-        "BPO Issued",
-        "Referred: PNP",
-        "Referred: DSWD",
-        "Referred: Medical",
+        isVawc ? "Under Mediation" : "Intervention/Diversion Program",
+        ...(isVawc ? ["BPO Issued"] : []), // Only Validation for VAWC
+        // Dynamic Referrals
+        ...(referralPartners ? referralPartners.map(p => `Referred: ${p.name}`) : []),
         "Resolved",
         "Closed"
     ];
@@ -60,6 +57,8 @@ export default function Edit({ caseData }: { caseData: CaseData }) {
         if (s === 'Resolved') return 'bg-emerald-500';
         return 'bg-slate-500';
     };
+
+
 
     return (
         <AppLayout breadcrumbs={[
@@ -101,15 +100,31 @@ export default function Edit({ caseData }: { caseData: CaseData }) {
                                     <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.victim_name || 'N/A'}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-[10px] font-black uppercase text-slate-400">Type</Label>
-                                    <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.type} • {caseData.abuse_type || caseData.concern_type || 'N/A'}</p>
+                                    <Label className="text-[10px] font-black uppercase text-slate-400">Case Type</Label>
+                                    <Badge variant={isVawc ? "destructive" : "default"}>{caseData.type}</Badge>
+                                </div>
+                                <div>
+                                    {isVawc ? (
+                                        <>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Abuse Type</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.abuse_type || 'N/A'}</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Nature of Concern</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.concern_type || 'N/A'}</p>
+                                        </>
+                                    )}
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-black uppercase text-slate-400">Date Filed</Label>
                                     <p className="font-bold text-slate-800 dark:text-slate-200">{new Date(caseData.created_at).toLocaleDateString()}</p>
                                 </div>
-                                <div>
-                                    <Label className="text-[10px] font-black uppercase text-slate-400">Current DB Status</Label>
+                            </div>
+
+                            <div>
+                                <Label className="text-[10px] font-black uppercase text-slate-400">Current DB Status</Label>
+                                <div className="mt-1">
                                     <Badge className={`${getStatusColor(caseData.status)} text-white`}>{caseData.status}</Badge>
                                 </div>
                             </div>
@@ -154,7 +169,7 @@ export default function Edit({ caseData }: { caseData: CaseData }) {
                                         defaultValue={workflowSteps.includes(caseData.status) ? caseData.status : undefined}
                                     >
                                         <SelectTrigger className="h-11">
-                                            <SelectValue placeholder="Select DILG Process Step..." />
+                                            <SelectValue placeholder="Select Process Step..." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {workflowSteps.map(step => (

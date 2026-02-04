@@ -134,8 +134,13 @@ class CaseController extends Controller
             $case->type = 'BCPC';
         }
 
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
+        $referralPartners = \App\Models\ReferralPartner::where('is_active', true)->get();
+
         return Inertia::render('Admin/Cases/Edit', [
-            'caseData' => $case
+            'caseData' => $case,
+            'abuseTypes' => $abuseTypes,
+            'referralPartners' => $referralPartners
         ]);
     }
 
@@ -155,37 +160,32 @@ class CaseController extends Controller
         $referralTo = null;
 
         // Map UI Status to DB Status
-        switch ($uiStatus) {
-            case 'Intake/New':
-                $dbStatus = 'New';
-                break;
-            case 'Under Mediation':
-                $dbStatus = 'ongoing';
-                break;
-            case 'BPO Issued':
-                $dbStatus = 'ongoing';
-                // In a real app, we might log "BPO Issued" in an activity log or remarks
-                break;
-            case 'Referred: PNP':
-                $dbStatus = 'referred';
-                $referralTo = 'PNP';
-                break;
-            case 'Referred: DSWD':
-                $dbStatus = 'referred';
-                $referralTo = 'DSWD';
-                break;
-            case 'Referred: Medical':
-                $dbStatus = 'referred';
-                $referralTo = 'Medical';
-                break;
-            case 'Resolved':
-                $dbStatus = 'Resolved';
-                break;
-            case 'Closed':
-                $dbStatus = 'Closed';
-                break;
-            default:
-                $dbStatus = 'ongoing';
+        // Map UI Status to DB Status
+        if (str_starts_with($uiStatus, 'Referred: ')) {
+            $dbStatus = 'referred';
+            $referralTo = trim(substr($uiStatus, 10)); // Extract after "Referred: "
+        } else {
+            switch ($uiStatus) {
+                case 'Intake/New':
+                    $dbStatus = 'New';
+                    break;
+                case 'Under Mediation':
+                case 'Intervention/Diversion Program':
+                    $dbStatus = 'ongoing';
+                    break;
+                case 'BPO Issued':
+                    $dbStatus = 'ongoing';
+                    // In a real app, we might log "BPO Issued" in an activity log or remarks
+                    break;
+                case 'Resolved':
+                    $dbStatus = 'Resolved';
+                    break;
+                case 'Closed':
+                    $dbStatus = 'Closed';
+                    break;
+                default:
+                    $dbStatus = 'ongoing';
+            }
         }
 
         $updateData = [

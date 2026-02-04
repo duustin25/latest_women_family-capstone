@@ -119,7 +119,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('organizations', OrganizationController::class);
 
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');
-        Route::post('cases/refer', [CaseController::class, 'refer'])->name('cases.refer');
         Route::resource('cases', CaseController::class);
         // 'system-users'
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
@@ -144,11 +143,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/members', [MembersController::class, 'index'])
             ->name('members');
 
-        // Abuse Types Management
-        Route::post('/abuse-types', [\App\Http\Controllers\Admin\AbuseTypeController::class, 'store'])
-            ->name('abuse-types.store');
-        Route::delete('/abuse-types/{id}', [\App\Http\Controllers\Admin\AbuseTypeController::class, 'destroy'])
-            ->name('abuse-types.destroy');
+        // Settings Module (Abuse Types & Partners)
+        Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('/settings/abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.abuse-types.store');
+        Route::patch('/settings/abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.abuse-types.update');
+        Route::post('/settings/partners', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.partners.store');
+        Route::patch('/settings/partners/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.partners.update');
 
     });
 

@@ -12,6 +12,7 @@ import { route } from 'ziggy-js';
 interface AbuseType {
     id: number;
     name: string;
+    category: string;
 }
 
 interface PageProps {
@@ -19,7 +20,7 @@ interface PageProps {
     abuseTypes?: AbuseType[];
 }
 
-export default function Create({ type, abuseTypes }: PageProps) {
+export default function Create({ type, abuseTypes = [] }: PageProps) {
     const { data, setData, post, processing, errors } = useForm({
         type: type, // Hidden field to identify model
         victim_name: '',
@@ -36,6 +37,10 @@ export default function Create({ type, abuseTypes }: PageProps) {
     });
 
     const isVAWC = type === 'VAWC';
+
+    // Filter types based on category
+    const vawcOptions = abuseTypes.filter(t => t.category === 'VAWC' || t.category === 'Both');
+    const bcpcOptions = abuseTypes.filter(t => t.category === 'BCPC' || t.category === 'Both');
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,18 +127,12 @@ export default function Create({ type, abuseTypes }: PageProps) {
                                             <Select value={data.abuse_type} onValueChange={v => setData('abuse_type', v)} required>
                                                 <SelectTrigger><SelectValue placeholder="Select Abuse Type" /></SelectTrigger>
                                                 <SelectContent>
-                                                    {abuseTypes && abuseTypes.length > 0 ? (
-                                                        abuseTypes.map((t) => (
+                                                    {vawcOptions.length > 0 ? (
+                                                        vawcOptions.map((t) => (
                                                             <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
                                                         ))
                                                     ) : (
-                                                        <>
-                                                            {/* Fallback if no props passed (safety) */}
-                                                            <SelectItem value="Physical">Physical Abuse</SelectItem>
-                                                            <SelectItem value="Sexual">Sexual Abuse</SelectItem>
-                                                            <SelectItem value="Psychological">Psychological Abuse</SelectItem>
-                                                            <SelectItem value="Economic">Economic Abuse</SelectItem>
-                                                        </>
+                                                        <SelectItem value="Other">Other</SelectItem>
                                                     )}
                                                 </SelectContent>
                                             </Select>
@@ -171,16 +170,22 @@ export default function Create({ type, abuseTypes }: PageProps) {
                                     {/* BCPC FIELDS */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-slate-500">Concern Type</Label>
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Nature of Concern</Label>
                                             <Select value={data.concern_type} onValueChange={v => setData('concern_type', v)} required>
                                                 <SelectTrigger><SelectValue placeholder="Select Concern" /></SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="Abuse">Child Abuse</SelectItem>
-                                                    <SelectItem value="Abandonment">Abandonment/Neglect</SelectItem>
-                                                    <SelectItem value="CICL">Child in Conflict with Law (CICL)</SelectItem>
-                                                    <SelectItem value="Custody">Custody Dispute</SelectItem>
-                                                    <SelectItem value="Labor">Child Labor</SelectItem>
-                                                    <SelectItem value="Other">Other Welfare Concern</SelectItem>
+                                                    {bcpcOptions.length > 0 ? (
+                                                        bcpcOptions.map((t) => (
+                                                            <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        // Fallback just in case, though database should have seeds
+                                                        <>
+                                                            <SelectItem value="Abuse">Child Abuse</SelectItem>
+                                                            <SelectItem value="Abandonment">Abandonment</SelectItem>
+                                                            <SelectItem value="CICL">CICL</SelectItem>
+                                                        </>
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {errors.concern_type && <span className="text-red-500 text-xs">{errors.concern_type}</span>}

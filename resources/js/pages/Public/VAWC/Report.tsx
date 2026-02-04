@@ -9,9 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { route } from 'ziggy-js';
 
-export default function VawcReport() {
+interface PageProps {
+    abuseTypes: { id: number; name: string }[];
+}
+
+export default function VawcReport({ abuseTypes }: PageProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         complainant_name: '',
         complainant_contact: '',
@@ -19,6 +24,7 @@ export default function VawcReport() {
         victim_age: '',
         relation_to_victim: '',
         incident_date: '',
+        abuse_type: '',
         incident_location: '',
         description: '',
         is_anonymous: false,
@@ -93,9 +99,12 @@ export default function VawcReport() {
                         <CardContent className="p-6 sm:p-8">
                             <form onSubmit={handleSubmit} className="space-y-8">
 
-                                {/* Section 1: Victim Info */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-black uppercase text-muted-foreground tracking-widest border-b pb-2">I. Victim Information</h3>
+                                {/* Section 1: Victim Information */}
+                                <div className="space-y-4 border-b border-red-100 pb-4">
+                                    <h3 className="text-sm font-bold uppercase text-red-900 flex items-center gap-2">
+                                        <span className="bg-red-100 px-2 py-1 rounded text-[#ce1126]">1</span>
+                                        Victim Information
+                                    </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="victim_name">Name of Victim *</Label>
@@ -115,44 +124,54 @@ export default function VawcReport() {
                                                 placeholder="e.g. 25 years old or MM/DD/YYYY"
                                                 className="rounded-sm focus:border-[#ce1126] focus:ring-[#ce1126]"
                                                 value={data.victim_age}
-                                                // Assuming the hook expects 'victim_age', but controller used 'victim_age' and state used 'victim_name' twice in previous generic code.
-                                                // Let's add victim_age to the useForm initial state if it wasn't there (it wasn't in the snippet above, so I'll trust standard implementation or just pass it)
-                                                // Wait, I need to check useForm initial state, it didn't have victim_age. 
-                                                // I will fix the useForm initial state in a separate chunk to be safe, or assumes user can fix. 
-                                                // Actually I can allow adding new keys but TS might complain. 
-                                                // Let's stick to the visible fields.
-                                                // Actually I should update the useForm definition too.
-                                                onChange={(e) => setData('victim_age' as any, e.target.value)}
+                                                onChange={(e) => setData('victim_age', e.target.value)}
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="complainant_name">Complainant Name (If different)</Label>
+                                            <Label htmlFor="relation_to_victim">Relation to Victim</Label>
                                             <Input
-                                                id="complainant_name"
-                                                placeholder="Leave blank if victim is the reporter"
+                                                id="relation_to_victim"
+                                                placeholder="e.g. Neighbor, Sibling, Self"
                                                 className="rounded-sm focus:border-[#ce1126] focus:ring-[#ce1126]"
-                                                value={data.complainant_name}
-                                                onChange={(e) => setData('complainant_name', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="complainant_contact">Contact Number</Label>
-                                            <Input
-                                                id="complainant_contact"
-                                                placeholder="For us to reach you"
-                                                className="rounded-sm focus:border-[#ce1126] focus:ring-[#ce1126]"
-                                                value={data.complainant_contact}
-                                                onChange={(e) => setData('complainant_contact', e.target.value)}
+                                                value={data.relation_to_victim}
+                                                onChange={(e) => setData('relation_to_victim', e.target.value)}
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Section 2: Narrative */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-black uppercase text-muted-foreground tracking-widest border-b pb-2">II. Incident Narrative</h3>
+                                {/* Section 2: Incident Narrative */}
+                                <div className="space-y-4 border-b border-red-100 pb-4">
+                                    <h3 className="text-sm font-bold uppercase text-red-900 flex items-center gap-2">
+                                        <span className="bg-red-100 px-2 py-1 rounded text-[#ce1126]">2</span>
+                                        Incident Narrative
+                                    </h3>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="type">Type of Abuse (If known)</Label>
+                                        <Select onValueChange={(val) => setData('abuse_type', val)}>
+                                            <SelectTrigger className="rounded-sm focus:ring-[#ce1126] focus:border-[#ce1126]">
+                                                <SelectValue placeholder="Select Abuse Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {abuseTypes && abuseTypes.length > 0 ? (
+                                                    abuseTypes.map((t) => (
+                                                        <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <>
+                                                        <SelectItem value="Physical">Physical</SelectItem>
+                                                        <SelectItem value="Sexual">Sexual</SelectItem>
+                                                        <SelectItem value="Psychological">Psychological</SelectItem>
+                                                        <SelectItem value="Economic">Economic</SelectItem>
+                                                    </>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="incident_date">Date & Time of Incident *</Label>
@@ -191,8 +210,11 @@ export default function VawcReport() {
                                 </div>
 
                                 {/* Section 3: Evidence */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-black uppercase text-muted-foreground tracking-widest border-b pb-2">III. Evidence (Optional)</h3>
+                                <div className="space-y-4 border-b border-red-100 pb-4">
+                                    <h3 className="text-sm font-bold uppercase text-red-900 flex items-center gap-2">
+                                        <span className="bg-red-100 px-2 py-1 rounded text-[#ce1126]">3</span>
+                                        Evidence (Optional)
+                                    </h3>
                                     <div
                                         className="border-2 border-dashed border-input dark:border-slate-700 rounded-sm p-6 flex flex-col items-center text-center hover:bg-accent transition-colors cursor-pointer"
                                         onClick={() => document.getElementById('evidence')?.click()}
@@ -216,17 +238,49 @@ export default function VawcReport() {
                                     </div>
                                 </div>
 
-                                {/* Privacy Agreement */}
-                                <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/50 rounded-sm">
-                                    <Checkbox id="privacy" className="mt-1 data-[state=checked]:bg-[#ce1126] data-[state=checked]:border-[#ce1126]" required />
-                                    <Label htmlFor="privacy" className="text-xs text-foreground leading-relaxed font-normal">
-                                        I certify that the information provided is true and correct to the best of my knowledge. I understand that this information will be handled with strict confidentiality in accordance with the Data Privacy Act of 2012 and RA 9262.
-                                    </Label>
-                                </div>
+                                {/* Section 4: Reporter / Privacy */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold uppercase text-red-900 flex items-center gap-2">
+                                        <span className="bg-red-100 px-2 py-1 rounded text-[#ce1126]">4</span>
+                                        Reporter Information
+                                    </h3>
 
-                                <Button type="submit" className="w-full bg-[#ce1126] hover:bg-red-800 dark:hover:bg-red-700 text-white font-black uppercase py-6 rounded-sm text-sm tracking-widest shadow-lg hover:shadow-xl transition-all">
-                                    Submit Confidential Report <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="complainant_name">Your Name (Reporter) *</Label>
+                                            <Input
+                                                id="complainant_name"
+                                                placeholder="Unless anonymous, please provide name"
+                                                className="rounded-sm focus:border-[#ce1126] focus:ring-[#ce1126]"
+                                                value={data.complainant_name}
+                                                onChange={(e) => setData('complainant_name', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="complainant_contact">Contact Number</Label>
+                                            <Input
+                                                id="complainant_contact"
+                                                placeholder="For us to reach you"
+                                                className="rounded-sm focus:border-[#ce1126] focus:ring-[#ce1126]"
+                                                value={data.complainant_contact}
+                                                onChange={(e) => setData('complainant_contact', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Privacy Agreement */}
+                                    <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/50 rounded-sm mt-4">
+                                        <Checkbox id="privacy" className="mt-1 data-[state=checked]:bg-[#ce1126] data-[state=checked]:border-[#ce1126]" required />
+                                        <Label htmlFor="privacy" className="text-xs text-foreground leading-relaxed font-normal">
+                                            I certify that the information provided is true and correct to the best of my knowledge. I understand that this information will be handled with strict confidentiality in accordance with the Data Privacy Act of 2012 and RA 9262.
+                                        </Label>
+                                    </div>
+
+                                    <Button type="submit" className="w-full bg-[#ce1126] hover:bg-red-800 dark:hover:bg-red-700 text-white font-black uppercase py-6 rounded-sm text-sm tracking-widest shadow-lg hover:shadow-xl transition-all">
+                                        Submit Confidential Report <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+
+                                </div>
                             </form>
                         </CardContent>
                     </Card>

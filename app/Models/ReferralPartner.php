@@ -5,19 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AbuseType extends Model
+class ReferralPartner extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
         'category',
-        'color',
-        'description',
+        'contact_info',
         'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
     ];
 }

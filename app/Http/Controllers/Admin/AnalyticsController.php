@@ -15,7 +15,10 @@ class AnalyticsController extends Controller
         $currentYear = 2026; // Mock for prompt or Carbon::now()->year;
 
         // Fetch dynamic types
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
+        // Fetch dynamic types for VAWC specifically
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+            ->whereIn('category', ['VAWC', 'Both'])
+            ->get();
 
         $reports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
             ->whereYear('incident_date', $currentYear)

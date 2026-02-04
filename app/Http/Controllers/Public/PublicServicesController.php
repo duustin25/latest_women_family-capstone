@@ -25,7 +25,10 @@ class PublicServicesController extends Controller
 
     public function vawcReport()
     {
-        return Inertia::render('Public/VAWC/Report');
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
+        return Inertia::render('Public/VAWC/Report', [
+            'abuseTypes' => $abuseTypes
+        ]);
     }
 
     public function storeVawcReport(Request $request)
@@ -37,6 +40,7 @@ class PublicServicesController extends Controller
             'complainant_contact' => 'nullable|string|max:255',
             'relation_to_victim' => 'nullable|string|max:255',
             'incident_date' => 'required|date',
+            'abuse_type' => 'nullable|string|max:255',
             'incident_location' => 'required|string|max:255',
             'description' => 'required|string',
             'is_anonymous' => 'boolean',
@@ -44,7 +48,7 @@ class PublicServicesController extends Controller
         ]);
 
         $validated['case_number'] = 'VAWC-' . date('Ymd') . '-' . rand(1000, 9999);
-        $validated['status'] = 'pending';
+        $validated['status'] = 'New';
 
         // Handle File Upload
         if ($request->hasFile('evidence')) {
@@ -70,13 +74,16 @@ class PublicServicesController extends Controller
             'concern_type' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'description' => 'required|string',
+            'victim_name' => 'nullable|string|max:255',
+            'victim_age' => 'nullable|numeric',
+            'victim_gender' => 'nullable|string|in:Male,Female',
             'informant_name' => 'nullable|string|max:255',
             'informant_contact' => 'nullable|string|max:255',
             'is_anonymous' => 'boolean',
         ]);
 
         $validated['case_number'] = 'BCPC-' . date('Ymd') . '-' . rand(1000, 9999);
-        $validated['status'] = 'pending';
+        $validated['status'] = 'New';
 
         \App\Models\BcpcReport::create($validated);
 

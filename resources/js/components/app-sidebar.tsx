@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, User2, Wallpaper } from 'lucide-react';
+import { Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -56,6 +56,11 @@ const mainNavItems: NavItem[] = [
         title: 'Audit Logs',
         href: '/admin/audit-logs',
         icon: Logs,
+    },
+    {
+        title: 'Settings',
+        href: '/admin/settings',
+        icon: Settings,
     },
 ];
 
