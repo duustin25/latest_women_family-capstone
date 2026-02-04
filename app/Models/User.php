@@ -18,10 +18,23 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    // Role Constants
+    const ROLE_ADMIN = 'admin';
+    const ROLE_HEAD = 'head'; // Committee Head
+    const ROLE_PRESIDENT = 'president'; // Org President
+    const ROLE_RESIDENT = 'resident';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
+        'organization_id',
     ];
 
     /**
@@ -49,4 +62,25 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * RELATIONSHIP: User belongs to an organization (if they are a President)
+     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    // --- Helpers ---
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+
+    public function isPresident(): bool
+    {
+        return $this->role === self::ROLE_PRESIDENT;
+    }
 }
+

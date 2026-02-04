@@ -12,13 +12,29 @@ use Illuminate\Support\Facades\Storage;
 
 class AnnouncementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $announcement = Announcement::latest()->paginate(10);
+        // $announcement = Announcement::latest()->paginate(10);
+
+        // Start a basic query
+        $query = Announcement::query()->latest();
+
+        // Simple Filter Logic
+        // If the search input is not empty
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+
+            $query->where('title', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('category', 'LIKE', "%{$searchTerm}%");
+        }
+
+        // Get the result (10 per page depend on your [] kupal)
+        $announcement = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Announcements/Index', [
             // This 'collection' method handles the pagination meta/links automatically
-            'announcements' => AnnouncementResource::collection($announcement)
+            'announcements' => AnnouncementResource::collection($announcement),
+            'filters' => $request->only(['search'])
         ]);
     }
 
@@ -48,7 +64,7 @@ class AnnouncementController extends Controller
         // Slug is handled automatically by the Model's boot method we wrote!
         Announcement::create($validated);
 
-        return redirect()->route('announcements.index')->with('message', 'Post created!');
+        return redirect()->back()->with('message', 'Post created! You can add another');
     }
 
     public function edit(Announcement $announcement)
@@ -80,8 +96,7 @@ class AnnouncementController extends Controller
 
         // We update everything except the ID
         $announcement->update($validated);
-
-        return redirect()->route('announcements.index')->with('success', 'Announcement Updated!');
+        return redirect()->back()->with('success', 'Announcement Updated!');
     }
 
     public function destroy(Announcement $announcement)
@@ -91,6 +106,6 @@ class AnnouncementController extends Controller
         }
         
         $announcement->delete();
-        return redirect()->route('announcements.index')->with('success', 'Post deleted.');
+        return redirect()->back()->with('success', 'Post deleted.');
     }
 }

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // e.g., KALIPI
             $table->string('slug')->unique(); // e.g., kalipi-association
-            $table->string('description'); // Short description
+            $table->text('description'); // Short description
             $table->string('president_name')->nullable();
             $table->string('color_theme')->default('bg-blue-700'); // For your UI coloring
             $table->string('image_path')->nullable(); // Banner image
@@ -23,7 +23,6 @@ return new class extends Migration
             $table->timestamps();
         });
     }
-
     
     /**
      * Reverse the migrations.

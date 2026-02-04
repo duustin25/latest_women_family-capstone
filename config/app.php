@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    'location' => [
+        'barangay' => env('VITE_BARANGAY_NAME', 'Default Brgy'),
+        'city' => env('VITE_CITY_NAME', 'Default City'),
+    ],
 ];

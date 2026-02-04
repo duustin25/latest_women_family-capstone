@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Organization;
+use App\Models\MembershipApplication;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+
+class MembershipService
+{
+    /**
+     * Handle the creation of a new membership application.
+     * Strategy: Accepts raw request data, validates based on rules, constructs JSON, and saves.
+     */
+    public function submitApplication(array $data)
+    {
+        // 1. Basic Validation
+        $validator = Validator::make($data, [
+            'organization_id' => 'required|exists:organizations,id',
+            'fullname' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'birthdate' => 'required|date',
+            'sex' => 'required|string',
+            'civil_status' => 'required|string',
+            'contact_number' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        // 2. Organization Specific Check (Strategy Trigger)
+        // In a more complex app, we might load a specific Strategy Class here based on Org Slug.
+        // For now, we will handle the JSON construction flexibly.
+
+        // 3. Construct JSON Data Arrays
+        $personalData = [
+            'birthdate' => $data['birthdate'],
+            'sex' => $data['sex'],
+            'civil_status' => $data['civil_status'],
+            'contact_number' => $data['contact_number'],
+            'occupation' => $data['occupation'] ?? null,
+            'skills' => $data['skills'] ?? null,
+            // Add any other dynamic fields passed that aren't top-level
+        ];
+
+        $familyData = [
+            'num_children' => $data['num_children'] ?? 0,
+            // Future: Loop through 'dependents' array if provided
+        ];
+
+        // 4. Create the Record
+        return MembershipApplication::create([
+            'organization_id' => $data['organization_id'],
+            'fullname' => $data['fullname'],
+            'address' => $data['address'],
+            'personal_data' => $personalData,
+            'family_data' => $familyData,
+            'status' => 'pending',
+        ]);
+    }
+
+    /**
+     * Get applications scoped by User Role.
+     */
+    public function getScopedApplications($user, $perPage = 10)
+    {
+        $query = MembershipApplication::with('organization')->latest();
+
+        if ($user->isPresident()) {
+            // President only sees their own organization's applications
+            $query->where('organization_id', $user->organization_id);
+        }
+        // Admins see everything.
+
+        return $query->paginate($perPage)->withQueryString();
+    }
+}

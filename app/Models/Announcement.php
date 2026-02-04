@@ -33,4 +33,15 @@ class Announcement extends Model
                 : asset('images/placeholder.jpg'),
         );
     }
+
+    /**
+     * Get the route key for the model.
+     * This allows Laravel to resolve /announcements/my-title-slug
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+
 }

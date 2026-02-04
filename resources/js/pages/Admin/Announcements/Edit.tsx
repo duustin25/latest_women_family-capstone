@@ -7,9 +7,6 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
-interface Props {
-    announcement: any; // Ideally synced with AnnouncementResource
-}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url },
@@ -17,7 +14,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit', href: '#' },
 ];
 
-export default function Edit({ announcement }: Props) {
+
+export default function Edit({ announcement }: { announcement: any}) {
+    // 1. Helper function to ensure YYYY-MM-DD format
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return '';
+        // This takes "2026-01-28T11:00:00.000000Z" and makes it "2026-01-28"
+        // Or handles raw date strings from the DB
+        return new Date(dateString).toISOString().split('T')[0];
+    };
+
     // 1. SAFE DATA ACCESS
     // We only declare this ONCE. 
     // We use ?. to ensure that if announcement is null, it doesn't crash.
@@ -32,7 +38,7 @@ export default function Edit({ announcement }: Props) {
         content: record?.content || '',
         image: null as File | null,
         // Using || '' ensures the input field is never "undefined" (which causes React warnings)
-        event_date: record?.event_date || record?.raw_date || '', 
+        event_date: formatDate(record?.event_date || record?.raw_date) || '',
         location: record?.location || '',
     });
 
@@ -48,7 +54,7 @@ export default function Edit({ announcement }: Props) {
 
         // Use the route helper if you have Ziggy installed, 
         // otherwise, ensure this URL matches your php artisan route:list
-        post(`/admin/announcements/${record.id}`, {
+        post(`/admin/announcements/${record.slug}`, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => console.log("Update successful"),
@@ -109,6 +115,10 @@ export default function Edit({ announcement }: Props) {
                                         <option value="General">General</option>
                                         <option value="VAWC">VAWC</option>
                                         <option value="GAD">GAD</option>
+                                        <option value="Health">Health</option>
+                                        <option value="Emergency">Emergency</option>
+                                        <option value="Events">Events</option>
+                                        <option value="Organizations">Organizations</option>
                                     </select>
                                 </div>
                             </div>

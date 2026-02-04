@@ -7,6 +7,7 @@ use App\Models\Organization;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Http\Resources\AnnouncementResource;
+use App\Http\Resources\OrganizationResource;
 
 class HomeController extends Controller
 {
@@ -18,10 +19,8 @@ class HomeController extends Controller
             // Latest 3 for the home page slider/grid
             'announcements' => AnnouncementResource::collection(Announcement::latest()->take(3)->get()),
             
-            // We should eventually make an OrganizationResource too!
-            'organizations' => Organization::all(), 
-
-        
+            // Use the Resource here too!
+            'organizations' => OrganizationResource::collection(Organization::latest()->take(4)->get()), 
         ]);
     }
 }

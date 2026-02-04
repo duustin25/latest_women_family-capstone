@@ -18,17 +18,12 @@ class AnnouncementResource extends JsonResource
         return [
             'id'       => $this->id,
             'title'    => $this->title,
+            'slug'     => $this->slug,
             'category' => $this->category,
             'excerpt'  => $this->excerpt,
             'location' => $this->location,
             'date'     => $this->event_date?->format('M d, Y') ?? $this->created_at->format('M d, Y'),
             'image'    => $this->image_url, // From Model Accessor
-            
-            // Include content if it's the public view OR the admin edit page
-            // 'content' => $this->when(
-            //     $request->routeIs('announcements.view') || $request->routeIs('announcements.edit'), 
-            //     $this->content
-            // ),
             
             'content' => $this->content,
             

@@ -1,17 +1,22 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, MapPin, Calendar, LayoutDashboard, Plus } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { 
+    MoreHorizontal, Pencil, Trash2, MapPin, Calendar, 
+    LayoutDashboard, Plus, X, Search
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { title } from 'process';
+import { Input } from '@/components/ui/input';
 import { dashboard } from '@/routes';
+import { useState } from 'react';
 
 interface Announcement {
     id: number;
     title: string;
+    slug: string;
     category: string;
     excerpt: string;
     location: string;
@@ -27,6 +32,10 @@ interface PageProps {
             total: number;
         };
     };
+
+    filters: {
+        search: string;
+    }
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,13 +43,28 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Announcements', href: '/admin/announcements' },
 ];
 
-export default function Index({ announcements }: PageProps) {
-    // Laravel 12/Inertia flash handling
-    const { flash } = usePage().props as any;
+export default function Index({ announcements, filters }: PageProps) {
+    const [ search, setSearch] = useState(filters?.search ?? '');
 
-    const handleDelete = (announcement: {id: number; title: string}) => {
+    const handleSearch = () => {
+        router.get('/admin/announcements',
+            { search: search },
+            { preserveState: true }
+        );
+    }
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSearch();
+    };
+
+    const handleClear = () => {
+        setSearch('');
+        router.get('/admin/announcements', {}, { preserveState: true});
+    };
+
+    const handleDelete = (announcement: Announcement) => {
         if (confirm(`Delete this announcement: ${announcement.title}? This action cannot be undone.`)) {
-            router.delete(`/admin/announcements/${announcement.id}`);
+            router.delete(`/admin/announcements/${announcement.slug}`);
         }
     };
 
@@ -49,6 +73,7 @@ export default function Index({ announcements }: PageProps) {
             <Head title="Announcements Management" />
             
             <div className="p-6 lg:p-8 bg-white dark:bg-slate-950 min-h-screen">
+
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
@@ -57,7 +82,7 @@ export default function Index({ announcements }: PageProps) {
                             Manage Announcements
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                            Total Records: {announcements.meta?.total || announcements.data.length}
+                            Total Records: {announcements.meta.total || announcements.data.length}
                         </p>
                     </div>
                     
@@ -66,6 +91,38 @@ export default function Index({ announcements }: PageProps) {
                             <Plus className="w-4 h-4" /> Create New Post
                         </Button>
                     </Link>
+                </div>
+
+
+                 {/* --- MANUAL SEARCH BAR --- */}
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Input 
+                            placeholder="Type title or category to search" 
+                            className="pl-10 h-11 bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800 font-medium"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={handleKeyPress}
+                        />
+                    </div>
+                    
+                    <Button 
+                        onClick={handleSearch}
+                        className="bg-slate-900 dark:bg-blue-700 h-11 px-6 uppercase font-black text-[10px] tracking-widest"
+                    >
+                        Find Records
+                    </Button>
+
+                    {filters?.search && (
+                        <Button 
+                            variant="ghost" 
+                            onClick={handleClear}
+                            className="h-11 px-4 text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                            <X className="w-4 h-4 mr-1" /> CLEAR FILTER
+                        </Button>
+                    )}
                 </div>
 
                 {/* Table Section */}
@@ -87,7 +144,7 @@ export default function Index({ announcements }: PageProps) {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                announcements.data.map((item) => (
+                                announcements.data.map((item : any) => (
                                     <TableRow key={item.id} className="dark:border-slate-800">
                                         <TableCell>
                                             <div className="flex items-center gap-3">
@@ -127,7 +184,7 @@ export default function Index({ announcements }: PageProps) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="dark:bg-slate-900 dark:border-slate-800">
-                                                    <Link href={`/admin/announcements/${item.id}/edit`}>
+                                                    <Link href={`/admin/announcements/${item.slug}/edit`}>
                                                         <DropdownMenuItem className="cursor-pointer">
                                                             <Pencil className="mr-2 h-4 w-4" /> Edit
                                                         </DropdownMenuItem>
@@ -174,3 +231,6 @@ export default function Index({ announcements }: PageProps) {
         </AppLayout>
     );
 }
+
+
+

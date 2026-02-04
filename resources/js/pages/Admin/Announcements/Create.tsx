@@ -93,6 +93,7 @@ export default function Create() {
                                         <option value="Health">Health</option>
                                         <option value="Emergency">Emergency</option>
                                         <option value="Events">Events</option>
+                                        <option value="Organizations">Organizations</option>
                                     </select>
                                     {errors.category && <p className="text-red-500 text-xs font-medium">{errors.category}</p>}
                                 </div>
