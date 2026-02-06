@@ -40,8 +40,8 @@ class SettingsController extends Controller
         $type = AbuseType::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|unique:abuse_types,name,' . $id,
-            'category' => 'required|string|in:VAWC,BCPC,Both',
+            'name' => 'sometimes|required|string|unique:abuse_types,name,' . $id,
+            'category' => 'sometimes|required|string|in:VAWC,BCPC,Both',
             'color' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'boolean'
@@ -70,8 +70,8 @@ class SettingsController extends Controller
         $partner = ReferralPartner::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string',
-            'category' => 'required|string|in:VAWC,BCPC,Both',
+            'name' => 'sometimes|required|string',
+            'category' => 'sometimes|required|string|in:VAWC,BCPC,Both',
             'contact_info' => 'nullable|string',
             'is_active' => 'boolean'
         ]);

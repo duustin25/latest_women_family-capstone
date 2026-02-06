@@ -64,15 +64,31 @@ class MembershipService
     /**
      * Get applications scoped by User Role.
      */
-    public function getScopedApplications($user, $perPage = 10)
+    public function getScopedApplications($user, $filters = [], $perPage = 10)
     {
         $query = MembershipApplication::with('organization')->latest();
 
+        // 1. RBAC Scoping
         if ($user->isPresident()) {
-            // President only sees their own organization's applications
             $query->where('organization_id', $user->organization_id);
         }
-        // Admins see everything.
+
+        // 2. Apply Filters
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('fullname', 'like', "%{$search}%")
+                    ->orWhere('id', 'like', "%{$search}%"); // Search by ID too
+            });
+        }
+
+        if (!empty($filters['status']) && $filters['status'] !== 'All') {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['organization_id']) && $filters['organization_id'] !== 'All') {
+            $query->where('organization_id', $filters['organization_id']);
+        }
 
         return $query->paginate($perPage)->withQueryString();
     }

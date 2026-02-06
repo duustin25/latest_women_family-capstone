@@ -19,16 +19,16 @@ interface Props {
 export default function AnalyticsChart({ data, config }: Props) {
     // Default config if not provided (Fallbacks)
     const defaultConfig: ChartConfig[] = [
-        { key: 'physical', label: 'Physical Abuse', color: '#ef4444' },
-        { key: 'sexual', label: 'Sexual Abuse', color: '#a855f7' },
-        { key: 'psychological', label: 'Psychological Abuse', color: '#f97316' },
-        { key: 'economic', label: 'Economic Abuse', color: '#3b82f6' },
+        { key: 'physical', label: 'Physical Abuse', color: '#FF0000' },
+        { key: 'sexual', label: 'Sexual Abuse', color: '#0000FF' },
+        { key: 'psychological', label: 'Psychological Abuse', color: '#00FF00' },
+        { key: 'economic', label: 'Economic Abuse', color: '#FFFF00' },
     ];
 
     const activeConfig = config || defaultConfig;
 
     return (
-        <div className="bg-white p-4 rounded-lg">
+        <div className="p-4 rounded-lg">
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
@@ -40,7 +40,7 @@ export default function AnalyticsChart({ data, config }: Props) {
                             bottom: 5,
                         }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#64748b" />
                         <XAxis
                             dataKey="month"
                             tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
@@ -54,7 +54,7 @@ export default function AnalyticsChart({ data, config }: Props) {
                         />
                         <Tooltip
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                            cursor={{ fill: '#f1f5f9' }}
+                            cursor={{ fill: '#525252 ' }}
                         />
                         <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }} />
 

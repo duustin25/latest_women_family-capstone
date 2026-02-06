@@ -129,11 +129,11 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
 
                     {/* Toolbar: Title and Actions */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        <div className="">
+                            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                                 Case Registry
                             </h1>
-                            <p className="text-slate-500 text-sm">
+                            <p className="text-sm text-slate-500 dark:text-white">
                                 Manage VAWC and BCPC cases.
                             </p>
                         </div>
@@ -155,7 +155,7 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                     </div>
 
                     {/* Filters & Search */}
-                    <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-slate-950 p-4 rounded-lg shadow-sm dark:shadow-none grid grid-cols-1 md:grid-cols-4 gap-4 transition-colors duration-200">
                         {/* Search */}
                         <div className="md:col-span-1 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -218,9 +218,9 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                     </div>
 
                     {/* Data Table */}
-                    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm dark:text-white dark:border-slate-900 dark:bg-slate-900">
                         <Table>
-                            <TableHeader className="bg-slate-50">
+                            <TableHeader className="bg-slate-50 dark:bg-slate-800">
                                 <TableRow>
                                     <TableHead className="w-[180px]">Case No.</TableHead>
                                     <TableHead>Date Filed</TableHead>
@@ -234,17 +234,17 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                                 {filteredCases.length > 0 ? (
                                     filteredCases.map((item) => (
                                         // CRITICAL FIX: Use composite key to prevent duplicates
-                                        <TableRow key={`${item.type}-${item.id}`} className="hover:bg-slate-50">
+                                        <TableRow key={`${item.type}-${item.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">
                                             <TableCell className="font-medium">{item.case_number}</TableCell>
                                             <TableCell className="text-slate-500 text-sm">{item.date}</TableCell>
                                             <TableCell>
                                                 <span className={`text-xs font-bold px-2 py-1 rounded ${item.type === 'VAWC' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
                                                     {item.type}
                                                 </span>
-                                                <div className="text-[15px] text-slate-900 mt-1">{item.subType}</div>
+                                                <div className="text-[15px] text-slate-900 mt-1 dark:text-white">{item.subType}</div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="font-medium text-sm text-slate-900">{item.name}</div>
+                                                <div className="font-medium text-sm text-slate-900 dark:text-white">{item.name}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <StatusBadge status={item.status} referredTo={item.referred_to} />

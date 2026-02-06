@@ -1,36 +1,26 @@
 import { Head } from '@inertiajs/react';
 import PublicLayout from '@/layouts/PublicLayout';
-import {
-    ShieldCheck, Star, Users,
-    ShieldAlert, Award,
-    Scale, UserCheck, Landmark, Heart,
-    Gavel, Briefcase, GraduationCap
-} from "lucide-react";
+import { ShieldCheck, Award, Landmark, UserCheck, Heart, ShieldAlert, Users } from "lucide-react";
 
-export default function Index() {
+interface Official {
+    id: number;
+    name: string;
+    position: string;
+    committee?: string;
+    image_path: string;
+}
+
+interface Props {
+    head: Official | null;
+    secretary: Official | null;
+    staff: Official[];
+}
+
+export default function Index({ head, secretary, staff }: Props) {
     const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME || 'Barangay 183 Villamor';
 
-    const officeHead = {
-        name: "HON. GERALD JOHN M. SOBREVEGA",
-        position: "BRGY. KAGAWAD / HEAD",
-        committee: "COMMITTEE ON AVWAC, BCPC, BADAC - ADVOCACY",
-        image: "https://scontent.fmnl8-4.fna.fbcdn.net/v/t39.30808-6/591991203_823952690443525_1736614877442256753_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_ohc=g1GJXU6srtwQ7kNvwE1F0G9&_nc_oc=AdlR1k6dh52QbHt_a4oNxMMqhIil5ZAYN13blHJmrM0FkjoMfQEDQjU1sx79-us6feI&_nc_zt=23&_nc_ht=scontent.fmnl8-4.fna&_nc_gid=lk0lsWLsuPDSMCKHc9sxaQ&oh=00_AfvuwKFi3ReL1EeKUJQ6wsB1mZ9fG-NGSHRXkaMkINyJ9A&oe=69836AD0"
-    };
-
-    const secretary = {
-        name: "MICHELLE N. LICO",
-        position: "SECRETARY",
-        image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&h=400&fit=crop"
-    };
-
-    const staffMembers = [
-        { name: "LUZVIMINDA GONZALES", position: "AVWAC OFFICER", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&h=200&fit=crop" },
-        { name: "GEMMA GONZALES", position: "AVWAC OFFICER", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&h=200&fit=crop" },
-        { name: "MARIA TERESA BRIZUELA", position: "STAFF", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&h=200&fit=crop" },
-        { name: "NELIA CRUZ", position: "STAFF", image: "https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=200&h=200&fit=crop" },
-        { name: "RAMIL RODRIGUEZ", position: "STAFF", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&h=200&fit=crop" },
-        { name: "KAYE AMARILLE", position: "STAFF", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&h=200&fit=crop" },
-    ];
+    // Default Avatar generator
+    const defaultImage = "https://ui-avatars.com/api/?background=random&name=";
 
     const presidents = [
         { org: "KALIPI", name: "ELENA REYES", icon: <UserCheck size={18} /> },
@@ -39,130 +29,112 @@ export default function Index() {
         { org: "ERPAT", name: "RAMIL RODRIGUEZ", icon: <Users size={18} /> },
     ];
 
+    const OrgCard = ({ image_path, name, position, committee, className = "" }: any) => {
+        const imgSrc = image_path || defaultImage + encodeURIComponent(name);
+
+        return (
+            <div className={`flex flex-col items-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-sm p-4 rounded-md w-64 text-center z-10 ${className}`}>
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-600 mb-3 bg-slate-100 dark:bg-slate-800">
+                    <img src={imgSrc} alt={name} className="w-full h-full object-cover" />
+                </div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase leading-tight mb-1">{name}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">{position}</p>
+                {committee && (
+                    <p className="text-slate-400 dark:text-slate-500 text-[9px] font-medium uppercase mt-2 border-t border-slate-100 dark:border-slate-800 pt-2 w-full">
+                        {committee}
+                    </p>
+                )}
+            </div>
+        );
+    };
+
     return (
         <PublicLayout>
-            <Head title="Organization Chart" />
+            <Head title="Structure" />
 
-            <div className="bg-slate-50 dark:bg-slate-950 pb-24">
-                {/* --- HERO HEADER --- */}
-                <div className="bg-[#3b0764] py-20 px-4 text-center text-white border-b-8 border-yellow-500 relative overflow-hidden">
-                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                    <div className="relative z-10 max-w-5xl mx-auto">
-                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 italic">
-                            Organizational <span className="text-yellow-400">Structure</span>
-                        </h1>
-                        <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-yellow-200/80">
-                            {brgyName} • Office of Women and Family Protection
-                        </p>
+            <div className="bg-slate-50 dark:bg-slate-950 min-h-screen pb-24 font-sans selection:bg-blue-100">
+                {/* --- SIMPLE HEADER --- */}
+                <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-12 text-center shadow-sm">
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2">
+                        Organizational Structure
+                    </h1>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+                        {brgyName} • Office of Women and Family Protection
+                    </p>
+                </div>
+
+                <div className="container mx-auto px-4 mt-16 overflow-x-auto">
+                    <div className="w-full min-w-[800px] flex flex-col items-center">
+
+                        {/* --- LEVEL 1: HEAD --- */}
+                        <div className="flex flex-col items-center">
+                            {head ? (
+                                <OrgCard {...head} className="border-t-4 border-t-purple-600 dark:border-t-purple-500" />
+                            ) : (
+                                <div className="p-4 text-slate-400 border border-dashed text-sm">No Active Head</div>
+                            )}
+                            {/* Vertical Line Down */}
+                            <div className="w-px h-12 bg-slate-400 dark:bg-slate-600"></div>
+                        </div>
+
+                        {/* --- LEVEL 2: SECRETARY --- */}
+                        <div className="flex flex-col items-center relative">
+                            {secretary ? (
+                                <OrgCard {...secretary} />
+                            ) : (
+                                <div className="p-4 text-slate-400 border border-dashed text-sm">No Secretary</div>
+                            )}
+                            <div className="w-px h-12 bg-slate-400 dark:bg-slate-600"></div>
+                        </div>
+
+                        {/* --- LEVEL 3: STAFF (BRANCHING) --- */}
+                        <div className="flex flex-col items-center w-full">
+                            <div className="relative w-[30%] lg:w-[60%] h-px bg-slate-400 dark:bg-slate-600 mb-8 self-center">
+                                <div className="absolute left-1/2 -top-12 h-12 w-px bg-slate-400 dark:bg-slate-600 -translate-x-1/2"></div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-x-8 gap-y-12">
+                                {staff.length > 0 ? staff.map((member) => (
+                                    <div key={member.id} className="flex flex-col items-center relative">
+                                        {/* Connector Up to Horizontal Line */}
+                                        <div className="absolute -top-12 bottom-full left-1/2 w-px h-12 bg-slate-400 dark:bg-slate-600 -translate-x-1/2"></div>
+                                        {/* Dot at intersection */}
+                                        <div className="absolute -top-[49px] left-1/2 w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full -translate-x-1/2"></div>
+
+                                        <OrgCard {...member} className="w-56" />
+                                    </div>
+                                )) : (
+                                    <div className="col-span-3 text-center text-slate-400 text-sm italic">
+                                        No staff members added yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <div className="container mx-auto px-4 -mt-12 relative z-30">
-
-                    {/* --- LEVEL 1: THE HEAD --- */}
-                    <div className="flex flex-col items-center mb-16">
-                        <div className="bg-white dark:bg-slate-900 p-1 rounded-sm shadow-2xl border-2 border-yellow-500">
-                            <div className="flex flex-col md:flex-row items-center gap-6 p-6 md:pr-12">
-                                <img src={officeHead.image} className="w-32 h-32 md:w-40 md:h-40 object-cover border-4 border-slate-100 dark:border-slate-800" alt="" />
-                                <div className="text-center md:text-left">
-                                    <div className="bg-purple-700 text-white text-[9px] font-black uppercase px-3 py-1 w-fit mb-3 mx-auto md:mx-0 tracking-widest">
-                                        Committee Chairman
-                                    </div>
-                                    <h3 className="font-black text-xl md:text-2xl text-slate-900 dark:text-white uppercase leading-tight mb-2">
-                                        {officeHead.name}
-                                    </h3>
-                                    <p className="text-purple-600 dark:text-purple-400 font-bold text-xs uppercase tracking-widest italic mb-2">
-                                        {officeHead.position}
-                                    </p>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter max-w-xs">
-                                        {officeHead.committee}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="w-1 h-12 bg-slate-300 dark:bg-slate-800"></div>
-                    </div>
-
-                    {/* --- LEVEL 2: SECRETARY --- */}
-                    <div className="flex flex-col items-center mb-16">
-                        <div className="bg-white dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800 shadow-xl">
-                            <div className="bg-emerald-700 text-white flex items-center gap-4 px-6 py-4 w-[300px] md:w-[400px]">
-                                <img src={secretary.image} className="w-16 h-16 object-cover border-2 border-white/20" alt="" />
-                                <div>
-                                    <h3 className="font-black text-sm uppercase leading-tight">{secretary.name}</h3>
-                                    <p className="text-emerald-200 font-bold text-[9px] uppercase tracking-widest mt-1">
-                                        {secretary.position}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="w-1 h-12 bg-slate-300 dark:bg-slate-800"></div>
-                    </div>
-
-                    {/* --- LEVEL 3: STAFF GRID --- */}
-                    <div className="max-w-6xl mx-auto mb-32">
-                        <div className="relative">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-1 bg-slate-200 dark:bg-slate-800 hidden lg:block"></div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10">
-                                {staffMembers.map((officer, i) => (
-                                    <div key={i} className="flex flex-col items-center relative">
-                                        <div className="w-1 h-10 bg-slate-200 dark:bg-slate-800 absolute -top-10 hidden lg:block"></div>
-                                        <div className="bg-white dark:bg-slate-900 w-full p-4 flex items-center gap-4 border border-slate-200 dark:border-slate-800 hover:border-purple-500 transition-all shadow-sm">
-                                            <img src={officer.image} className="w-14 h-14 object-cover grayscale hover:grayscale-0 transition-all" alt="" />
-                                            <div>
-                                                <h4 className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight">{officer.name}</h4>
-                                                <p className="text-slate-400 font-black text-[8px] uppercase tracking-widest mt-1 italic">{officer.position}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* --- MANDATED ORGANIZATIONS --- */}
-                    <div className="mt-40">
-                        <div className="flex flex-col items-center mb-12">
-                            <div className="bg-slate-900 dark:bg-purple-900 text-white px-10 py-4 border-b-4 border-yellow-500 flex items-center gap-4">
-                                <Landmark className="text-yellow-400" />
-                                <h2 className="font-black text-xs uppercase tracking-[0.3em]">Accredited Organization Presidents</h2>
-                            </div>
+                {/* --- RELATED ORGS SECTION --- */}
+                <div className="mt-32 border-t border-slate-200 dark:border-slate-800 pt-16">
+                    <div className="container mx-auto px-4 text-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">
+                            <Landmark size={12} /> Accredited Partners
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
                             {presidents.map((org, i) => (
-                                <div key={i} className="bg-white dark:bg-slate-900 p-8 text-center border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all group">
-                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 mx-auto mb-4 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors">
+                                <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-purple-200 transition-all flex flex-col items-center group">
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3 group-hover:bg-purple-50 group-hover:text-purple-600 transition-colors">
                                         {org.icon}
                                     </div>
-                                    <span className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-1 block">{org.org}</span>
-                                    <h3 className="font-black text-slate-900 dark:text-white text-xs uppercase tracking-tight">{org.name}</h3>
+                                    <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase">{org.name}</h4>
+                                    <p className="text-purple-600 dark:text-purple-400 text-[9px] font-bold uppercase tracking-wider mt-1">{org.org} President</p>
                                 </div>
                             ))}
                         </div>
                     </div>
-
-                    {/* --- MISSION & VISION --- */}
-                    <div className="mt-40 grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div className="bg-white dark:bg-slate-900 p-10 border-l-[10px] border-purple-700 shadow-sm">
-                            <h3 className="text-purple-700 dark:text-purple-400 text-2xl font-black uppercase mb-4 flex items-center gap-3">
-                                <ShieldCheck size={28} /> Mission
-                            </h3>
-                            <p className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase leading-relaxed tracking-wider">
-                                To provide a secure, confidential, and accessible online platform for residents of Barangay 183 Villamor to report, document, and monitor VAWC and child protection cases.
-                            </p>
-                        </div>
-                        <div className="bg-white dark:bg-slate-900 p-10 border-l-[10px] border-yellow-500 shadow-sm">
-                            <h3 className="text-yellow-600 dark:text-yellow-400 text-2xl font-black uppercase mb-4 flex items-center gap-3">
-                                <Award size={28} /> Vision
-                            </h3>
-                            <p className="text-slate-600 dark:text-slate-300 text-xs font-bold uppercase leading-relaxed tracking-wider">
-                                A just, inclusive, and gender-responsive community where women and families are protected, empowered, and able to participate fully in community development.
-                            </p>
-                        </div>
-                    </div>
                 </div>
+
             </div>
         </PublicLayout>
     );

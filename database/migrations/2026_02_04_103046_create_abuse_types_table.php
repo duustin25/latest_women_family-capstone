@@ -22,10 +22,10 @@ return new class extends Migration {
 
         // Seed default types
         DB::table('abuse_types')->insert([
-            ['name' => 'Physical', 'color' => '#ef4444', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Sexual', 'color' => '#a855f7', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Psychological', 'color' => '#f97316', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Economic', 'color' => '#3b82f6', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Physical', 'color' => '#FF0000', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Sexual', 'color' => '#0000FF', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Psychological', 'color' => '#00FF00', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Economic', 'color' => '#FFFF00', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

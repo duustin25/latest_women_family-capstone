@@ -12,6 +12,7 @@ import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Password settings',

@@ -48,6 +48,11 @@ const mainNavItems: NavItem[] = [
         icon: CircleUser,
     },
     {
+        title: 'Officials',
+        href: '/admin/officials',
+        icon: User2,
+    },
+    {
         title: 'Data Analytics',
         href: '/admin/analytics',
         icon: ChartLine,
@@ -62,6 +67,7 @@ const mainNavItems: NavItem[] = [
         href: '/admin/settings',
         icon: Settings,
     },
+
 ];
 
 const footerNavItems: NavItem[] = [

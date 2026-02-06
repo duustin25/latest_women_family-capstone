@@ -203,7 +203,7 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
                 {/* Main Chart Section */}
                 <Card className="col-span-6">
                     <CardHeader>
-                        <CardTitle>Rates of Women Abuse</CardTitle>
+                        <CardTitle>Rates of Women's Abuse by Month</CardTitle>
                         <CardDescription>
                             Monthly breakdown of reported abuse types for {currentYear}.
                         </CardDescription>

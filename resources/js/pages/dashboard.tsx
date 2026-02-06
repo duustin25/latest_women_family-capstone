@@ -47,7 +47,7 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                 {/* 2. Stat Cards Grid */}
                 <div className="grid gap-4 md:grid-cols-3">
                     {stats.map((stat, i) => (
-                        <div key={i} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl shadow-sm transition-all hover:border-blue-500">
+                        <div key={i} className="border  p-6 rounded-xl shadow-sm transition-all">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest mb-1">
@@ -72,8 +72,8 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
                     {/* Recent Cases Table */}
-                    <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <div className="lg:col-span-2 border rounded-xl shadow-sm overflow-hidden">
+                        <div className="p-6 border-b flex justify-between items-center">
                             <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
                                 <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
                             </h3>
@@ -81,24 +81,24 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                                <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                                     <tr>
-                                        <th className="px-6 py-4">ID</th>
+                                        <th className="px-6 py-4">Case No.</th>
                                         <th className="px-6 py-4">Classification</th>
                                         <th className="px-6 py-4">Status</th>
                                         <th className="px-6 py-4">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                                    <tr className="border-t border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <tr className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
                                         <td className="px-6 py-4">#VAWC-2026-001</td>
-                                        <td className="px-6 py-4 text-red-600 dark:text-red-400">Physical Abuse</td>
+                                        <td className="px-6 py-4 text-red-600 dark:text-red-400">VAWC / Physical Abuse</td>
                                         <td className="px-6 py-4"><span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 rounded text-[9px]">On-going</span></td>
                                         <td className="px-6 py-4 text-slate-400">Jan 28, 2026</td>
                                     </tr>
-                                    <tr className="border-t border-slate-50 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <tr className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
                                         <td className="px-6 py-4">#CPP-2026-014</td>
-                                        <td className="px-6 py-4 text-blue-600 dark:text-blue-400">Neglect</td>
+                                        <td className="px-6 py-4 text-blue-600 dark:text-blue-400">BCPC / Neglect</td>
                                         <td className="px-6 py-4"><span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500 rounded text-[9px]">Resolved</span></td>
                                         <td className="px-6 py-4 text-slate-400">Jan 27, 2026</td>
                                     </tr>
@@ -108,23 +108,23 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                     </div>
 
                     {/* Quick Tasks */}
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6">
+                    <div className="border dark:border rounded-xl shadow-sm p-6">
                         <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
                             <Clock className="w-4 h-4 text-orange-500" /> Quick Tasks
                         </h3>
                         <div className="space-y-3">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <div className="p-4 rounded-lg flex items-center gap-4 cursor-pointer border">
                                 <FileText className="text-slate-400" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] font-black uppercase text-slate-900 dark:text-white">Monthly Report</p>
-                                    <p className="text-[9px] text-slate-400 uppercase font-bold">Due in 2 days</p>
+                                    <p className="text-[11px] font-black uppercase text-slate-900 dark:text-white">Monthly Report</p>
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold">Due in 2 days</p>
                                 </div>
                             </div>
-                            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <div className="p-4 rounded-lg flex items-center gap-4 cursor-pointer border">
                                 <Users className="text-slate-400" />
                                 <div className="flex-1">
-                                    <p className="text-[10px] font-black uppercase text-slate-900 dark:text-white">Member Verifications</p>
-                                    <p className="text-[9px] text-slate-400 uppercase font-bold">12 Applications</p>
+                                    <p className="text-[11px] font-black uppercase text-slate-900 dark:text-white">Member Verifications</p>
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold">12 Applications</p>
                                 </div>
                             </div>
                         </div>
@@ -146,6 +146,6 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AppLayout >
     );
 }

@@ -20,7 +20,15 @@ class PublicServicesController extends Controller
 
     public function officials()
     {
-        return Inertia::render('Public/Officials/Index');
+        $officials = \App\Models\BarangayOfficial::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+
+        return Inertia::render('Public/Officials/Index', [
+            'head' => $officials->where('level', 'head')->first(),
+            'secretary' => $officials->where('level', 'secretary')->first(),
+            'staff' => $officials->where('level', 'staff')->values()->all()
+        ]);
     }
 
     public function vawcReport()

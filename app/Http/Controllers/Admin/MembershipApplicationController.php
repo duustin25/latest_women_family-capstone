@@ -17,11 +17,17 @@ class MembershipApplicationController extends Controller
     public function index(Request $request, \App\Services\MembershipService $service)
     {
         // RBAC: Use Service to scope applications (President sees only their Org, Admin sees all)
-        $applications = $service->getScopedApplications($request->user());
+        // Pass query params as filters
+        $filters = $request->only(['search', 'status', 'organization_id']);
+        $applications = $service->getScopedApplications($request->user(), $filters);
+
+        // Fetch organizations for filter dropdown
+        $organizations = Organization::orderBy('name')->get();
 
         return Inertia::render('Admin/Applications/Index', [
             'applications' => MembershipApplicationResource::collection($applications),
-            'filters' => $request->only(['search'])
+            'filters' => $filters,
+            'organizations' => $organizations
         ]);
     }
 
