@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Users, AlertTriangle, Activity, Plus } from 'lucide-react';
+import { TrendingUp, Users, AlertTriangle, Activity, Plus, FileText } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -67,71 +67,97 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Analytics', href: '#' }]}>
             <Head title="Analytics" />
 
-            <div className="p-6 max-w-7xl mx-auto space-y-8">
+            <div className="p-6 max-w-7x1 mx-auto space-y-8">
 
                 {/* Header with Add Button */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                             <Activity className="w-6 h-6 text-[#ce1126]" />
                             Analytics Overview
                         </h1>
                         <p className="text-slate-500 text-sm">
-                            Statistical reports for Women and Children Protection (CY {currentYear}).
+                            Statistical reports for Women and Children Protection.
                         </p>
                     </div>
 
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="bg-[#ce1126] hover:bg-red-700 text-white font-black uppercase tracking-widest gap-2">
-                                <Plus className="w-4 h-4" /> Add Abuse Type
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle className="font-black uppercase text-[#ce1126]">New Abuse Category</DialogTitle>
-                                <DialogDescription>
-                                    Add a new type of abuse to the database. This will reflect in filing forms and charts immediately.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={submitType} className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="name" className="text-right text-xs font-bold uppercase text-slate-500">
-                                        Type Name
-                                    </Label>
-                                    <Input
-                                        id="name"
-                                        placeholder="e.g. Verbal"
-                                        className="col-span-3"
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        required
-                                    />
-                                    {errors.name && <span className="col-span-4 text-right text-red-500 text-xs">{errors.name}</span>}
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="color" className="text-right text-xs font-bold uppercase text-slate-500">
-                                        Chart Color
-                                    </Label>
-                                    <div className="col-span-3 flex items-center gap-2">
+                    <div className="flex items-center gap-4">
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="gap-2">
+                                    <Plus className="w-4 h-4" /> Add Type
+                                </Button>
+                            </DialogTrigger>
+                            {/* ... Content remains same, just moved trigger ... */}
+                            <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle className="font-black uppercase text-[#ce1126]">New Abuse Category</DialogTitle>
+                                    <DialogDescription>
+                                        Add a new type of abuse to the database.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={submitType} className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="name" className="text-right text-xs font-bold uppercase text-slate-500">
+                                            Type Name
+                                        </Label>
                                         <Input
-                                            id="color"
-                                            type="color"
-                                            className="w-12 h-10 p-1"
-                                            value={data.color}
-                                            onChange={(e) => setData('color', e.target.value)}
+                                            id="name"
+                                            placeholder="e.g. Verbal"
+                                            className="col-span-3"
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                            required
                                         />
-                                        <span className="text-xs text-slate-400 font-mono">{data.color}</span>
+                                        {errors.name && <span className="col-span-4 text-right text-red-500 text-xs">{errors.name}</span>}
                                     </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit" disabled={processing} className="bg-[#ce1126] text-white">
-                                        Save Category
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="color" className="text-right text-xs font-bold uppercase text-slate-500">
+                                            Chart Color
+                                        </Label>
+                                        <div className="col-span-3 flex items-center gap-2">
+                                            <Input
+                                                id="color"
+                                                type="color"
+                                                className="w-12 h-10 p-1"
+                                                value={data.color}
+                                                onChange={(e) => setData('color', e.target.value)}
+                                            />
+                                            <span className="text-xs text-slate-400 font-mono">{data.color}</span>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="submit" disabled={processing} className="bg-[#ce1126] text-white">
+                                            Save Category
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+
+                        {/* Year Filter */}
+                        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-md px-3 py-1">
+                            <span className="text-xs font-bold text-slate-500 text-nowrap">Filter Year:</span>
+                            <select
+                                className="border-none text-sm font-bold text-slate-900 focus:ring-0 p-0 cursor-pointer bg-transparent"
+                                value={currentYear}
+                                onChange={(e) => {
+                                    window.location.href = `?year=${e.target.value}`;
+                                }}
+                            >
+                                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Print Button */}
+                        <a href={`/admin/analytics/print?year=${currentYear}`} target="_blank" rel="noopener noreferrer">
+                            <Button className="bg-[#ce1126] hover:bg-red-700 text-white font-black uppercase tracking-widest gap-2">
+                                <FileText className="w-4 h-4" /> Print Report
+                            </Button>
+                        </a>
+                    </div>
                 </div>
 
                 {/* Key Metrics Cards (Mock/Passed Data) */}
@@ -150,7 +176,7 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Referrals</CardTitle>
+                            <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
                             <Activity className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -175,14 +201,14 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
                 </div>
 
                 {/* Main Chart Section */}
-                <Card className="col-span-4">
+                <Card className="col-span-6">
                     <CardHeader>
-                        <CardTitle>Abuse Rate Analysis</CardTitle>
+                        <CardTitle>Rates of Women Abuse</CardTitle>
                         <CardDescription>
                             Monthly breakdown of reported abuse types for {currentYear}.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="pl-2">
+                    <CardContent className="pl-5">
                         {/* Pass dynamic data and config */}
                         <AnalyticsChart data={analyticsData} config={chartConfig} />
                     </CardContent>

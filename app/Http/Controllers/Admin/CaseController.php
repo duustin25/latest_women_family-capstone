@@ -11,6 +11,28 @@ use Inertia\Inertia;
 class CaseController extends Controller
 {
     /**
+     * Print the specified resource.
+     */
+    public function print($id, Request $request)
+    {
+        $type = $request->query('type', 'VAWC');
+
+        $case = null;
+        if ($type === 'VAWC') {
+            $case = VawcReport::findOrFail($id);
+            $case->type = 'VAWC';
+        } else {
+            $case = BcpcReport::findOrFail($id);
+            $case->type = 'BCPC';
+        }
+
+        return Inertia::render('Admin/Cases/Print', [
+            'caseData' => $case,
+            'type' => $type
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -80,6 +102,8 @@ class CaseController extends Controller
                 'victim_name' => 'required|string',
                 'victim_age' => 'nullable|numeric',
                 'complainant_name' => 'nullable|string',
+                'complainant_contact' => 'nullable|string',
+                'relation_to_victim' => 'nullable|string',
                 'abuse_type' => 'required|string', // Physical, Sexual, etc.
                 'incident_date' => 'required|date',
                 'incident_location' => 'required|string',
@@ -105,6 +129,7 @@ class CaseController extends Controller
                 'location' => 'required|string',
                 'description' => 'required|string',
                 'informant_name' => 'nullable|string',
+                'informant_contact' => 'nullable|string',
                 'status' => 'nullable|string',
             ]);
 
@@ -160,7 +185,6 @@ class CaseController extends Controller
         $referralTo = null;
 
         // Map UI Status to DB Status
-        // Map UI Status to DB Status
         if (str_starts_with($uiStatus, 'Referred: ')) {
             $dbStatus = 'referred';
             $referralTo = trim(substr($uiStatus, 10)); // Extract after "Referred: "
@@ -195,6 +219,10 @@ class CaseController extends Controller
         if ($referralTo) {
             $updateData['referral_to'] = $referralTo;
             $updateData['referral_date'] = now();
+        }
+
+        if ($request->has('referral_notes')) {
+            $updateData['referral_notes'] = $request->input('referral_notes');
         }
 
         if ($type === 'VAWC') {

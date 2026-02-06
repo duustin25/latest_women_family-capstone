@@ -2,6 +2,7 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Activity, FileText, User } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function Edit({ caseData, abuseTypes, referralPartners }: { caseD
     const { data, setData, patch, processing, errors } = useForm({
         type: caseData.type,
         status: caseData.status,
+        referral_notes: caseData.referral_notes || '',
     });
 
     const isVawc = caseData.type === 'VAWC';
@@ -120,6 +122,33 @@ export default function Edit({ caseData, abuseTypes, referralPartners }: { caseD
                                     <Label className="text-[10px] font-black uppercase text-slate-400">Date Filed</Label>
                                     <p className="font-bold text-slate-800 dark:text-slate-200">{new Date(caseData.created_at).toLocaleDateString()}</p>
                                 </div>
+                                {isVawc ? (
+                                    <>
+                                        <div>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Complainant</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.complainant_name || 'Same as Victim'}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Relation</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.relation_to_victim || 'N/A'}</p>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Contact Info</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.complainant_contact || 'N/A'}</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Informant</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.informant_name || 'Anonymous'}</p>
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px] font-black uppercase text-slate-400">Contact</Label>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.informant_contact || 'N/A'}</p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div>
@@ -179,6 +208,16 @@ export default function Edit({ caseData, abuseTypes, referralPartners }: { caseD
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase text-slate-500">Remarks / Referral Notes</Label>
+                                    <Textarea
+                                        placeholder="Add notes about this status update..."
+                                        value={data.referral_notes || ''}
+                                        onChange={e => setData('referral_notes', e.target.value)}
+                                        className="min-h-[80px]"
+                                    />
                                 </div>
 
                                 <Button

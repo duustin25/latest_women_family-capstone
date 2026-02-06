@@ -21,19 +21,19 @@ export default function Welcome({ announcements, organizations = [] }: any) {
     const slides = [
         {
             title: "Violence Against Women and Children.",
-            desc: "Laban para sa mga taong nag aabusado sa babae at bata.",
+            desc: "Para sa mga kababaihan at kabataan na nangangailangan ng proteksyon.",
             path: "/vawc",
             image: "/images/vawc_image.jpg"
         },
         {
             title: "Gender and Development.",
-            desc: "Makisali po ngayun",
+            desc: "Pagkakapantay-pantay ng mga kasarian.",
             path: "/gad",
             image: "/images/bcpc_image.jpg"
         },
         {
             title: "Barangay Council for the Protection of Children.",
-            desc: "Protektado, sa mga abusado na tao.",
+            desc: "Proteksyon para sa mga bata.",
             path: "/bcpc",
             image: "/images/wfps_image.jpg"
         },

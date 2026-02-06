@@ -213,6 +213,10 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                         </Button>
                     </div>
 
+                    <div className="text-[15px]">
+                        Total Records: <span className="font-bold">{filteredCases.length}</span>
+                    </div>
+
                     {/* Data Table */}
                     <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
                         <Table>
@@ -258,6 +262,11 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                                                                 <Edit3 className="mr-2 h-4 w-4" /> Manage Case
                                                             </DropdownMenuItem>
                                                         </Link>
+                                                        <a href={`/admin/cases/${item.id}/print?type=${item.type}`} target="_blank" rel="noopener noreferrer">
+                                                            <DropdownMenuItem>
+                                                                <FileOutput className="mr-2 h-4 w-4" /> Print / Export
+                                                            </DropdownMenuItem>
+                                                        </a>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -274,9 +283,7 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
                         </Table>
                     </div>
 
-                    <div className="text-xs text-slate-400 text-center">
-                        Showing {filteredCases.length} records.
-                    </div>
+
                 </div>
             </div>
         </AppLayout>

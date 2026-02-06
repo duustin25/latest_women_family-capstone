@@ -18,8 +18,8 @@ use App\Http\Controllers\Admin\MembershipApplicationController;
 
 // Public Routes:
 use App\Http\Controllers\Public\PublicAnnouncementController;
-use App\Http\Controllers\Public\PublicVawcController;
-use App\Http\Controllers\Public\PublicGadController;
+// use App\Http\Controllers\Public\PublicVawcController;
+// use App\Http\Controllers\Public\PublicGadController;
 use App\Http\Controllers\Public\PublicServicesController;
 use App\Http\Controllers\Public\PublicOrganizationController;
 use App\Http\Controllers\Public\MembershipController;
@@ -82,6 +82,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
         $currentYear = \Carbon\Carbon::now()->year;
+
+        // Fetch dynamic types (same as AnalyticsController)
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+            ->whereIn('category', ['VAWC', 'Both'])
+            ->get();
+
         $reports = \App\Models\VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
             ->whereYear('incident_date', $currentYear)
             ->whereNotNull('abuse_type')
@@ -93,22 +99,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         foreach ($months as $index => $monthName) {
             $monthNum = $index + 1;
-            $physical = $reports->where('month', $monthNum)->where('abuse_type', 'Physical')->first()->count ?? 0;
-            $sexual = $reports->where('month', $monthNum)->where('abuse_type', 'Sexual')->first()->count ?? 0;
-            $psycho = $reports->where('month', $monthNum)->where('abuse_type', 'Psychological')->first()->count ?? 0;
-            $economic = $reports->where('month', $monthNum)->where('abuse_type', 'Economic')->first()->count ?? 0;
+            $monthData = ['month' => $monthName];
 
-            $formattedData[] = [
-                'month' => $monthName,
-                'physical' => $physical,
-                'sexual' => $sexual,
-                'psychological' => $psycho,
-                'economic' => $economic
-            ];
+            foreach ($abuseTypes as $type) {
+                $key = strtolower($type->name);
+                $record = $reports->where('month', $monthNum)
+                    ->first(function ($item) use ($type) {
+                        return strcasecmp($item->abuse_type, $type->name) === 0;
+                    });
+                $monthData[$key] = $record ? $record->count : 0;
+            }
+            $formattedData[] = $monthData;
         }
 
+        // Pass types meta for Chart colors
+        $chartConfig = $abuseTypes->map(function ($t) {
+            return [
+                'key' => strtolower($t->name),
+                'label' => $t->name,
+                'color' => $t->color ?? '#000000'
+            ];
+        });
+
         return Inertia::render('dashboard', [
-            'analyticsData' => $formattedData
+            'analyticsData' => $formattedData,
+            'chartConfig' => $chartConfig
         ]);
     })->name('dashboard');
 
@@ -119,6 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('organizations', OrganizationController::class);
 
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');
+        Route::get('cases/{id}/print', [CaseController::class, 'print'])->name('cases.print');
         Route::resource('cases', CaseController::class);
         // 'system-users'
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
@@ -133,8 +149,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // MOCK DATAS 
         // Inside Route::middleware(['auth', 'verified'])->prefix('admin')->group(...)
-        Route::get('/analytics', [AnalyticsController::class, 'index'])
-            ->name('analytics');
+        Route::get('analytics/print', [AnalyticsController::class, 'print'])->name('analytics.print');
+        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
 
         // Audit Trail / Backtrack
         Route::get('/audit-logs', [AuditLogController::class, 'index'])

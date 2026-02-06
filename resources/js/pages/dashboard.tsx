@@ -10,28 +10,20 @@ import {
     Clock,
     Activity,
     FileText,
-    BarChart3,
-    ArrowUpRight
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import AnalyticsChart from '@/components/Admin/AnalyticsChart';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url },
 ];
 
-import AbuseRateChart from '@/components/AbuseRateChart';
-
-export default function Dashboard({ analyticsData }: { analyticsData: any[] }) {
+export default function Dashboard({ analyticsData, chartConfig }: { analyticsData: any[], chartConfig: any[] }) {
     const stats = [
         { label: 'Total Cases', value: '42', icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
         { label: 'Active Members', value: '156', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
         { label: 'Organizations', value: '5', icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    ];
-
-    // MOCK DATA: Synced with your Analytics requirements
-    const trends = [
-        { month: 'JANUARY', vawc: 12, cpp: 8 },
-        { month: 'FEBRUARY', vawc: 18, cpp: 6 },
     ];
 
     return (
@@ -140,7 +132,17 @@ export default function Dashboard({ analyticsData }: { analyticsData: any[] }) {
 
                     {/* 4. Comparison Chart Section (Integrated from Analytics) */}
                     <div className="lg:col-span-3">
-                        <AbuseRateChart analyticsData={analyticsData} />
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Rates of Women Abuse (Yearly Overview)</CardTitle>
+                                <CardDescription>
+                                    Incidence rates categorized by abuse type.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pl-5">
+                                <AnalyticsChart data={analyticsData} config={chartConfig} />
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>

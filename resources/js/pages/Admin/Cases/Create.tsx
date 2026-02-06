@@ -27,6 +27,8 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
         victim_age: '',
         victim_gender: '', // For BCPC
         complainant_name: '', // For VAWC
+        complainant_contact: '',
+        relation_to_victim: '',
         abuse_type: '', // For VAWC
         concern_type: '', // For BCPC
         incident_date: '',
@@ -34,6 +36,7 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
         location: '', // For BCPC
         description: '',
         informant_name: '', // For BCPC
+        informant_contact: '',
     });
 
     const isVAWC = type === 'VAWC';
@@ -156,13 +159,32 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
                                             placeholder="Where did the incident happen?"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase text-slate-500">Complainant Name (If different from victim)</Label>
-                                        <Input
-                                            value={data.complainant_name}
-                                            onChange={e => setData('complainant_name', e.target.value)}
-                                            placeholder="Leave blank if victim is complainant"
-                                        />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Complainant Name</Label>
+                                            <Input
+                                                value={data.complainant_name}
+                                                onChange={e => setData('complainant_name', e.target.value)}
+                                                placeholder="Leave blank if victim is complainant"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Contact No.</Label>
+                                            <Input
+                                                value={data.complainant_contact}
+                                                onChange={e => setData('complainant_contact', e.target.value)}
+                                                placeholder="Mobile / Tel"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Relation to Victim</Label>
+                                            <Input
+                                                value={data.relation_to_victim}
+                                                onChange={e => setData('relation_to_victim', e.target.value)}
+                                                placeholder="e.g. Neighbor"
+                                            />
+                                        </div>
                                     </div>
                                 </>
                             ) : (
@@ -199,13 +221,23 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase text-slate-500">Informant / Reporter Name</Label>
-                                        <Input
-                                            value={data.informant_name}
-                                            onChange={e => setData('informant_name', e.target.value)}
-                                            placeholder="Who is reporting this?"
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Informant / Reporter Name</Label>
+                                            <Input
+                                                value={data.informant_name}
+                                                onChange={e => setData('informant_name', e.target.value)}
+                                                placeholder="Who is reporting this?"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-slate-500">Informant Contact</Label>
+                                            <Input
+                                                value={data.informant_contact}
+                                                onChange={e => setData('informant_contact', e.target.value)}
+                                                placeholder="Mobile / Tel"
+                                            />
+                                        </div>
                                     </div>
                                 </>
                             )}

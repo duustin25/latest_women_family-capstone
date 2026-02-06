@@ -4,14 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, AlertTriangle, Users } from 'lucide-react';
+import { Plus, Settings, AlertTriangle, Users, Monitor } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from 'react';
 import { route } from 'ziggy-js';
-import { cn } from "@/lib/utils"; // Ensure utils is imported
+import { cn } from "@/lib/utils";
+import AppearanceTabs from '@/components/appearance-tabs';
 
 // Define Interfaces
 interface AbuseType {
@@ -93,7 +94,7 @@ export default function Index({ abuseTypes, referralPartners }: PageProps) {
                 </div>
 
                 <div className="w-full">
-                    {/* Manual Tab List */}
+                    {/* MANUAL TAB LIST */}
                     <div className="inline-flex h-10 items-center justify-center rounded-md bg-slate-100 p-1 text-slate-500 w-full max-w-md">
                         <button
                             onClick={() => setActiveTab('abuses')}
@@ -112,6 +113,15 @@ export default function Index({ abuseTypes, referralPartners }: PageProps) {
                             )}
                         >
                             Referral Partners
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('appearance')}
+                            className={cn(
+                                "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                                activeTab === 'appearance' ? "bg-white text-slate-950 shadow-sm" : "hover:bg-slate-200/50"
+                            )}
+                        >
+                            Appearance
                         </button>
                     </div>
 
@@ -305,6 +315,35 @@ export default function Index({ abuseTypes, referralPartners }: PageProps) {
                                             ))}
                                         </TableBody>
                                     </Table>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {/* APPEARANCE TAB */}
+                    {activeTab === 'appearance' && (
+                        <div className="space-y-4 mt-6 animate-in fade-in zoom-in-95 duration-300">
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center gap-2">
+                                        <Monitor className="w-5 h-5 text-purple-500" />
+                                        <CardTitle className="text-lg font-bold">Display Settings</CardTitle>
+                                    </div>
+                                    <CardDescription>
+                                        Customize the appearance of the application.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between border-b pb-4">
+                                            <div>
+                                                <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">Theme Preference</h4>
+                                                <p className="text-xs text-slate-500">Choose between light or dark mode.</p>
+                                            </div>
+                                            <AppearanceTabs />
+                                        </div>
+                                        {/* Future appearance settings can go here */}
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
