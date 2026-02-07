@@ -245,6 +245,9 @@ class CaseController extends Controller
                     case 'Closed':
                         $dbStatus = 'Closed';
                         break;
+                    case 'Dismissed':
+                        $dbStatus = 'Dismissed';
+                        break;
                     default:
                         $dbStatus = 'ongoing';
                 }

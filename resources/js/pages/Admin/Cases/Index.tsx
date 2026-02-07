@@ -52,7 +52,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
     // ... (omitted form handlers)
 
     // Valid Status Options (Include dynamic ones for Filter if needed, or just keep generic categories)
-    const statusOptions = ['All', 'New', 'On-going', 'Resolved', 'Referred', 'Closed'];
+    const statusOptions = ['All', 'New', 'On-going', 'Resolved', 'Referred', 'Closed', 'Dismissed'];
 
     // Helper: Normalize status for consistent filtering
     const normalizeStatus = (s: string) => {
@@ -97,6 +97,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
         else if (norm === 'resolved') colorClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
         else if (norm === 'referred') colorClass = "bg-purple-100 text-purple-700 border-purple-200";
         else if (norm === 'closed') colorClass = "bg-slate-100 text-slate-600 border-slate-200";
+        else if (norm === 'dismissed') colorClass = "bg-black-100 text-black-700 border-black-200";
 
         return (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colorClass}`}>
@@ -131,7 +132,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                                     <Plus className="w-4 h-4 mr-2" /> New VAWC Case
                                 </Button>
                             </Link>
-                            <Link href="/admin/cases/create?type=CPP">
+                            <Link href="/admin/cases/create?type=BCPC">
                                 <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
                                     <Plus className="w-4 h-4 mr-2" /> New BCPC Case
                                 </Button>
@@ -143,7 +144,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                     </div>
 
                     {/* Filters & Search */}
-                    <div className="bg-white dark:bg-slate-950 p-4 rounded-lg shadow-sm dark:shadow-none grid grid-cols-1 md:grid-cols-4 gap-4 transition-colors duration-200">
+                    <div className="p-4 rounded-lg shadow-sm dark:shadow-none grid grid-cols-1 md:grid-cols-4 gap-4 transition-colors duration-200">
                         {/* Search */}
                         <div className="md:col-span-1 relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -206,9 +207,9 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                     </div>
 
                     {/* Data Table */}
-                    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm dark:text-white dark:border-slate-900 dark:bg-slate-900">
+                    <div className="border rounded-xl overflow-hidden shadow-sm dark:text-white">
                         <Table>
-                            <TableHeader className="bg-slate-50 dark:bg-slate-800">
+                            <TableHeader className="">
                                 <TableRow>
                                     <TableHead className="w-[180px]">Case No.</TableHead>
                                     <TableHead>Date Filed</TableHead>
@@ -222,11 +223,11 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                                 {filteredCases.length > 0 ? (
                                     filteredCases.map((item) => (
                                         // CRITICAL FIX: Use composite key to prevent duplicates
-                                        <TableRow key={`${item.type}-${item.id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">
+                                        <TableRow key={`${item.type}-${item.id}`} className="dark:text-white">
                                             <TableCell className="font-medium">{item.case_number}</TableCell>
                                             <TableCell className="text-slate-500 text-sm">{item.date}</TableCell>
                                             <TableCell>
-                                                <span className={`text-xs font-bold px-2 py-1 rounded ${item.type === 'VAWC' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded ${item.type === 'VAWC' ? 'text-red-700 border' : item.type === 'BCPC' ? 'border text-blue-700' : ''}`}>
                                                     {item.type}
                                                 </span>
                                                 <div className="text-[15px] text-slate-900 mt-1 dark:text-white">{item.subType}</div>

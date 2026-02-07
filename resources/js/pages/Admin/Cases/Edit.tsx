@@ -47,7 +47,8 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
         // Dynamic Referrals
         ...(referralPartners ? referralPartners.map(p => `Referred: ${p.name}`) : []),
         "Resolved",
-        "Closed"
+        "Closed",
+        "Dismissed"
     ]));
 
     const submit = (e: React.FormEvent) => {
@@ -65,6 +66,7 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
         if (s === 'referred') return 'bg-purple-500';
         if (s === 'Resolved') return 'bg-emerald-500';
         if (s === 'Closed') return 'bg-slate-500';
+        if (s === 'Dismissed') return 'bg-black-500 border-black-500';
         return 'bg-slate-500';
     };
 
@@ -87,7 +89,7 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                             <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
                                 Case Management
                             </h2>
-                            <p className="text-slate-500 text-sm mt-1 font-mono">
+                            <p className="text-slate-500 text-l mt-1 font-mono">
                                 REF: {caseData.case_number}
                             </p>
                         </div>
@@ -96,63 +98,63 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                         </Button>
                     </div>
 
-                    <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-                        <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b dark:border-slate-800">
-                            <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-blue-600" />
+                    <Card className="shadow-sm">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                <FileText className="w-10 h-10 text-blue-600" />
                                 Case Information
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6 space-y-6">
+                        <CardContent className="p-6 space-y-6 border-t">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label className="text-[10px] font-black uppercase text-slate-400">Victim Name</Label>
-                                    <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.victim_name || 'N/A'}</p>
+                                    <Label className="text-l font-black uppercase text-slate-500">Victim Name</Label>
+                                    <p className="font-bold">{caseData.victim_name || 'N/A'}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-[10px] font-black uppercase text-slate-400">Case Type</Label>
+                                    <Label className="text-l font-black uppercase text-slate-500">Case Type</Label>
                                     <Badge variant={isVawc ? "destructive" : "default"}>{caseData.type}</Badge>
                                 </div>
                                 <div>
                                     {isVawc ? (
                                         <>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Abuse Type</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Abuse Type</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.abuse_type || 'N/A'}</p>
                                         </>
                                     ) : (
                                         <>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Nature of Concern</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Nature of Concern</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.concern_type || 'N/A'}</p>
                                         </>
                                     )}
                                 </div>
                                 <div>
-                                    <Label className="text-[10px] font-black uppercase text-slate-400">Date Filed</Label>
+                                    <Label className="text-l font-black uppercase text-slate-500">Date Filed</Label>
                                     <p className="font-bold text-slate-800 dark:text-slate-200">{new Date(caseData.created_at).toLocaleDateString()}</p>
                                 </div>
                                 {isVawc ? (
                                     <>
                                         <div>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Complainant</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Complainant</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.complainant_name || 'Same as Victim'}</p>
                                         </div>
                                         <div>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Relation</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Relation</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.relation_to_victim || 'N/A'}</p>
                                         </div>
                                         <div className="col-span-2">
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Contact Info</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Contact Info</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.complainant_contact || 'N/A'}</p>
                                         </div>
                                     </>
                                 ) : (
                                     <>
                                         <div>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Informant</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Informant</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.informant_name || 'Anonymous'}</p>
                                         </div>
                                         <div>
-                                            <Label className="text-[10px] font-black uppercase text-slate-400">Contact</Label>
+                                            <Label className="text-l font-black uppercase text-slate-500">Contact</Label>
                                             <p className="font-bold text-slate-800 dark:text-slate-200">{caseData.informant_contact || 'N/A'}</p>
                                         </div>
                                     </>
@@ -160,15 +162,15 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                             </div>
 
                             <div>
-                                <Label className="text-[10px] font-black uppercase text-slate-400">Current DB Status</Label>
+                                <Label className="text-l font-black uppercase text-slate-500">Current DB Status</Label>
                                 <div className="mt-1">
-                                    <Badge className={`${getStatusColor(caseData.status)} text-white`}>{caseData.status}</Badge>
+                                    <Badge className={`${getStatusColor(caseData.status)} text-lg text-white`}>{caseData.status}</Badge>
                                 </div>
                             </div>
 
                             <div>
-                                <Label className="text-[10px] font-black uppercase text-slate-400">Description / Narrative</Label>
-                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-700 dark:text-slate-300 mt-2 min-h-[100px] whitespace-pre-wrap">
+                                <Label className="text-l font-black uppercase text-slate-500">Description / Narrative</Label>
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg text-md text-slate-700 dark:text-slate-100 mt-2 min-h-[100px] whitespace-pre-wrap">
                                     {caseData.description}
                                 </div>
                             </div>
@@ -187,9 +189,9 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
 
                 {/* RIGHT COLUMN: ACTIONS & SMART STATUS */}
                 <div className="space-y-6">
-                    <Card className="border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-[#ce1126]">
+                    <Card className="shadow-sm border-t-4 border-t-[#ce1126]">
                         <CardHeader>
-                            <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                            <CardTitle className="text-[19px] font-black uppercase tracking-widest flex items-center gap-2">
                                 <Activity className="w-4 h-4 text-[#ce1126]" />
                                 Update Status
                             </CardTitle>
@@ -197,9 +199,9 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                         <CardContent className="p-6">
                             <form onSubmit={submit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold uppercase text-slate-500">Select Process Step</Label>
-                                    <p className="text-[10px] text-slate-400 mb-2 leading-tight">
-                                        Updating this will automatically map to the correct database status (Pending, Ongoing, Referred, Closed).
+                                    <Label className="text-l font-bold uppercase">Select Process Step</Label>
+                                    <p className="text-[15px] text-slate-500 dark:text-slate-400 mb-2 leading-tight">
+                                        Choose the current case status. Referrals and Ongoing statuses are automatically tracked.
                                     </p>
                                     <Select
                                         onValueChange={v => setData('status', v)}
@@ -219,7 +221,7 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold uppercase text-slate-500">Remarks / Referral Notes</Label>
+                                    <Label className="text-l font-bold uppercase">Remarks / Referral Notes</Label>
                                     <Textarea
                                         placeholder="Add notes about this status update..."
                                         value={data.referral_notes || ''}
@@ -239,13 +241,14 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
                     </Card>
 
                     {/* Quick Info Panel */}
-                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                        <h4 className="text-xs font-black uppercase text-blue-700 mb-2">Process Guide</h4>
-                        <ul className="text-[10px] text-blue-800 space-y-1 list-disc pl-4">
+                    <div className="p-4 rounded-xl border border-blue-100">
+                        <h4 className="text-[19px] font-black uppercase mb-2">Process Guide</h4>
+                        <ul className="text-[16px] space-y-1 list-disc pl-4">
                             <li><b>Intake:</b> Initial filing and interview.</li>
-                            <li><b>Mediation:</b> Applicable for cases covering amicable settlement.</li>
-                            <li><b>BPO:</b> Issuance of Barangay Protection Order (15 days).</li>
-                            <li><b>Referrals:</b> Forwarding to Police, Social Worker, or Medical.</li>
+                            <li><b>Ongoing:</b> Case placed under active monitoring or intervention.</li>
+                            <li><b>Referral:</b> Handed off to external agencies (PNP, DSWD, etc).</li>
+                            <li><b>Resolved/Closed:</b> Final case disposition.</li>
+                            <li><b>Dismissed:</b> Invalid, error, or withdrawn cases.</li>
                         </ul>
                     </div>
                 </div>

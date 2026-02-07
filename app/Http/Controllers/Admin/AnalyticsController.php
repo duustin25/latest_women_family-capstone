@@ -22,6 +22,7 @@ class AnalyticsController extends Controller
         $reports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
             ->whereYear('incident_date', $currentYear)
             ->whereNotNull('abuse_type')
+            ->where('status', '!=', 'Dismissed')
             ->groupBy('month', 'abuse_type')
             ->get();
 
@@ -63,6 +64,7 @@ class AnalyticsController extends Controller
         $reports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
             ->whereYear('incident_date', $year)
             ->whereNotNull('abuse_type')
+            ->where('status', '!=', 'Dismissed')
             ->groupBy('month', 'abuse_type')
             ->get();
 
