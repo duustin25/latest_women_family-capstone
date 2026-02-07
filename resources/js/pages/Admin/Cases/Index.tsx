@@ -40,7 +40,7 @@ interface CaseRecord {
     referred_to?: string | null;
 }
 
-export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) {
+export default function Index({ cases: initialCases, ongoingStatuses = [] }: { cases: CaseRecord[], ongoingStatuses?: string[] }) {
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
@@ -49,34 +49,22 @@ export default function Index({ cases: initialCases }: { cases: CaseRecord[] }) 
     // Use Props Directly
     const cases = initialCases;
 
-    const submitType = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('admin.abuse-types.store'), {
-            onSuccess: () => {
-                setIsDialogOpen(false);
-                reset();
-            }
-        });
-    }
+    // ... (omitted form handlers)
 
-
-
-
-    // Form for Adding New Abuse Type
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        color: '#000000',
-    });
-
-    // Valid Status Options
+    // Valid Status Options (Include dynamic ones for Filter if needed, or just keep generic categories)
     const statusOptions = ['All', 'New', 'On-going', 'Resolved', 'Referred', 'Closed'];
 
     // Helper: Normalize status for consistent filtering
     const normalizeStatus = (s: string) => {
         if (!s) return 'new';
-        // Map common variations if any (e.g. "ongoing" vs "On-going")
         const lower = s.toLowerCase();
-        if (lower === 'ongoing' || lower === 'on-going') return 'on-going';
+
+        // Check against dynamic statuses
+        if (ongoingStatuses.some(os => os.toLowerCase() === lower)) return 'on-going';
+
+        // Check legacy hardcoded ongoing
+        if (['under mediation', 'intervention/diversion program', 'bpo issued', 'ongoing', 'on-going'].includes(lower)) return 'on-going';
+
         return lower;
     };
 

@@ -14,10 +14,12 @@ class SettingsController extends Controller
     {
         $abuseTypes = AbuseType::orderBy('category')->orderBy('name')->get();
         $referralPartners = ReferralPartner::orderBy('category')->orderBy('name')->get();
+        $ongoingStatuses = \App\Models\OngoingStatus::orderBy('name')->get();
 
         return Inertia::render('Admin/Settings/Index', [
             'abuseTypes' => $abuseTypes,
-            'referralPartners' => $referralPartners
+            'referralPartners' => $referralPartners,
+            'ongoingStatuses' => $ongoingStatuses
         ]);
     }
 
@@ -79,5 +81,35 @@ class SettingsController extends Controller
         $partner->update($validated);
 
         return back()->with('success', 'Partner updated.');
+    }
+
+    public function storeOngoingStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|unique:ongoing_statuses,name',
+            'description' => 'nullable|string',
+            'type' => 'required|in:VAWC,BCPC,Both',
+            'is_active' => 'boolean'
+        ]);
+
+        \App\Models\OngoingStatus::create($validated);
+
+        return back()->with('success', 'Status added successfully.');
+    }
+
+    public function updateOngoingStatus(Request $request, $id)
+    {
+        $status = \App\Models\OngoingStatus::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|unique:ongoing_statuses,name,' . $id,
+            'description' => 'nullable|string',
+            'type' => 'required|in:VAWC,BCPC,Both',
+            'is_active' => 'boolean'
+        ]);
+
+        $status->update($validated);
+
+        return back()->with('success', 'Status updated.');
     }
 }

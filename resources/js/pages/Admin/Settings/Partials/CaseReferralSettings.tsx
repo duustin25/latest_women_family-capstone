@@ -256,7 +256,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.name}</TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className={item.category === 'VAWC' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700'}>
+                                        <Badge variant="outline" className={item.category === 'VAWC' ? 'text-red-600' : item.category === 'BCPC' ? 'text-blue-600' : ''}>
                                             {item.category}
                                         </Badge>
                                     </TableCell>
@@ -378,7 +378,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                                 <TableRow key={item.id}>
                                     <TableCell className="font-bold">{item.name}</TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="bg-slate-50 dark:bg-black dark:text-white">
+                                        <Badge variant="outline" className={item.category === 'VAWC' ? 'text-red-600' : item.category === 'BCPC' ? 'text-blue-600' : ''}>
                                             {item.category}
                                         </Badge>
                                     </TableCell>

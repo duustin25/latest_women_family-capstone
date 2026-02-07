@@ -66,6 +66,7 @@
         "react-day-picker": "^9.13.0",
         "react-dom": "^19.2.0",
         "react-slick": "^0.31.0",
+        "react-switch": "^7.1.0",
         "recharts": "^3.7.0",
         "shadcn-ui": "^0.9.5",
         "slick-carousel": "^1.8.1",

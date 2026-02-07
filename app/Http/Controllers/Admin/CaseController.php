@@ -69,8 +69,11 @@ class CaseController extends Controller
         // Merge and Sort by Date Descending
         $allCases = $vawcCases->concat($bcpcCases)->sortByDesc('created_at')->values();
 
+        $ongoingStatuses = \App\Models\OngoingStatus::where('is_active', true)->pluck('name');
+
         return Inertia::render('Admin/Cases/Index', [
-            'cases' => $allCases
+            'cases' => $allCases,
+            'ongoingStatuses' => $ongoingStatuses
         ]);
     }
 
@@ -81,8 +84,12 @@ class CaseController extends Controller
     {
         $type = $request->query('type', 'VAWC');
 
-        // Fetch dynamic abuse types for VAWC
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
+        // Fetch dynamic abuse types for VAWC/BCPC
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+            ->where(function ($query) use ($type) {
+                $query->where('category', $type)
+                    ->orWhere('category', 'Both');
+            })->get();
 
         return Inertia::render('Admin/Cases/Create', [
             'type' => $type,
@@ -159,13 +166,29 @@ class CaseController extends Controller
             $case->type = 'BCPC';
         }
 
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
-        $referralPartners = \App\Models\ReferralPartner::where('is_active', true)->get();
+        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+            ->where(function ($query) use ($case) {
+                $query->where('category', $case->type) // Assumes case->type is VAWC/BCPC
+                    ->orWhere('category', 'Both');
+            })->get();
+
+        $referralPartners = \App\Models\ReferralPartner::where('is_active', true)
+            ->where(function ($query) use ($case) {
+                $query->where('category', $case->type)
+                    ->orWhere('category', 'Both');
+            })->get();
+
+        $ongoingStatuses = \App\Models\OngoingStatus::where('is_active', true)
+            ->where(function ($query) use ($case) {
+                $query->where('type', $case->type)
+                    ->orWhere('type', 'Both');
+            })->orderBy('name')->get();
 
         return Inertia::render('Admin/Cases/Edit', [
             'caseData' => $case,
             'abuseTypes' => $abuseTypes,
-            'referralPartners' => $referralPartners
+            'referralPartners' => $referralPartners,
+            'ongoingStatuses' => $ongoingStatuses
         ]);
     }
 
@@ -188,27 +211,43 @@ class CaseController extends Controller
         if (str_starts_with($uiStatus, 'Referred: ')) {
             $dbStatus = 'referred';
             $referralTo = trim(substr($uiStatus, 10)); // Extract after "Referred: "
+        } elseif (str_starts_with($uiStatus, 'Ongoing: ')) {
+            // Remove the prefix to get the actual status name
+            $cleanStatus = trim(substr($uiStatus, 9)); // Extract after "Ongoing: "
+            // Check dynamic statuses first
+            $dynamicStatus = \App\Models\OngoingStatus::where('name', $cleanStatus)->exists(); // Removed is_active check here to allow setting existing but disabled statuses back if needed, or strictly check active? Let's check exists first.
+
+            if ($dynamicStatus) {
+                $dbStatus = $cleanStatus;
+            } else {
+                $dbStatus = $cleanStatus; // Fallback to saving it as is if it looks like a custom ongoing status
+            }
         } else {
-            switch ($uiStatus) {
-                case 'Intake/New':
-                    $dbStatus = 'New';
-                    break;
-                case 'Under Mediation':
-                case 'Intervention/Diversion Program':
-                    $dbStatus = 'ongoing';
-                    break;
-                case 'BPO Issued':
-                    $dbStatus = 'ongoing';
-                    // In a real app, we might log "BPO Issued" in an activity log or remarks
-                    break;
-                case 'Resolved':
-                    $dbStatus = 'Resolved';
-                    break;
-                case 'Closed':
-                    $dbStatus = 'Closed';
-                    break;
-                default:
-                    $dbStatus = 'ongoing';
+            // Check dynamic statuses first (legacy fallback if no prefix sent)
+            $dynamicStatus = \App\Models\OngoingStatus::where('name', $uiStatus)->exists();
+
+            if ($dynamicStatus) {
+                $dbStatus = $uiStatus; // Save the specific status e.g. "BPO Monitoring"
+            } else {
+                switch ($uiStatus) {
+                    case 'Intake/New':
+                        $dbStatus = 'New';
+                        break;
+                    // case 'Under Mediation': // Keep legacy support
+                    // case 'Intervention/Diversion Program':
+                    // case 'BPO Issued':
+                    //$dbStatus = $uiStatus; // Save specific for these too now? Or map to ongoing? 
+                    // Let's save specific to enable specific tracking as requested
+                    // break;
+                    case 'Resolved':
+                        $dbStatus = 'Resolved';
+                        break;
+                    case 'Closed':
+                        $dbStatus = 'Closed';
+                        break;
+                    default:
+                        $dbStatus = 'ongoing';
+                }
             }
         }
 

@@ -26,7 +26,7 @@ interface CaseData {
     [key: string]: any;
 }
 
-export default function Edit({ caseData, abuseTypes, referralPartners }: { caseData: CaseData, abuseTypes: any[], referralPartners: any[] }) {
+export default function Edit({ caseData, abuseTypes, referralPartners, ongoingStatuses }: { caseData: CaseData, abuseTypes: any[], referralPartners: any[], ongoingStatuses: any[] }) {
     const { data, setData, patch, processing, errors } = useForm({
         type: caseData.type,
         status: caseData.status,
@@ -36,15 +36,19 @@ export default function Edit({ caseData, abuseTypes, referralPartners }: { caseD
     const isVawc = caseData.type === 'VAWC';
 
     // "Smart Status" Options
-    const workflowSteps = [
+    const workflowSteps = Array.from(new Set([
+        caseData.status, // Ensure current status is always valid/visible
         "Intake/New",
-        isVawc ? "Under Mediation" : "Intervention/Diversion Program",
-        ...(isVawc ? ["BPO Issued"] : []), // Only Validation for VAWC
+        // Legacy/Hardcoded - REMOVED
+        // isVawc ? "Under Mediation" : "Intervention/Diversion Program",
+        // ...(isVawc ? ["BPO Issued"] : []),
+        // Dynamic Ongoing Statuses
+        ...(ongoingStatuses ? ongoingStatuses.map(s => `Ongoing: ${s.name}`) : []),
         // Dynamic Referrals
         ...(referralPartners ? referralPartners.map(p => `Referred: ${p.name}`) : []),
         "Resolved",
         "Closed"
-    ];
+    ]));
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,8 +59,12 @@ export default function Edit({ caseData, abuseTypes, referralPartners }: { caseD
     const getStatusColor = (s: string) => {
         if (s === 'New') return 'bg-red-500';
         if (s === 'ongoing') return 'bg-blue-500';
+        // Treat dynamic statuses as blue/ongoing by default
+        if (ongoingStatuses && ongoingStatuses.some(os => os.name === s)) return 'bg-blue-500';
+
         if (s === 'referred') return 'bg-purple-500';
         if (s === 'Resolved') return 'bg-emerald-500';
+        if (s === 'Closed') return 'bg-slate-500';
         return 'bg-slate-500';
     };
 

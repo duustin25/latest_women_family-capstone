@@ -165,6 +165,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/settings/abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.abuse-types.update');
         Route::post('/settings/partners', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.partners.store');
         Route::patch('/settings/partners/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.partners.update');
+        Route::post('/settings/ongoing-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeOngoingStatus'])->name('settings.ongoing-statuses.store');
+        Route::patch('/settings/ongoing-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateOngoingStatus'])->name('settings.ongoing-statuses.update');
 
         // Barangay Officials
         Route::resource('officials', \App\Http\Controllers\Admin\OfficialController::class);
