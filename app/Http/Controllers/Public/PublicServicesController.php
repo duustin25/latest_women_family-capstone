@@ -100,10 +100,24 @@ class PublicServicesController extends Controller
 
     public function gad()
     {
-        // Fetch KALIPI organization data for the view
-        $organization = \App\Models\Organization::where('slug', 'kalipi-association')->first();
+        // Fetch GAD Activities for public view (Ongoing or Completed, ordered by date)
+        $activities = \App\Models\GadActivity::whereIn('status', ['Ongoing', 'Completed', 'Planned'])
+            ->orderBy('date_scheduled', 'desc')
+            ->orderByRaw("FIELD(status, 'Ongoing', 'Completed', 'Planned')") // show ongoing first, then planned, then completed
+            ->take(6) // Limit to 6 for the public view
+            ->get();
+
+        // Transparency Stats
+        $totalProjects = \App\Models\GadActivity::where('status', 'Completed')->count();
+        $totalBudgetUtilized = \App\Models\GadActivity::where('status', 'Completed')->sum('actual_expenditure');
+
         return Inertia::render('Public/GAD/Index', [
-            'organization' => $organization
+            'activities' => $activities,
+            'stats' => [
+                'projects' => $totalProjects,
+                'budget' => $totalBudgetUtilized,
+                'beneficiaries' => 0 // Placeholder as we don't track this yet
+            ]
         ]);
     }
 

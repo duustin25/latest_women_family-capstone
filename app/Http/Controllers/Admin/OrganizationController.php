@@ -101,6 +101,7 @@ class OrganizationController extends Controller
             'color_theme' => 'required|string',
             'image' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array',
+            'form_schema' => 'nullable|array',
         ]);
 
         if ($request->hasFile('image')) {
@@ -108,6 +109,13 @@ class OrganizationController extends Controller
                 Storage::disk('public')->delete($organization->image_path);
             }
             $validated['image_path'] = $request->file('image')->store('organizations', 'public');
+        }
+
+        // Ensure form_schema is saved as JSON (Laravel casts handle this if passed as array)
+        if (!$request->has('form_schema')) {
+            $validated['form_schema'] = $organization->form_schema; // Keep existing if not sent
+        } else {
+            $validated['form_schema'] = $request->input('form_schema');
         }
 
         $organization->update($validated);

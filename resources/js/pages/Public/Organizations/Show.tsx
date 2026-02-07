@@ -1,26 +1,26 @@
 import PublicLayout from '@/layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
-import { 
-    Building2, Users, ArrowLeft, CheckCircle2, 
+import {
+    Building2, Users, ArrowLeft, CheckCircle2,
     ListChecks, FileText, Info, ShieldCheck,
-    Briefcase, Calendar 
+    Briefcase, Calendar
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 // 1. ADDED THE FORMATTING LOGIC FROM ANNOUNCEMENTS
 const formatContent = (text?: string) => {
     if (!text) return null;
-    
+
     const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
     return text.split(urlRegex).map((part, index) => {
         if (part.match(urlRegex)) {
             const href = part.startsWith('http') ? part : `https://${part}`;
             return (
-                <a 
-                    key={index} 
-                    href={href} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                <a
+                    key={index}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
                 >
                     {part}
@@ -36,7 +36,7 @@ export default function Show({ organization }: { organization: any }) {
 
     const handleBack = (e: React.MouseEvent) => {
         e.preventDefault();
-        window.history.back(); 
+        window.history.back();
     };
 
     if (!record) return <div className="p-20 text-center font-black uppercase text-slate-400">Data not found.</div>;
@@ -45,11 +45,11 @@ export default function Show({ organization }: { organization: any }) {
         <PublicLayout>
             <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors">
                 <Head title={`${record.name} - Brgy 183 Villamor`} />
-                
+
                 <div className="max-w-5xl mx-auto px-6 py-12">
                     {/* --- Navigation --- */}
-                    <a 
-                        href="#" 
+                    <a
+                        href="#"
                         onClick={handleBack}
                         className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#0038a8] mb-8 transition-colors"
                     >
@@ -57,15 +57,15 @@ export default function Show({ organization }: { organization: any }) {
                     </a>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                        
+
                         {/* --- Main Content (Left) --- */}
                         <article className="lg:col-span-8">
                             <header className="mb-10">
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className={`w-3 h-3 rounded-full ${record.color_theme || 'bg-[#0038a8]'}`}></div>
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0038a8] dark:text-blue-400">Official Organization</span>
+                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${record.color_theme?.replace('bg-', 'text-') || 'text-[#0038a8]'} dark:text-blue-400`}>Official Organization</span>
                                 </div>
-                                
+
                                 <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-none tracking-tighter uppercase">
                                     {record.name}
                                 </h1>
@@ -94,7 +94,7 @@ export default function Show({ organization }: { organization: any }) {
                             {/* --- MODIFIED TEXT SECTION --- */}
                             <div className="prose dark:prose-invert max-w-none mb-12">
                                 <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <Info className="w-5 h-5 text-[#0038a8] dark:text-blue-400" /> Mission & Description
+                                    <Info className={`w-5 h-5 ${record.color_theme?.replace('bg-', 'text-') || 'text-[#0038a8]'} dark:text-blue-400`} /> Mission & Description
                                 </h3>
                                 {/* Applied same whitespace and formatting logic as announcements */}
                                 <div className="whitespace-pre-wrap leading-relaxed text-slate-700 dark:text-slate-300 italic border-l-4 border-slate-100 dark:border-slate-800 pl-6 text-lg">
@@ -106,12 +106,12 @@ export default function Show({ organization }: { organization: any }) {
                         {/* --- Sidebar (Requirements & Apply) --- */}
                         <aside className="lg:col-span-4">
                             <div className="sticky top-10 space-y-6">
-                                
+
                                 <div className="bg-slate-900 p-8 rounded-sm shadow-xl text-white border-t-8 border-[#ce1126]">
                                     <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 mb-6 text-yellow-500">
                                         <ListChecks className="w-5 h-5" /> Membership Requirements
                                     </h3>
-                                    
+
                                     <ul className="space-y-4 mb-8">
                                         {record.requirements && record.requirements.length > 0 ? (
                                             record.requirements.map((req: string, i: number) => (

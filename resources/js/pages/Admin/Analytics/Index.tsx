@@ -37,14 +37,25 @@ interface ChartConfig {
     color: string;
 }
 
+interface GadStats {
+    total_utilized: number;
+    total_activities: number;
+    completed_count: number;
+    monthly_spending: {
+        month: string;
+        amount: number;
+    }[];
+}
+
 interface PageProps {
     stats: Stats;
     analyticsData: ChartData[];
     currentYear: number;
     chartConfig: ChartConfig[];
+    gadStats: GadStats;
 }
 
-export default function Index({ stats, analyticsData, currentYear, chartConfig }: PageProps) {
+export default function Index({ stats, analyticsData, currentYear, chartConfig, gadStats }: PageProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     // Form for Adding New Abuse Type
@@ -83,11 +94,11 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
 
                     <div className="flex items-center gap-4">
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
+                            {/* <DialogTrigger asChild>
                                 <Button size="sm" variant="outline" className="gap-2">
                                     <Plus className="w-4 h-4" /> Add Type
                                 </Button>
-                            </DialogTrigger>
+                            </DialogTrigger> */}
                             {/* ... Content remains same, just moved trigger ... */}
                             <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
@@ -213,6 +224,54 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig }
                         <AnalyticsChart data={analyticsData} config={chartConfig} />
                     </CardContent>
                 </Card>
+
+                {/* GAD Analytics Section */}
+                <div className="pt-8 border-t">
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mb-6">
+                        <Activity className="w-6 h-6 text-purple-600" />
+                        GAD Analytics
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <Card className="border-l-4 border-l-purple-500">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Total Utilized (YTD)</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">₱{gadStats?.total_utilized?.toLocaleString() || '0.00'}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    Funds spent on completed activities
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{gadStats?.total_activities || 0}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    {gadStats?.completed_count || 0} completed
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium">Spending Trend</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[40px] flex items-end gap-1">
+                                    {gadStats?.monthly_spending?.map((m: any, i: number) => (
+                                        <div key={i} className="flex-1 bg-purple-200 hover:bg-purple-300 rounded-t" style={{ height: `${Math.min((m.amount / (gadStats.total_utilized || 1)) * 100, 100)}%` }} title={`${m.month}: ₱${m.amount}`}></div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Monthly expenditure distribution
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
 
             </div>
         </AppLayout>

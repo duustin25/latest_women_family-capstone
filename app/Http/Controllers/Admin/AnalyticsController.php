@@ -44,11 +44,36 @@ class AnalyticsController extends Controller
             ];
         });
 
+        // GAD Analytics Data
+        $gadActivities = \App\Models\GadActivity::whereYear('date_scheduled', $currentYear)->get();
+
+        $gadStats = [
+            'total_utilized' => $gadActivities->where('status', 'Completed')->sum('actual_expenditure'),
+            'total_activities' => $gadActivities->count(),
+            'completed_count' => $gadActivities->where('status', 'Completed')->count(),
+            'monthly_spending' => []
+        ];
+
+        // Format Monthly Spending for Chart
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            $spending = $gadActivities->filter(function ($act) use ($monthNum) {
+                return Carbon::parse($act->date_scheduled)->month === $monthNum;
+            })->sum('actual_expenditure');
+
+            $gadStats['monthly_spending'][] = [
+                'month' => $monthName,
+                'amount' => $spending
+            ];
+        }
+
         return Inertia::render('Admin/Analytics/Index', [
             'stats' => $stats,
             'analyticsData' => $data,
             'currentYear' => (int) $currentYear,
-            'chartConfig' => $chartConfig
+            'chartConfig' => $chartConfig,
+            'gadStats' => $gadStats // Passed to view
         ]);
     }
 

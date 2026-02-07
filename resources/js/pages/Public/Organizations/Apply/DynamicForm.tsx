@@ -1,148 +1,226 @@
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
+import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Save, Upload, CheckCircle2 } from "lucide-react";
+import PublicLayout from '@/layouts/PublicLayout';
 
-interface FormField {
-    label: string;
-    type: 'text' | 'number' | 'date' | 'textarea' | 'checkbox' | 'select';
-    required: boolean;
-    options?: string[]; // For select or radio
-}
+export default function DynamicForm({ organization }: { organization: any }) {
+    const { data, setData, post, processing, errors } = useForm({
+        fullname: '',
+        address: '',
+        submission_data: {} as Record<string, any>,
+    });
 
-interface DynamicFormProps {
-    schema: FormField[];
-    data: any;
-    setData: (field: string, value: any) => void;
-    errors: any;
-}
+    const handleInputChange = (fieldId: string, value: any) => {
+        setData('submission_data', {
+            ...data.submission_data,
+            [fieldId]: value
+        });
+    };
 
-export default function DynamicForm({ schema, data, setData, errors }: DynamicFormProps) {
-    if (!schema || schema.length === 0) return null;
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(`/organizations/${organization.slug}/apply`);
+    };
 
-    return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="border-t border-dashed my-8"></div>
-            <h3 className="font-black uppercase text-slate-400 tracking-widest text-sm mb-6">Additional Information</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {schema.map((field, index) => {
-                    const fieldId = `custom_${index}`;
-                    const fieldName = field.label; // In a real app, you might want a stable slug
-
-                    // Helper to update generic 'personal_data' state
-                    // We assume 'data' passed here is a nested object or we update parent
-                    // Actually, the best way for the parent to handle this is if 'data' IS the personal_data object
-                    // But usually inertia form data is flat. 
-                    // Let's assume the parent passes a specific handler or we stick with `setData('personal_data', { ...personal_data, [label]: val })`
-                    // But here we are passed generic setData.
-
-                    // PROPOSAL: The parent should pass a handler `onFieldChange(label, value)`
-                    // Or we assume `data` is the "personal_data" object itself.
-                    // Let's assume `data` Prop is the `personal_data` JSON object from the parent form.
-
-                    const value = data[field.label] || '';
-                    const error = errors[`personal_data.${field.label}`];
-
-                    // CHECKBOX
-                    if (field.type === 'checkbox') {
-                        return (
-                            <div key={index} className="md:col-span-2 flex items-start space-x-3 p-4 border rounded-sm bg-slate-50 dark:bg-slate-900/50">
-                                <Checkbox
-                                    id={fieldId}
-                                    checked={!!value}
-                                    onCheckedChange={(checked) => setData(field.label, checked)}
-                                />
-                                <div className="grid gap-1.5 leading-none">
-                                    <Label htmlFor={fieldId} className="text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                        {field.label} {field.required && <span className="text-red-500">*</span>}
-                                    </Label>
-                                </div>
-                                {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    const renderField = (field: any) => {
+        switch (field.type) {
+            case 'text':
+            case 'number':
+                return (
+                    <div key={field.id} className="space-y-2">
+                        <Label htmlFor={field.id} className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <Input
+                            id={field.id}
+                            type={field.type}
+                            required={field.required}
+                            value={data.submission_data[field.id] || ''}
+                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                            className="font-semibold"
+                            placeholder={`Enter ${field.label}...`}
+                        />
+                    </div>
+                );
+            case 'textarea':
+                return (
+                    <div key={field.id} className="space-y-2">
+                        <Label htmlFor={field.id} className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <Textarea
+                            id={field.id}
+                            required={field.required}
+                            value={data.submission_data[field.id] || ''}
+                            onChange={(e) => handleInputChange(field.id, e.target.value)}
+                            className="min-h-[100px]"
+                            placeholder={`Enter ${field.label}...`}
+                        />
+                    </div>
+                );
+            case 'select':
+                return (
+                    <div key={field.id} className="space-y-2">
+                        <Label htmlFor={field.id} className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <Select onValueChange={(val: string) => handleInputChange(field.id, val)} required={field.required}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {field.options?.map((opt: string, idx: number) => (
+                                    <SelectItem key={idx} value={opt}>{opt}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                );
+            case 'radio':
+                return (
+                    <div key={field.id} className="space-y-3">
+                        <Label className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <RadioGroup onValueChange={(val: string) => handleInputChange(field.id, val)} required={field.required}>
+                            <div className="flex flex-col gap-2">
+                                {field.options?.map((opt: string, idx: number) => (
+                                    <div className="flex items-center space-x-2" key={idx}>
+                                        <RadioGroupItem value={opt} id={`${field.id}-${idx}`} />
+                                        <Label htmlFor={`${field.id}-${idx}`}>{opt}</Label>
+                                    </div>
+                                ))}
                             </div>
-                        );
-                    }
-
-                    // DATE PICKER
-                    if (field.type === 'date') {
-                        return (
-                            <div key={index} className="space-y-2 flex flex-col">
-                                <Label className="text-xs font-bold uppercase text-slate-500">
-                                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal border-slate-300 h-11",
-                                                !value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {value ? format(new Date(value), "PPP") : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={value ? new Date(value) : undefined}
-                                            onSelect={(date: Date | undefined) => setData(field.label, date ? format(date, 'yyyy-MM-dd') : '')}
-                                            disabled={(date: Date) => date > new Date() || date < new Date("1900-01-01")}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                {error && <p className="text-red-500 text-xs">{error}</p>}
-                            </div>
-                        );
-                    }
-
-                    // TEXTAREA
-                    if (field.type === 'textarea') {
-                        return (
-                            <div key={index} className="md:col-span-2 space-y-2">
-                                <Label htmlFor={fieldId} className="text-xs font-bold uppercase text-slate-500">
-                                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                                </Label>
-                                <Textarea
-                                    id={fieldId}
-                                    value={value}
-                                    onChange={(e) => setData(field.label, e.target.value)}
-                                    className="resize-none min-h-[100px] border-slate-300"
-                                />
-                                {error && <p className="text-red-500 text-xs">{error}</p>}
-                            </div>
-                        );
-                    }
-
-                    // DEFAULT (Text/Number)
-                    return (
-                        <div key={index} className="space-y-2">
-                            <Label htmlFor={fieldId} className="text-xs font-bold uppercase text-slate-500">
+                        </RadioGroup>
+                    </div>
+                );
+            case 'checkbox':
+                return (
+                    <div key={field.id} className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id={field.id}
+                                required={field.required}
+                                checked={!!data.submission_data[field.id]}
+                                onChange={(e) => handleInputChange(field.id, e.target.checked)}
+                                className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-600"
+                            />
+                            <Label htmlFor={field.id} className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400 cursor-pointer">
                                 {field.label} {field.required && <span className="text-red-500">*</span>}
                             </Label>
-                            <Input
-                                id={fieldId}
-                                type={field.type}
-                                value={value}
-                                onChange={(e) => setData(field.label, e.target.value)}
-                                required={field.required}
-                                className="h-11 border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-sm"
-                            />
-                            {error && <p className="text-red-500 text-xs">{error}</p>}
                         </div>
-                    );
-                })}
+                    </div>
+                );
+            case 'file':
+                return (
+                    <div key={field.id} className="space-y-2">
+                        <Label htmlFor={field.id} className="text-sm font-bold uppercase text-neutral-600 dark:text-neutral-400">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </Label>
+                        <div className="flex items-center gap-4">
+                            <Input
+                                id={field.id}
+                                type="file"
+                                required={field.required}
+                                onChange={(e) => handleInputChange(field.id, e.target.files?.[0])}
+                                className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                        </div>
+                        <p className="text-[10px] text-neutral-400">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <PublicLayout>
+            <Head title={`Apply - ${organization.name}`} />
+
+            <div className={`min-h-screen py-12 ${organization.color_theme || 'bg-blue-600'}`}>
+                <div className="max-w-3xl mx-auto px-6">
+                    <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl overflow-hidden">
+
+                        {/* Header */}
+                        <div className="p-8 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-black/20">
+                            <Link href={`/organizations/${organization.slug}`} className="inline-flex items-center text-xs font-black tracking-widest text-neutral-400 hover:text-blue-600 mb-6 uppercase transition-colors">
+                                <ArrowLeft className="w-3 h-3 mr-2" /> Back to Profile
+                            </Link>
+                            <h1 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tight mb-2">
+                                Membership Application
+                            </h1>
+                            <p className="text-neutral-500 font-medium">
+                                Submitting to <span className="font-bold text-neutral-900 dark:text-white">{organization.name}</span>
+                            </p>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="p-8 space-y-8">
+
+                            {/* Standard Fields */}
+                            <div className="space-y-6">
+                                <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b pb-2">Personal Information</h3>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="fullname" className="text-xs font-bold uppercase text-neutral-500">Full Name</Label>
+                                        <Input
+                                            id="fullname"
+                                            value={data.fullname}
+                                            onChange={e => setData('fullname', e.target.value)}
+                                            required
+                                            placeholder="Given Middle Surname"
+                                            className="font-bold"
+                                        />
+                                        {errors.fullname && <p className="text-red-500 text-xs">{errors.fullname}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="address" className="text-xs font-bold uppercase text-neutral-500">Address</Label>
+                                        <Input
+                                            id="address"
+                                            value={data.address}
+                                            onChange={e => setData('address', e.target.value)}
+                                            required
+                                            placeholder="House No, Street, Barangay"
+                                            className="font-bold"
+                                        />
+                                        {errors.address && <p className="text-red-500 text-xs">{errors.address}</p>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dynamic Fields */}
+                            {organization.form_schema && organization.form_schema.length > 0 && (
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b pb-2">Organization Requirements</h3>
+                                    <div className="grid gap-6">
+                                        {organization.form_schema.map((field: any) => renderField(field))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="pt-6 border-t border-neutral-100 dark:border-neutral-800">
+                                <Button
+                                    type="submit"
+                                    disabled={processing}
+                                    className={`w-full h-14 text-sm font-black uppercase tracking-widest shadow-xl transition-all hover:-translate-y-1 ${organization.color_theme?.replace('bg-', 'bg-') || 'bg-blue-600'} hover:brightness-110 text-white`}
+                                >
+                                    {processing ? 'Submitting Application...' : 'Submit Application'} <CheckCircle2 className="ml-2 w-5 h-5" />
+                                </Button>
+                                <p className="text-[10px] text-center text-neutral-400 mt-4 uppercase font-bold">
+                                    By submitting this form, you certify that all information is true and correct.
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </div>
+        </PublicLayout>
     );
 }

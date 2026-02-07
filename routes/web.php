@@ -1,5 +1,6 @@
 <?php
 
+
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 
@@ -10,7 +11,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\CaseController;
-
+use App\Http\Controllers\Admin\OfficialController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MembersController;
@@ -139,6 +140,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // 'system-users'
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
 
+        // 'officials'
+        Route::resource('officials', OfficialController::class);
+
 
         // 2. Membership Applications (Manual Order Fix)
         // Static routes (create) MUST come before wildcard routes ({application})
@@ -147,8 +151,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('applications/{application}', [MembershipApplicationController::class, 'show'])->name('applications.show');
         Route::patch('applications/{application}/status', [MembershipApplicationController::class, 'updateStatus'])->name('applications.update-status');
 
-        // MOCK DATAS 
-        // Inside Route::middleware(['auth', 'verified'])->prefix('admin')->group(...)
+
         Route::get('analytics/print', [AnalyticsController::class, 'print'])->name('analytics.print');
         Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
 
@@ -168,12 +171,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/settings/ongoing-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeOngoingStatus'])->name('settings.ongoing-statuses.store');
         Route::patch('/settings/ongoing-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateOngoingStatus'])->name('settings.ongoing-statuses.update');
 
-        // Barangay Officials
-        Route::resource('officials', \App\Http\Controllers\Admin\OfficialController::class);
+
+        // GAD Module
+        Route::get('gad/dashboard', [\App\Http\Controllers\Admin\GadActivityController::class, 'dashboard'])->name('gad.dashboard');
+        Route::get('gad/print', [\App\Http\Controllers\Admin\GadActivityController::class, 'print'])->name('gad.print');
+        Route::resource('gad/activities', \App\Http\Controllers\Admin\GadActivityController::class, ['names' => 'gad.activities']);
 
     });
-
-
 
 });
 

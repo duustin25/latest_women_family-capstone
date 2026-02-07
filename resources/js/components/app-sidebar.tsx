@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper } from 'lucide-react';
+import { Activity, Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -53,6 +53,11 @@ const mainNavItems: NavItem[] = [
         icon: User2,
     },
     {
+        title: 'GAD Dashboard',
+        href: '/admin/gad/dashboard',
+        icon: Activity,
+    },
+    {
         title: 'Data Analytics',
         href: '/admin/analytics',
         icon: ChartLine,
@@ -76,11 +81,11 @@ const footerNavItems: NavItem[] = [
     //     href: 'https://github.com/laravel/react-starter-kit',
     //     icon: Folder,
     // },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits#react',
+    //     icon: BookOpen,
+    // },
 ];
 
 export function AppSidebar() {

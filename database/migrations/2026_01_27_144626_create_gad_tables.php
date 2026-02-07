@@ -4,40 +4,24 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        // Table 1: The Programs/Events
-        Schema::create('gad_programs', function (Blueprint $table) {
+        Schema::create('gad_activities', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('slug')->unique();
-            $table->text('description');
-            $table->string('category'); 
-            $table->string('location');
-            $table->dateTime('event_date');
-            $table->integer('slots')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        // Table 2: The Applicants/Beneficiaries
-        Schema::create('gad_applications', function (Blueprint $table) {
-            $table->id();
-            // foreignId MUST come after the table it references is created
-            $table->foreignId('gad_program_id')->constrained()->onDelete('cascade');
-            $table->string('full_name');
-            $table->string('sex'); 
-            $table->date('birthdate');
-            $table->string('address');
-            $table->string('contact_number');
-            $table->string('civil_status');
-            $table->string('employment_status');
-            $table->string('status')->default('Pending'); 
+            $table->enum('activity_type', ['Client-Focused', 'Org-Focused', 'Attribution']);
+            $table->enum('status', ['Planned', 'Ongoing', 'Completed'])->default('Planned');
+            $table->dateTime('date_scheduled');
+            $table->decimal('total_project_cost', 15, 2)->default(0);
+            $table->decimal('hgdg_score', 5, 2)->nullable(); // For Attribution
+            $table->decimal('gad_chargeable_amount', 15, 2)->default(0);
+            $table->decimal('actual_expenditure', 15, 2)->nullable(); // Filled after event
+            $table->json('target_participants')->nullable(); // e.g. ["KALIPI", "Admins"]
+            $table->string('attendance_file')->nullable();
             $table->timestamps();
         });
     }
@@ -47,8 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop the child table first to avoid foreign key constraint errors
-        Schema::dropIfExists('gad_applications');
-        Schema::dropIfExists('gad_programs');
+        Schema::dropIfExists('gad_activities');
     }
 };

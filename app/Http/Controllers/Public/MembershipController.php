@@ -18,11 +18,8 @@ class MembershipController extends Controller
 
     public function create(Organization $organization)
     {
-        $view = match ($organization->slug) {
-            'kalipi', 'kaliping-pilipina' => 'Public/Organizations/Apply/KalipiForm',
-            'solo-parents' => 'Public/Organizations/Apply/SoloParentForm',
-            default => 'Public/Organizations/Apply/GeneralForm',
-        };
+        // Force the dynamic form for all organizations
+        $view = 'Public/Organizations/Apply/DynamicForm';
 
         return Inertia::render($view, [
             'organization' => $organization,
@@ -46,21 +43,20 @@ class MembershipController extends Controller
             ]);
         }
 
-        // 2. VALIDATION
+        // 2. BASE VALIDATION RULES
         $rules = [
             'fullname' => 'required|string|max:255',
             'address' => 'required|string',
-            'personal_data' => 'nullable|array',
-            'family_data' => 'nullable|array',
+            'submission_data' => 'nullable|array', // New JSON column
         ];
 
-        // Dynamic Validation Logic
+        // 3. DYNAMIC VALIDATION LOGIC
         if (!empty($organization->form_schema)) {
             foreach ($organization->form_schema as $field) {
                 // Determine validation rules for this field
                 $fieldRules = [];
 
-                if (!empty($field['required'])) {
+                if (!empty($field['required']) && $field['required'] == true) {
                     $fieldRules[] = 'required';
                 } else {
                     $fieldRules[] = 'nullable';
@@ -74,38 +70,49 @@ class MembershipController extends Controller
                     case 'date':
                         $fieldRules[] = 'date';
                         break;
+                    case 'checkbox':
+                        // Checkbox usually comes as boolean or "on"
+                        // We can be loose here or strict 'boolean'
+                        $fieldRules[] = 'boolean';
+                        break;
                     case 'text':
                     case 'textarea':
+                    case 'select':
+                    case 'radio':
                     default:
                         $fieldRules[] = 'string';
-                        break;
-                    case 'checkbox':
-                        $fieldRules[] = 'boolean';
                         break;
                 }
 
                 // Add to rules array using dot notation for JSON validation
-                // e.g., 'personal_data.Mother Name' => 'required|string'
-                $rules['personal_data.' . $field['label']] = implode('|', $fieldRules);
+                // The frontend sends data in 'submission_data' array
+                // So we validate 'submission_data.field_id'
+                // NOTE: We used field.id in the frontend form builder
+                $fieldId = $field['id'];
+                $rules['submission_data.' . $fieldId] = implode('|', $fieldRules);
             }
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, [
+            'submission_data.*.required' => 'This field is required.'
+        ]);
 
 
-        // 3. PERSISTENCE
+        // 4. PERSISTENCE
         $organization->membershipApplications()->create([
             'fullname' => $validated['fullname'],
             'address' => $validated['address'],
-            'personal_data' => $validated['personal_data'] ?? [],
-            'family_data' => $validated['family_data'] ?? [],
+            // We store the dynamic answers in the new JSON column
+            'submission_data' => $validated['submission_data'] ?? [],
+            // Deprecated columns can be left empty or migrated later if needed
+            'personal_data' => [],
+            'family_data' => [],
             'status' => $isAdmin ? 'Approved' : 'Pending',
             'approved_by' => $isAdmin ? Auth::user()->name : null,
             'actioned_at' => $isAdmin ? now() : null,
         ]);
 
-        // 4. FLASH MESSAGE REDIRECT
-        // The ->with('success', ...) sends data to the next page's props.flash
+        // 5. FLASH MESSAGE REDIRECT
         if ($isAdmin) {
             return redirect()->route('admin.applications.index')
                 ->with('success', 'Manual record for ' . $validated['fullname'] . ' has been registered.');

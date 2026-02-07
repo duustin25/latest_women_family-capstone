@@ -144,10 +144,10 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                     </div>
 
                     {/* Filters & Search */}
-                    <div className="p-4 rounded-lg shadow-sm dark:shadow-none grid grid-cols-1 md:grid-cols-4 gap-4 transition-colors duration-200">
+                    <div className="p-4 rounded-lg shadow-sm dark:shadow-none border grid grid-cols-1 md:grid-cols-4 gap-4 transition-colors duration-200">
                         {/* Search */}
                         <div className="md:col-span-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
                             <Input
                                 placeholder="Search Case ID or Name..."
                                 className="pl-9"
@@ -159,7 +159,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                         {/* Status Filter */}
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger>
-                                <div className="flex items-center gap-2 text-slate-600">
+                                <div className="flex items-center gap-2">
                                     <Filter className="w-4 h-4" />
                                     <span>{statusFilter === 'All' ? 'Filter Status' : statusFilter}</span>
                                 </div>
@@ -175,7 +175,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                         {/* Type Filter */}
                         <Select value={typeFilter} onValueChange={setTypeFilter}>
                             <SelectTrigger>
-                                <div className="flex items-center gap-2 text-slate-600">
+                                <div className="flex items-center gap-2">
                                     <Filter className="w-4 h-4" />
                                     <span>{typeFilter === 'All' ? 'Filter Type' : typeFilter}</span>
                                 </div>
@@ -225,15 +225,15 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
                                         // CRITICAL FIX: Use composite key to prevent duplicates
                                         <TableRow key={`${item.type}-${item.id}`} className="dark:text-white">
                                             <TableCell className="font-medium">{item.case_number}</TableCell>
-                                            <TableCell className="text-slate-500 text-sm">{item.date}</TableCell>
+                                            <TableCell className="text-sm">{item.date}</TableCell>
                                             <TableCell>
                                                 <span className={`text-xs font-bold px-2 py-1 rounded ${item.type === 'VAWC' ? 'text-red-700 border' : item.type === 'BCPC' ? 'border text-blue-700' : ''}`}>
                                                     {item.type}
                                                 </span>
-                                                <div className="text-[15px] text-slate-900 mt-1 dark:text-white">{item.subType}</div>
+                                                <div className="text-[15px] mt-1">{item.subType}</div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="font-medium text-sm text-slate-900 dark:text-white">{item.name}</div>
+                                                <div className="font-medium text-sm">{item.name}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <StatusBadge status={item.status} referredTo={item.referred_to} />
