@@ -64,6 +64,9 @@ class MembershipController extends Controller
 
                 // Type-based rules
                 switch ($field['type']) {
+                    case 'email':
+                        $fieldRules[] = 'email:rfc,dns';
+                        break;
                     case 'number':
                         $fieldRules[] = 'numeric';
                         break;

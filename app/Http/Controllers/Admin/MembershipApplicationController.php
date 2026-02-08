@@ -81,4 +81,17 @@ class MembershipApplicationController extends Controller
         return redirect()->route('admin.applications.index')
             ->with('success', "Application has been {$validated['status']}.");
     }
+
+    /**
+     * Print the application in an official layout.
+     */
+    public function print(MembershipApplication $application)
+    {
+        $application->load(['organization']);
+
+        return Inertia::render('Admin/Applications/Print', [
+            'application' => new MembershipApplicationResource($application),
+            'organization' => new \App\Http\Resources\OrganizationResource($application->organization),
+        ]);
+    }
 }

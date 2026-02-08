@@ -46,9 +46,11 @@ export default function ReviewKalipi({ application }: { application: any }) {
                                 }`}>
                                 Status: {record.status}
                             </Badge>
-                            <Button variant="outline" size="sm" onClick={() => window.print()} className="border-2 uppercase font-black text-xs">
-                                <Printer className="w-4 h-4 mr-2" /> Print Form
-                            </Button>
+                            <a href={`/admin/applications/${record.id}/print`} target="_blank" rel="noopener noreferrer">
+                                <Button variant="outline" size="sm" className="border-2 uppercase font-black text-xs">
+                                    <Printer className="w-4 h-4 mr-2" /> Print Official Form
+                                </Button>
+                            </a>
                         </div>
                     </div>
 

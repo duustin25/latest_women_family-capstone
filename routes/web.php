@@ -148,6 +148,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Static routes (create) MUST come before wildcard routes ({application})
         Route::get('applications', [MembershipApplicationController::class, 'index'])->name('applications.index');
         Route::get('applications/create', [MembershipApplicationController::class, 'create'])->name('applications.create');
+        Route::get('applications/{application}/print', [MembershipApplicationController::class, 'print'])->name('applications.print');
         Route::get('applications/{application}', [MembershipApplicationController::class, 'show'])->name('applications.show');
         Route::patch('applications/{application}/status', [MembershipApplicationController::class, 'updateStatus'])->name('applications.update-status');
 
