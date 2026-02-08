@@ -37,8 +37,14 @@ class CaseController extends Controller
      */
     public function index(Request $request)
     {
+        $showArchived = $request->query('archived') === 'true';
+
+        // Helper to query with trashed if archived mode is on
+        $vawcQuery = $showArchived ? VawcReport::onlyTrashed() : VawcReport::query();
+        $bcpcQuery = $showArchived ? BcpcReport::onlyTrashed() : BcpcReport::query();
+
         // Fetch all cases from both models
-        $vawcCases = VawcReport::all()->map(function ($case) {
+        $vawcCases = $vawcQuery->get()->map(function ($case) {
             return [
                 'id' => $case->id,
                 'case_number' => $case->case_number,
@@ -46,23 +52,27 @@ class CaseController extends Controller
                 'type' => 'VAWC',
                 'subType' => $case->abuse_type ?? 'N/A', // e.g. Physical, Sexual
                 'status' => $case->status,
-                'date' => $case->incident_date ? $case->incident_date->format('Y-m-d') : $case->created_at->format('Y-m-d'),
+                'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
+                'time' => $case->created_at->format('h:i A'),
                 'referred_to' => $case->referral_to,
                 'created_at' => $case->created_at,
+                'deleted_at' => $case->deleted_at,
             ];
         });
 
-        $bcpcCases = BcpcReport::all()->map(function ($case) {
+        $bcpcCases = $bcpcQuery->get()->map(function ($case) {
             return [
                 'id' => $case->id,
                 'case_number' => $case->case_number,
                 'name' => $case->victim_name ?? $case->informant_name ?? 'Anonymous',
-                'type' => 'BCPC', // Using BCPC for consistency, mapping CPP in UI if needed
+                'type' => 'BCPC',
                 'subType' => $case->concern_type ?? 'N/A', // e.g. CICL, Abuse
                 'status' => $case->status,
-                'date' => $case->created_at->format('Y-m-d'), // BCPC might separate incident vs report date
+                'date' => $case->created_at->format('M d, Y'),
+                'time' => $case->created_at->format('h:i A'),
                 'referred_to' => $case->referral_to,
                 'created_at' => $case->created_at,
+                'deleted_at' => $case->deleted_at,
             ];
         });
 
@@ -73,7 +83,8 @@ class CaseController extends Controller
 
         return Inertia::render('Admin/Cases/Index', [
             'cases' => $allCases,
-            'ongoingStatuses' => $ongoingStatuses
+            'ongoingStatuses' => $ongoingStatuses,
+            'filters' => $request->only(['archived', 'search', 'type', 'status'])
         ]);
     }
 
@@ -281,8 +292,35 @@ class CaseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage (Soft Delete).
+     */
+    public function destroy($id, Request $request)
     {
-        // Optional: Implement delete
+        $type = $request->query('type');
+
+        if ($type === 'VAWC') {
+            VawcReport::findOrFail($id)->delete();
+        } else {
+            BcpcReport::findOrFail($id)->delete();
+        }
+
+        return redirect()->back()->with('success', 'Case archived successfully.');
+    }
+
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore($id, Request $request)
+    {
+        $type = $request->query('type');
+
+        if ($type === 'VAWC') {
+            VawcReport::withTrashed()->findOrFail($id)->restore();
+        } else {
+            BcpcReport::withTrashed()->findOrFail($id)->restore();
+        }
+
+        return redirect()->back()->with('success', 'Case restored successfully.');
     }
 }

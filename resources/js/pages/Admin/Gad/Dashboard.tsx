@@ -1,7 +1,7 @@
 
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Activity, AlertTriangle, CheckCircle2, DollarSign, PieChart, Printer } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, DollarSign, PieChart, Printer, Plus, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ interface GadActivity {
     status: string;
     total_project_cost: number;
     actual_expenditure: number;
+    created_at: string;
     date_scheduled: string;
 }
 
@@ -46,150 +47,197 @@ export default function GadDashboard({ totalUtilized = 0, recentActivities = [] 
         <AppLayout breadcrumbs={[{ title: 'GAD Dashboard', href: '/admin/gad/dashboard' }]}>
             <Head title="GAD Dashboard" />
 
-            <div className="p-6 max-w-7xl mx-auto space-y-8">
+            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">GAD Dashboard</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Monitor Gender and Development Budget & Activities</p>
+                    {/* HERO SECTION */}
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+                        <div>
+                            <div className='flex items-center gap-3 mb-2'>
+                                <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tighter uppercase leading-none">
+                                    GAD Overview
+                                </h2>
+                            </div>
+                            <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg ml-1">
+                                Monitor Gender and Development Budget & Activities.
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <a href={route('admin.gad.print')} target="_blank">
+                                <Button variant="outline" className="h-12 px-6 rounded-full border-2 border-neutral-200 hover:border-neutral-300 text-neutral-600 font-bold uppercase tracking-wide text-xs">
+                                    <Printer className="w-4 h-4 mr-2" />
+                                    Print Report
+                                </Button>
+                            </a>
+                            <Link href={route('admin.gad.activities.create')}>
+                                <Button className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 border-transparent dark:border-neutral-700">
+                                    <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
+                                    <span className="font-bold uppercase tracking-wide text-xs">New Activity</span>
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <a href={route('admin.gad.print')} target="_blank">
-                            <Button variant="outline">
-                                <Printer className="w-4 h-4 mr-2" />
-                                Print Report
-                            </Button>
-                        </a>
-                        <Link href={route('admin.gad.activities.create')}>
-                            <Button className="bg-purple-600 hover:bg-purple-700">
-                                <Activity className="w-4 h-4 mr-2" />
-                                New Activity
-                            </Button>
-                        </Link>
+
+                    {/* BUDGET TRACKER SECTION */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                        {/* TOTAL BUDGET */}
+                        <Card className="bg-white dark:bg-neutral-900 border-none shadow-sm rounded-3xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <DollarSign size={80} />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Total Annual Allocation</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center space-x-1 mb-1">
+                                    <span className="text-2xl font-black text-neutral-900 dark:text-white">₱</span>
+                                    <Input
+                                        type="number"
+                                        value={annualBudget}
+                                        onChange={(e) => setAnnualBudget(parseFloat(e.target.value) || 0)}
+                                        className="text-4xl font-black text-neutral-900 dark:text-white border-none shadow-none focus-visible:ring-0 p-0 h-auto w-full bg-transparent tracking-tighter"
+                                    />
+                                </div>
+                                <p className="text-xs text-neutral-500 font-medium ml-1">
+                                    Represents 5% of Total Appropriations.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* UTILIZED */}
+                        <Card className="bg-white dark:bg-neutral-900 border-none shadow-sm rounded-3xl relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500">
+                                <TrendingUp size={80} />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Total Utilized Fund</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter mb-1">
+                                    ₱{safeTotalUtilized.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </div>
+                                <div className="flex items-center gap-2 ml-1">
+                                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none uppercase text-[10px] font-bold">
+                                        {utilizationRate.toFixed(1)}% Utilized
+                                    </Badge>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* REMAINING */}
+                        <Card className="bg-white dark:bg-neutral-900 border-none shadow-sm rounded-3xl relative overflow-hidden group">
+                            <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity ${remainingBalance < 0 ? 'text-red-500' : 'text-blue-500'}`}>
+                                <PieChart size={80} />
+                            </div>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Remaining Balance</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className={`text-4xl font-black tracking-tighter mb-1 ${remainingBalance < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                                    ₱{remainingBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </div>
+                                <p className="text-xs text-neutral-500 font-medium ml-1">
+                                    Available for future activities.
+                                </p>
+                            </CardContent>
+                        </Card>
                     </div>
-                </div>
 
-                {/* Budget Tracker Section */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="border-l-4 border-l-blue-500 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Annual GAD Budget</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center space-x-2">
-                                <span className="text-2xl font-bold">₱</span>
-                                <Input
-                                    type="number"
-                                    value={annualBudget}
-                                    onChange={(e) => setAnnualBudget(parseFloat(e.target.value) || 0)}
-                                    className="text-2xl font-bold border-none shadow-none focus-visible:ring-0 p-0 h-auto w-full"
-                                />
+                    {/* UTILIZATION ALERT */}
+                    {utilizationRate < 5 && (
+                        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl mb-8 flex items-start gap-4">
+                            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-full text-amber-600">
+                                <AlertTriangle size={20} />
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Editable. Represents 5% of Total Appropriations.
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Utilized</CardTitle>
-                            <PieChart className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">₱{safeTotalUtilized.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {utilizationRate.toFixed(1)}% of GAD Budget
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className={`border-l-4 shadow-sm ${remainingBalance < 0 ? 'border-l-red-500' : 'border-l-amber-500'}`}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Remaining Balance</CardTitle>
-                            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`text-2xl font-bold ${remainingBalance < 0 ? 'text-red-600' : ''}`}>
-                                ₱{remainingBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Available for future activities
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Utilization Alert */}
-                {utilizationRate < 5 && (
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <AlertTriangle className="h-5 w-5 text-red-500" aria-hidden="true" />
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700">
-                                    <span className="font-bold">Warning:</span> Utilization is very low ({utilizationRate.toFixed(2)}%).
-                                    Legal mandate requires full utilization of the 5% GAD fund.
+                            <div>
+                                <h4 className="text-amber-900 dark:text-amber-400 font-bold uppercase text-xs tracking-wide">Low Utilization Notice</h4>
+                                <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
+                                    Utilization is currently at <span className="font-bold">{utilizationRate.toFixed(2)}%</span>.
+                                    Legal mandate requires full utilization of the 5% GAD fund allocation.
                                 </p>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Recent Activities */}
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold tracking-tight">Recent Activities</h2>
-                        <Link href={route('admin.gad.activities.index')} className="text-sm font-medium text-purple-600 hover:text-purple-500">
-                            View All &rarr;
+                    {/* RECENT ACTIVITIES TABLE */}
+                    <div className="flex justify-between items-end mb-6">
+                        <div>
+                            <h3 className="text-2xl font-black text-neutral-900 dark:text-white tracking-tight uppercase">Recent Activities</h3>
+                            <p className="text-neutral-500 text-sm font-medium">Latest budget movements and events.</p>
+                        </div>
+
+                        <Link href={route('admin.gad.activities.index')}>
+                            <Button variant="ghost" className="text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-neutral-900">
+                                View All <ArrowUpRight size={14} className="ml-1" />
+                            </Button>
                         </Link>
                     </div>
-                    <div className="bg-white dark:bg-slate-950 rounded-lg border shadow-sm overflow-hidden">
-                        {recentActivities.length > 0 ? (
-                            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-                                <thead className="bg-slate-50 dark:bg-slate-900">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Activity</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Type</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Expenditure</th>
+
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-neutral-200 dark:border-neutral-800 text-[10px] font-black uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50">
+                                        <th className="p-5 pl-8">Activity Name</th>
+                                        <th className="p-5">Type</th>
+                                        <th className="p-5">Date Scheduled</th>
+                                        <th className="p-5">Status</th>
+                                        <th className="p-5 text-right pr-8">Expenditure</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-slate-950 divide-y divide-slate-200 dark:divide-slate-800">
-                                    {recentActivities.map((activity) => (
-                                        <tr key={activity.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">
-                                                {activity.title}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                                {activity.activity_type}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                                {new Date(activity.date_scheduled).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <Badge variant={activity.status === 'Completed' ? 'default' : activity.status === 'Ongoing' ? 'secondary' : 'outline'}>
-                                                    {activity.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
-                                                ₱{activity.actual_expenditure?.toLocaleString() || '0.00'}
+                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                                    {recentActivities.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-12 text-center">
+                                                <div className="flex flex-col items-center justify-center opacity-60">
+                                                    <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
+                                                        <Activity size={20} />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No activities found</h3>
+                                                    <p className="text-xs text-neutral-500">Start by creating a new activity.</p>
+                                                </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        recentActivities.map((activity) => (
+                                            <tr key={activity.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                                <td className="p-5 pl-8 align-middle">
+                                                    <span className="text-sm font-bold text-neutral-900 dark:text-white block uppercase tracking-tight">
+                                                        {activity.title}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 align-middle">
+                                                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-tight">
+                                                        {activity.activity_type}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 align-middle">
+                                                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-tight">
+                                                        {new Date(activity.date_scheduled).toLocaleDateString()}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 align-middle">
+                                                    <Badge variant="outline" className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${activity.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                                        activity.status === 'Ongoing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                                            'bg-neutral-50 text-neutral-600 border-neutral-200'
+                                                        }`}>
+                                                        {activity.status}
+                                                    </Badge>
+                                                </td>
+                                                <td className="p-5 pr-8 align-middle text-right">
+                                                    <span className="font-bold text-neutral-900 dark:text-white">
+                                                        ₱{activity.actual_expenditure?.toLocaleString() || '0.00'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
-                        ) : (
-                            <div className="p-6 text-center text-slate-500">
-                                No activities found. Start by creating one!
-                            </div>
-                        )}
+                        </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </AppLayout>
     );

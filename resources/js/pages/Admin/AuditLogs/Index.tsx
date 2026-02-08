@@ -1,94 +1,160 @@
-import { Head } from '@inertiajs/react';
+
+import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { History, User, Activity, Search, ShieldCheck, Clock, Download } from 'lucide-react';
+import { History, User, Search, ShieldCheck, Clock, Download, FileText, Trash2, Eye, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
 
 export default function AuditLogs() {
     // MOCK DATA: Simulating high-level accountability
     const logs = [
-        { id: 1, user: 'Admin (Chairperson)', action: 'ARCHIVED CASE', target: 'VAWC-2026-001', date: 'JAN 28, 2026', time: '14:30' },
-        { id: 2, user: 'KALIPI Head', action: 'APPROVED MEMBER', target: 'ELENA REYES', date: 'JAN 28, 2026', time: '11:20' },
-        { id: 3, user: 'Admin (Chairperson)', action: 'UPDATED ANNOUNCEMENT', target: 'HEALTH MISSION 2026', date: 'JAN 27, 2026', time: '09:15' },
-        { id: 4, user: 'VAWC Officer', action: 'SOFT DELETED CASE', target: 'VAWC-2026-009', date: 'JAN 26, 2026', time: '16:45' },
+        { id: 1, user: 'Admin (Chairperson)', role: 'Admin', action: 'ARCHIVED CASE', target: 'VAWC-2026-001', date: 'JAN 28, 2026', time: '14:30', type: 'critical' },
+        { id: 2, user: 'KALIPI Head', role: 'Official', action: 'APPROVED MEMBER', target: 'ELENA REYES', date: 'JAN 28, 2026', time: '11:20', type: 'success' },
+        { id: 3, user: 'Admin (Chairperson)', role: 'Admin', action: 'UPDATED ANNOUNCEMENT', target: 'HEALTH MISSION 2026', date: 'JAN 27, 2026', time: '09:15', type: 'info' },
+        { id: 4, user: 'VAWC Officer', role: 'Official', action: 'SOFT DELETED CASE', target: 'VAWC-2026-009', date: 'JAN 26, 2026', time: '16:45', type: 'warning' },
+        { id: 5, user: 'Admin (Chairperson)', role: 'Admin', action: 'EXPORTED REPORTS', target: 'GAD_REPORT_2025.PDF', date: 'JAN 25, 2026', time: '10:00', type: 'info' },
+        { id: 6, user: 'System', role: 'System', action: 'BACKUP CREATED', target: 'DAILY_BACKUP_001', date: 'JAN 25, 2026', time: '00:00', type: 'success' },
     ];
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Audit Logs', href: '#' }]}>
             <Head title="Audit Logs" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-slate-50/50 dark:bg-slate-950 min-h-screen transition-colors">
-                
-                {/* --- HEADER --- */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                            <History className="w-6 h-6 text-blue-600" /> 
-                            System Audit Trail
-                        </h2>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-[0.2em] mt-1">
-                            Traceability and Accountability Records for Brgy. 183
-                        </p>
-                    </div>
-                    <Button variant="outline" className="h-10 text-[10px] font-black uppercase tracking-widest border-2">
-                        <Download className="w-4 h-4 mr-2" /> Export Audit Report
-                    </Button>
-                </div>
 
-                {/* --- FILTER & SEARCH --- */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                        <Input placeholder="SEARCH ACTIONS OR USERS..." className="pl-10 h-11 text-[10px] font-black uppercase tracking-widest bg-slate-50 dark:bg-slate-800 border-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <select className="h-11 px-4 text-[10px] font-black uppercase bg-slate-50 dark:bg-slate-800 border-none rounded-md dark:text-slate-400">
-                        <option>ALL ACTIONS</option>
-                        <option>DELETIONS</option>
-                        <option>CASE UPDATES</option>
-                        <option>MEMBER APPROVALS</option>
-                    </select>
-                </div>
+            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-                {/* --- LOG TABLE --- */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-                    <Table>
-                        <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                            <TableRow className="border-b dark:border-slate-800">
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest px-6 py-4">Action</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest px-6">User</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest px-6">Target Record</TableHead>
-                                <TableHead className="font-black text-[10px] uppercase tracking-widest px-6 text-right">Timestamp</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {logs.map((log) => (
-                                <TableRow key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b dark:border-slate-800 last:border-0">
-                                    <TableCell className="px-6 py-4">
-                                        <span className={`text-[10px] font-black px-2 py-1 rounded-sm ${log.action.includes('DELETE') || log.action.includes('ARCHIVE') ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'}`}>
-                                            {log.action}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell className="px-6">
-                                        <div className="flex items-center gap-2">
-                                            <User size={14} className="text-slate-400" />
-                                            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase">{log.user}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="px-6">
-                                        <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{log.target}</span>
-                                    </TableCell>
-                                    <TableCell className="px-6 text-right">
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-[10px] font-black text-slate-900 dark:text-white">{log.date}</span>
-                                            <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1 uppercase">
-                                                <Clock size={10} /> {log.time}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    {/* HERO SECTION */}
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+                        <div>
+                            <div className='flex items-center gap-3 mb-2'>
+                                <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tighter uppercase leading-none">
+                                    Audit Trails
+                                </h2>
+                            </div>
+                            <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg ml-1">
+                                Traceability and Accountability Records for Brgy. 183.
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <Button variant="outline" className="h-12 px-6 rounded-full border-2 border-neutral-200 hover:border-neutral-300 text-neutral-600 font-bold uppercase tracking-wide text-xs">
+                                <Download className="w-4 h-4 mr-2" />
+                                Export Log Report
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* CONTROL BAR */}
+                    <div className="sticky top-4 z-30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md p-2 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-2 w-full md:w-auto flex-1">
+                            {/* SEARCH BAR */}
+                            <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 w-full md:max-w-[320px]">
+                                <Search size={14} className="text-neutral-400" />
+                                <input
+                                    placeholder="SEARCH LOGS..."
+                                    className="bg-transparent border-none focus:ring-0 text-xs font-bold w-full uppercase placeholder:text-neutral-400 text-neutral-900 dark:text-white h-full"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    autoComplete="off"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <Button variant="ghost" size="sm" className="h-9 px-3 rounded-lg text-xs font-bold uppercase tracking-wide text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+                                <Filter className="w-3 h-3 mr-2" />
+                                Filter Actions
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* TABLE VIEW */}
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-neutral-200 dark:border-neutral-800 text-[10px] font-black uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50">
+                                        <th className="p-5 pl-8">Action Taken</th>
+                                        <th className="p-5">User Responsible</th>
+                                        <th className="p-5">Target Record</th>
+                                        <th className="p-5 text-right pr-8">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                                    {logs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="p-12 text-center">
+                                                <div className="flex flex-col items-center justify-center opacity-60">
+                                                    <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
+                                                        <History size={20} />
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No logs found</h3>
+                                                    <p className="text-xs text-neutral-500">System is clean.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        logs.map((log) => (
+                                            <tr key={log.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                                <td className="p-5 pl-8 align-middle">
+                                                    <div className="flex flex-col">
+                                                        <Badge variant="outline" className={`w-fit mb-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${log.type === 'critical' ? 'bg-red-50 text-red-600 border-red-200' :
+                                                                log.type === 'warning' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                                                    log.type === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                                                        'bg-blue-50 text-blue-600 border-blue-200'
+                                                            }`}>
+                                                            {log.action}
+                                                        </Badge>
+                                                    </div>
+                                                </td>
+
+                                                <td className="p-5 align-middle">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 dark:border-neutral-700">
+                                                            <User size={14} />
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-xs font-bold text-neutral-900 dark:text-white block uppercase tracking-tight">
+                                                                {log.user}
+                                                            </span>
+                                                            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium">
+                                                                {log.role}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="p-5 align-middle">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText size={14} className="text-neutral-400" />
+                                                        <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-tight">
+                                                            {log.target}
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                <td className="p-5 pr-8 align-middle text-right">
+                                                    <div>
+                                                        <span className="text-xs font-bold text-neutral-900 dark:text-white block uppercase tracking-tight">
+                                                            {log.date}
+                                                        </span>
+                                                        <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium flex items-center justify-end gap-1">
+                                                            <Clock size={10} /> {log.time}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </AppLayout>

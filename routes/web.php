@@ -122,9 +122,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         });
 
+        // --- GAD ANALYTICS ---
+        $gadMonthlyStats = \App\Models\GadActivity::selectRaw('
+                MONTH(date_scheduled) as month,
+                activity_type,
+                SUM(actual_expenditure) as total_cost
+            ')
+            ->where('status', 'Completed')
+            ->whereYear('date_scheduled', $currentYear)
+            ->groupBy('month', 'activity_type')
+            ->get();
+
+        $gadAnalyticsData = [];
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            $data = ['month' => $monthName];
+
+            // Initialize types to 0
+            $data['client_focused'] = 0;
+            $data['org_focused'] = 0;
+            $data['attribution'] = 0;
+
+            foreach ($gadMonthlyStats as $stat) {
+                if ($stat->month == $monthNum) {
+                    $key = match ($stat->activity_type) {
+                        'Client-Focused' => 'client_focused',
+                        'Org-Focused' => 'org_focused',
+                        'Attribution' => 'attribution',
+                        default => 'other'
+                    };
+                    $data[$key] = $stat->total_cost;
+                }
+            }
+            $gadAnalyticsData[] = $data;
+        }
+
         return Inertia::render('dashboard', [
             'analyticsData' => $formattedData,
-            'chartConfig' => $chartConfig
+            'chartConfig' => $chartConfig,
+            'gadAnalyticsData' => $gadAnalyticsData
         ]);
     })->name('dashboard');
 
@@ -136,6 +172,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');
         Route::get('cases/{id}/print', [CaseController::class, 'print'])->name('cases.print');
+        Route::patch('cases/{id}/restore', [CaseController::class, 'restore'])->name('cases.restore');
         Route::resource('cases', CaseController::class);
         // 'system-users'
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);

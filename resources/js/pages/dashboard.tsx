@@ -19,7 +19,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url },
 ];
 
-export default function Dashboard({ analyticsData, chartConfig }: { analyticsData: any[], chartConfig: any[] }) {
+
+export default function Dashboard({
+    analyticsData,
+    chartConfig,
+    gadAnalyticsData
+}: {
+    analyticsData: any[],
+    chartConfig: any[],
+    gadAnalyticsData: any[]
+}) {
     const stats = [
         { label: 'Total Cases', value: '42', icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
         { label: 'Active Members', value: '156', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -130,8 +139,9 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                         </div>
                     </div>
 
+
                     {/* 4. Comparison Chart Section (Integrated from Analytics) */}
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Rates of Women Abuse (Yearly Overview)</CardTitle>
@@ -141,6 +151,25 @@ export default function Dashboard({ analyticsData, chartConfig }: { analyticsDat
                             </CardHeader>
                             <CardContent className="pl-5">
                                 <AnalyticsChart data={analyticsData} config={chartConfig} />
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>GAD Expenditure Analytics</CardTitle>
+                                <CardDescription>
+                                    Monthly utilization breakdown by activity type.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pl-5">
+                                <AnalyticsChart
+                                    data={gadAnalyticsData}
+                                    config={[
+                                        { key: 'client_focused', label: 'Client-Focused', color: '#10b981' }, // Emerald-500
+                                        { key: 'org_focused', label: 'Organization-Focused', color: '#3b82f6' }, // Blue-500
+                                        { key: 'attribution', label: 'Attribution', color: '#f59e0b' }, // Amber-500
+                                    ]}
+                                />
                             </CardContent>
                         </Card>
                     </div>

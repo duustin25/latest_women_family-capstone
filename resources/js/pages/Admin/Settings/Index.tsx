@@ -19,7 +19,7 @@ export default function Index({ abuseTypes, referralPartners, ongoingStatuses }:
     const [activeTab, setActiveTab] = useState('case_categories');
 
     const tabs = [
-        { id: 'case_categories', label: 'Case & Referrals Categories' },
+        { id: 'case_categories', label: 'Case Management Configuration' },
         { id: 'appearance', label: 'Display & Theme' },
     ];
 

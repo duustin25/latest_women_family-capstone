@@ -12,20 +12,20 @@ interface LivePaperPreviewProps {
 export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
     return (
         <div className="xl:w-[8.5in] xl:shrink-0 sticky top-8 hidden xl:block">
-            <div className="flex justify-end mb-2">
-                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 animate-pulse">
-                    LIVE BUILDER MODE
-                </Badge>
-            </div>
             <div className="bg-neutral-800 text-white p-3 rounded-t-lg flex justify-between items-center shadow-lg">
-                <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                    <FileText size={14} /> Live Official Form Preview
-                </h3>
+                <div className="flex items-center gap-4">
+                    <h3 className="font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                        <FileText size={14} /> Live Official Form Preview
+                    </h3>
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-300 border-blue-500/30 text-[9px] animate-pulse">
+                        LIVE BUILDER MODE
+                    </Badge>
+                </div>
                 <Badge className="bg-green-500 text-black font-bold text-[10px]">AUTO-GENERATED</Badge>
             </div>
 
             {/* PAPER COMPONENT */}
-            <div className="bg-white text-black font-serif p-8 md:p-12 shadow-2xl min-h-[11in] text-[12px] relative origin-top-left transform scale-[0.85] w-[117%] md:w-auto md:transform-none">
+            <div className="bg-white text-black font-serif p-8 md:p-12 shadow-2xl min-h-[11in] text-[12px] relative origin-top-left transform scale-[0.85] w-[calc(100%/0.85)] md:transform-none md:w-auto xl:transform xl:scale-[0.85] xl:w-[calc(100%/0.85)]">
                 {/* Header */}
                 <header className="text-center mb-8 border-b-2 border-black pb-6">
                     <div className="flex justify-center items-center gap-4 mb-4">

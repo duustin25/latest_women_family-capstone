@@ -23,6 +23,35 @@
 
 ---
 
+## 📚 Core System Modules
+
+### 1. **GAD Management System** (Gender and Development)
+A comprehensive module for tracking and managing the GAD Plan and Budget (GPB).
+- **HGDG Logic Integration**: Automated attribution of budgets based on Gender Responsiveness scores.
+- **Activity Tracking**: Monitor GAD activities, participants, and budget utilization in real-time.
+- **Analytics & Reporting**: Generate transparency reports and visualized data for GAD accomplishments.
+
+### 2. **Dynamic Organization Management**
+A powerful engine for accrediting and managing community organizations (CSOs/NGOs).
+- **Drag-and-Drop Form Builder**: Admins can create custom membership forms without coding.
+- **Live "Official Paper" Preview**: See exactly how the application form looks on printed barangay letterhead while building it.
+- **Digital Accreditation**: Streamlined process for recognizing groups like KALIPI, Solo Parents, ERPAT, etc.
+- **Membership Database**: Centralized repository of all organization members with "Print-to-PDF" capabilities.
+
+### 3. **Case Management (VAWC & BCPC)**
+Secure handling of sensitive cases related to Violence Against Women and Children (VAWC) and Children in Conflict with the Law (CICL).
+- **Strict Confidentiality**: Role-Based Access Control (RBAC) ensures only authorized personnel see sensitive data.
+- **Case Lifecycle**: Automated tracking from `New` -> `On-Going` -> `Resolved/Referred`.
+- **Intelligent Archiving**: Soft-delete mechanisms to maintain legal audit trails while keeping the active dashboard clean.
+
+### 4. **Public Transparency Portal**
+A user-friendly frontend for residents to access services.
+- **Digital Services**: File complaints or apply for organization membership online.
+- **Information Hub**: Access Laws (RA 9262), Rights of the Child, and intervention procedures.
+- **Organization Directory**: View active accredited groups and their requirements.
+
+---
+
 ## 🏛️ Accredited Organizations
 *These groups are managed dynamically via the Admin Panel CRUD system.*
 
@@ -39,14 +68,11 @@
 
 This project is built using **SOLID Principles** and **OOP (Object-Oriented Programming)** to ensure a maintainable and scalable codebase for the LGU.
 
-
-
 ### 🔹 Key Technical Implementation:
 1. **RBAC (Role-Based Access Control):** Custom middleware to separate Admin, Committee Heads, and Residents.
-2. **Case Lifecycle Logic:** Automated state transitions: 
-   `NEW` ➡️ `ON-GOING` ➡️ `RESOLVED/REFERRED`.
+2. **Dynamic JSON Schemas**: The Form Builder saves form structures as JSON, allowing for infinite flexibility without altering the database schema.
 3. **Data Archiving Strategy:** Implementation of **Soft Deletes** in MySQL to ensure legal records are never truly purged, maintaining a 100% audit trail.
-4. **Dynamic CRUD:** Administrators can add new Organizations and Announcements without touching the source code.
+4. **Inertia.js SPA**: A modern Single Page Application experience using React, serving a unified frontend and backend monolith.
 
 ---
 
@@ -54,7 +80,7 @@ This project is built using **SOLID Principles** and **OOP (Object-Oriented Prog
 The system provides real-time "Backtrack Statistics" (e.g., January to February trends) for:
 - **Total Reported Cases** (VAWC & CPP)
 - **Membership Growth Rates**
-- **Program Engagement Analytics**
+- **GAD Budget Utilization Support**
 
 ---
 
@@ -62,7 +88,7 @@ The system provides real-time "Backtrack Statistics" (e.g., January to February 
 - **Frontend:** React.js, Inertia.js, Tailwind CSS, Shadcn/UI
 - **Backend:** Laravel 10 (PHP 8.2)
 - **Database:** MySQL
-- **AI:** Python-based Chatbot (Manual Implementation)
+- **Tooling:** Vite, TypeScript
 
 ---
 

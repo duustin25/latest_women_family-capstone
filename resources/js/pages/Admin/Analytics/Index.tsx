@@ -83,11 +83,11 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig, 
                 {/* Header with Add Button */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                             <Activity className="w-6 h-6 text-[#ce1126]" />
                             Analytics Overview
                         </h1>
-                        <p className="text-slate-500 text-sm">
+                        <p className="text-sm">
                             Statistical reports for Women and Children Protection.
                         </p>
                     </div>
@@ -227,7 +227,7 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig, 
 
                 {/* GAD Analytics Section */}
                 <div className="pt-8 border-t">
-                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mb-6">
+                    <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2 mb-6">
                         <Activity className="w-6 h-6 text-purple-600" />
                         GAD Analytics
                     </h2>

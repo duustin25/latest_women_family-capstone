@@ -103,7 +103,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
                 </Button>
             </CardHeader>
             <CardContent>
-                <div className="rounded-md border">
+                <div className="rounded-md">
                     <Table>
                         <TableHeader>
                             <TableRow>
