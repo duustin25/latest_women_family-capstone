@@ -33,17 +33,15 @@ export default function VawcIndex() {
                                 "Laban para sa karapatan at kaligtasan ng bawat kababaihan at kabataan sa Barangay 183 Villamor."
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Button
-                                    asChild
-                                    className="bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase px-8 py-6 text-sm rounded-md shadow-lg transition-transform active:scale-95"
-                                >
-                                    <a href={route('vawc.report')}>
-                                        File Secure Report <ArrowRight className="ml-2 w-4 h-4" />
-                                    </a>
-                                </Button>
+                                <div className="bg-rose-950/30 border border-rose-500/30 backdrop-blur-sm p-4 rounded-lg mb-4 md:mb-0 max-w-md">
+                                    <p className="text-white text-sm font-medium">
+                                        <span className="font-bold text-rose-400 block mb-1 uppercase tracking-wider">Confidential Reporting</span>
+                                        To file a report, please visit the Barangay Hall or call our hotline. Your safety and privacy are our priority.
+                                    </p>
+                                </div>
                                 <Button
                                     variant="outline"
-                                    className="border-white text-white hover:bg-white hover:text-slate-900 font-bold uppercase px-8 py-6 text-sm rounded-md tracking-widest cursor-pointer"
+                                    className="bg-transparent border-white text-white hover:bg-white hover:text-slate-900 font-bold uppercase px-8 py-6 text-sm rounded-md tracking-widest cursor-pointer"
                                     onClick={() => scrollToSection('filing-process')}
                                 >
                                     How to File

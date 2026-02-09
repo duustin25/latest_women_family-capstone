@@ -97,9 +97,8 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                         </p>
 
                         <div className="flex flex-wrap gap-4">
-                            <Link href="/vawc/report" className="px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-wider text-xs rounded-lg transition-all shadow-lg shadow-rose-900/20 flex items-center gap-2 group">
-                                <ShieldAlert size={18} /> Report Abuse
-                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            <Link href="/vawc" className="px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-wider text-xs rounded-lg transition-all shadow-lg shadow-rose-900/20 flex items-center gap-2 group">
+                                VAWC Services
                             </Link>
                             <Link href="/gad" className="px-8 py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-black uppercase tracking-wider text-xs rounded-lg transition-all border border-neutral-700 flex items-center gap-2">
                                 GAD Services
@@ -110,46 +109,7 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
             </section>
 
             {/* 2. CORE SERVICES GRID */}
-            <section className="py-20 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 -mt-32 relative z-20">
 
-                        {/* VAWC */}
-                        <Link href="/vawc" className="group bg-rose-50 hover:bg-rose-600 transition-all duration-300 p-8 rounded-2xl border border-rose-100 hover:border-rose-600 shadow-sm hover:shadow-xl hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-rose-100 text-rose-600 group-hover:bg-white group-hover:text-rose-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
-                                <ShieldAlert size={28} strokeWidth={1.5} />
-                            </div>
-                            <h3 className="text-xl font-black text-rose-900 group-hover:text-white uppercase tracking-tight mb-2">VAWC Desk</h3>
-                            <p className="text-sm text-rose-700 group-hover:text-rose-100 font-medium leading-relaxed">
-                                Republic Act 9262. Protection against violence for women and their children.
-                            </p>
-                        </Link>
-
-                        {/* GAD */}
-                        <Link href="/gad" className="group bg-purple-50 hover:bg-purple-600 transition-all duration-300 p-8 rounded-2xl border border-purple-100 hover:border-purple-600 shadow-sm hover:shadow-xl hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-purple-100 text-purple-600 group-hover:bg-white group-hover:text-purple-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
-                                <Users size={28} strokeWidth={1.5} />
-                            </div>
-                            <h3 className="text-xl font-black text-purple-900 group-hover:text-white uppercase tracking-tight mb-2">GAD Focus</h3>
-                            <p className="text-sm text-purple-700 group-hover:text-purple-100 font-medium leading-relaxed">
-                                Gender and Development. Promoting equality and empowering all genders.
-                            </p>
-                        </Link>
-
-                        {/* BCPC */}
-                        <Link href="/bcpc" className="group bg-sky-50 hover:bg-sky-600 transition-all duration-300 p-8 rounded-2xl border border-sky-100 hover:border-sky-600 shadow-sm hover:shadow-xl hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-sky-100 text-sky-600 group-hover:bg-white group-hover:text-sky-600 rounded-xl flex items-center justify-center mb-6 transition-colors">
-                                <Baby size={28} strokeWidth={1.5} />
-                            </div>
-                            <h3 className="text-xl font-black text-sky-900 group-hover:text-white uppercase tracking-tight mb-2">BCPC Council</h3>
-                            <p className="text-sm text-sky-700 group-hover:text-sky-100 font-medium leading-relaxed">
-                                Child Protection. Safeguarding the rights and welfare of children.
-                            </p>
-                        </Link>
-
-                    </div>
-                </div>
-            </section>
 
             {/* 3. COMMUNITY UPDATES */}
             <section className="py-20 bg-neutral-50 border-t border-neutral-200">

@@ -33,17 +33,15 @@ export default function BcpcIndex() {
                                 "Bawat bata ay may karapatang lumaki sa isang ligtas, payapa, at mapagkalingang komunidad."
                             </p>
                             <div className="flex flex-wrap gap-4">
-                                <Button
-                                    asChild
-                                    className="bg-sky-600 hover:bg-sky-700 text-white font-bold uppercase px-8 py-6 text-sm rounded-md shadow-lg transition-transform active:scale-95"
-                                >
-                                    <a href={route('bcpc.report')}>
-                                        Report Child Concern <ArrowRight className="ml-2 w-4 h-4" />
-                                    </a>
-                                </Button>
+                                <div className="bg-sky-950/30 border border-sky-500/30 backdrop-blur-sm p-4 rounded-lg mb-4 md:mb-0 max-w-md">
+                                    <p className="text-white text-sm font-medium">
+                                        <span className="font-bold text-sky-400 block mb-1 uppercase tracking-wider">Confidential Reporting</span>
+                                        To file a report, please visit the Barangay Hall or call our hotline. Your safety and privacy are our priority.
+                                    </p>
+                                </div>
                                 <Button
                                     variant="outline"
-                                    className="border-white text-white hover:bg-white hover:text-slate-900 font-bold uppercase px-8 py-6 text-sm rounded-md tracking-widest cursor-pointer"
+                                    className="bg-transparent border-white text-white hover:bg-white hover:text-slate-900 font-bold uppercase px-8 py-6 text-sm rounded-md tracking-widest cursor-pointer"
                                     onClick={() => scrollToSection('intervention-process')}
                                 >
                                     Intervention Process

@@ -10,12 +10,12 @@ import {
 import { toast, Toaster } from 'sonner';
 import ChatbotWidget from '@/components/ChatbotWidget';
 
-const brgyName = import.meta.env.VITE_BARANGAY_NAME;
-const cityName = import.meta.env.VITE_CITY_NAME;
-const brgyNum = import.meta.env.VITE_HOTLINE_BRGY;
-const vawcNum = import.meta.env.VITE_HOTLINE_VAWC;
-const brgyMail = import.meta.env.VITE_OFFICIAL_EMAIL;
-const offcialFb = import.meta.env.VITE_OFFICIAL_FB;
+const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME || 'Barangay 183 Villamor';
+const cityName = import.meta.env.VITE_APP_CITY_NAME || 'Pasay City';
+const brgyNum = import.meta.env.VITE_HOTLINE_BRGY || '0912-345-6789';
+const vawcNum = import.meta.env.VITE_HOTLINE_VAWC || '0998-765-4321';
+const brgyMail = import.meta.env.VITE_OFFICIAL_EMAIL || 'brgy183@gov.ph';
+const offcialFb = import.meta.env.VITE_OFFICIAL_FB || '#';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
     // 2. MOVE HOOKS INSIDE THE FUNCTION
@@ -56,8 +56,28 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Toaster position="top-right" richColors closeButton />
             <ChatbotWidget />
 
+            {/* --- 0. NEW TOP BAR (HOTLINE MARQUEE) --- */}
+            <div className="bg-[#3b0764] text-white text-[10px] font-bold uppercase tracking-widest py-2 relative z-50 border-b border-white/5">
+                <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-2">
+                    <div className="flex items-center gap-6">
+                        <span className="flex items-center gap-2 text-rose-500 animate-pulse">
+                            <AlertCircle size={12} /> Emergency Hotline: <a href={`tel:${brgyNum}`} className="text-white hover:text-rose-500 transition-colors">{brgyNum}</a>
+                        </span>
+                        <span className="hidden md:flex items-center gap-2 text-purple-400">
+                            <Shield size={12} /> VAWC Rescue: <a href={`tel:${vawcNum}`} className="text-white hover:text-purple-400 transition-colors">{vawcNum}</a>
+                        </span>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-4">
+                        <span className="flex items-center gap-2">
+                            <Info size={12} /> Office Hours: Mon-Fri, 8AM - 5PM
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             {/* 1. STICKY HEADER */}
-            <header className="sticky top-0 z-50 shadow-xl">
+            <header className="sticky top-0 z-40 shadow-xl">
                 <div className="bg-[#6b21a8] text-white border-b border-yellow-500/30">
                     <div className="container mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
                         <div className="flex items-center gap-4">

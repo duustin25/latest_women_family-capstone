@@ -1,22 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import PublicLayout from '@/layouts/PublicLayout';
 import * as React from "react";
-import { 
-    Phone, AlertCircle, Shield, Users, Info, 
-    Calendar, MapPin, Search, Filter 
+import {
+    Phone, AlertCircle, Shield, Users, Info,
+    Calendar, MapPin, Search, Filter, ArrowRight
 } from "lucide-react";
-
-// Define it here (outside the component) so it's accessible
-const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Announcements', href: '/announcements' },
-    { name: 'VAWC Violence Against Women and Children', href: '/vawc' },
-    { name: 'Child Protection Policy', href: '/cpp' },
-    { name: 'Gender And Development', href: '/gad' },
-    { name: 'Organizations', href: '/organizations' },
-    { name: 'ABOUT US', href: '/about' },
-    { name: 'CONTACT', href: '/contact' },
-];
 
 export default function Index({ announcements = { data: [] } }: any) {
     const [searchQuery, setSearchQuery] = React.useState("");
@@ -25,7 +13,7 @@ export default function Index({ announcements = { data: [] } }: any) {
     const categories = ["All", "VAWC", "Child Protection", "Emergency", "Health", "Events", "GAD", "General", "Organizations"];
 
     // Filter Logic to use allAnnouncements
-    const filteredAnnouncements = announcements.data.filter((post : any) => {
+    const filteredAnnouncements = announcements.data.filter((post: any) => {
         const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
         return matchesSearch && matchesCategory;
@@ -33,112 +21,139 @@ export default function Index({ announcements = { data: [] } }: any) {
 
     return (
         <PublicLayout>
-        <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-violet-200">
-            <Head title="Announcements - Brgy 183 Villamor" />
+            <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-rose-200 selection:text-rose-900">
+                <Head title="Announcements - Brgy 183 Villamor" />
 
-            <main className="bg-slate-50 min-h-[60vh]">
-                <div className="bg-white border-b border-slate-200 py-12">
-                    <div className="container mx-auto px-6">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">
-                            Announcements
+                {/* --- HERO SECTION --- */}
+                <div className="relative h-[400px] bg-neutral-900 overflow-hidden flex items-center justify-center">
+                    <div className="absolute inset-0 z-0 opacity-40">
+                        <img
+                            src="https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?q=80&w=2000"
+                            className="w-full h-full object-cover grayscale"
+                            alt="Background"
+                        />
+                    </div>
+                    {/* Gradient Overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent z-10"></div>
+
+                    <div className="relative z-20 text-center max-w-4xl px-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
+                        <span className="inline-block py-1 px-3 rounded-full bg-rose-600/20 text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase tracking-[0.2em] mb-4 backdrop-blur-sm">
+                            Community Updates
+                        </span>
+                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 uppercase">
+                            Barangay <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">Bulletin</span>
                         </h1>
-                        <p className="text-slate-500 font-bold uppercase text-xs tracking-widest">
-                            Stay updated with the latest news, events, and advisories.
+                        <p className="text-neutral-400 font-bold uppercase text-xs tracking-widest max-w-2xl mx-auto leading-relaxed">
+                            Stay informed with the latest news, official advisories, and community events from Barangay 183 Villamor.
                         </p>
                     </div>
                 </div>
 
-                {/* FILTER BAR */}
-                <div className="sticky top-0 z-30 bg-white shadow-sm border-b border-slate-200">
-                    <div className="container mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 justify-between items-center">
-                        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-none border-2 ${
-                                        selectedCategory === cat 
-                                        ? 'bg-[#0038a8] text-white border-[#0038a8]' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-[#0038a8]'
-                                    }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="relative w-full md:w-72">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                            <input 
-                                type="text" 
-                                placeholder="SEARCH NEWS..." 
-                                className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-[#0038a8]"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                </div>
+                <main className="bg-slate-50 min-h-[60vh] -mt-10 relative z-30 rounded-t-[40px] px-4 md:px-0">
 
-                {/* ANNOUNCEMENTS GRID (SAME AS WELCOME UI) */}
-                <section className="py-16">
-                    <div className="container mx-auto px-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                            {filteredAnnouncements.length > 0 ? (
-                                filteredAnnouncements.map((post : any) => (
-                                    <article key={post.id} className="bg-white border border-slate-200 flex flex-col group hover:shadow-2xl transition-all duration-500 rounded-sm overflow-hidden">
-                                        <div className="aspect-video w-full overflow-hidden bg-slate-200 relative">
-                                            <div className="absolute top-4 left-4 z-10">
-                                                <span className="bg-white/90 backdrop-blur-sm text-[#0038a8] text-[10px] font-bold px-3 py-1 uppercase tracking-wider shadow-sm">
-                                                    {post.category}
-                                                </span>
-                                            </div>
-                                            <img 
-                                                src={post.image || '/placeholder-image.jpg'} 
-                                                alt={post.title}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                            />
-                                        </div>
-                                        <div className="p-8 flex flex-col flex-grow">
-                                            <div className="flex items-center gap-4 mb-4 text-slate-500 text-xs font-medium">
-                                               <span className="flex items-center gap-1.5">
-                                                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                                                    <span className="text-slate-700 font-bold uppercase">{post.event_date}</span>
-                                                </span>
-                                                {post.location && (
-                                                    <span className="flex items-center gap-1.5">
-                                                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                                                        <span className="line-clamp-1 uppercase font-bold">{post.location}</span>
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-[#0038a8] transition-colors leading-tight uppercase tracking-tight">
-                                                {post.title}
-                                            </h3>
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-8 line-clamp-3">
-                                                {post.excerpt}
-                                            </p>
-                                            <div className="mt-auto pt-6 border-t border-slate-100">
-                                                <Link
-                                                    href={`/announcements/${post.slug}`} 
-                                                    className="text-sm font-bold text-[#0038a8] flex items-center gap-2 group/link uppercase"
-                                                >
-                                                    View Detailed Report
-                                                    <span className="group-hover/link:translate-x-2 transition-transform duration-300">→</span>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </article>
-                                ))
-                            ) : (
-                                <div className="col-span-full py-20 text-center bg-white border border-dashed border-slate-300 rounded-lg">
-                                    <p className="text-slate-500 font-black uppercase tracking-widest">No matching announcements found.</p>
-                                </div>
-                            )}
+                    {/* FILTER BAR - Floating Card Style */}
+                    <div className="container mx-auto max-w-6xl -translate-y-1/2">
+                        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col md:flex-row gap-6 justify-between items-center">
+                            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat
+                                                ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/30 scale-105'
+                                                : 'bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                                            }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="relative w-full md:w-80 group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-rose-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    placeholder="SEARCH UPDATES..."
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-rose-500/20 focus:bg-white transition-all"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
-                </section>
-            </main>
-        </div>
+
+                    {/* ANNOUNCEMENTS GRID */}
+                    <section className="pb-24 pt-8">
+                        <div className="container mx-auto px-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredAnnouncements.length > 0 ? (
+                                    filteredAnnouncements.map((post: any) => (
+                                        <Link key={post.id} href={`/announcements/${post.slug}`} className="group bg-white rounded-3xl overflow-hidden border border-slate-100 hover:border-rose-100 shadow-sm hover:shadow-2xl hover:shadow-rose-900/10 transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
+                                            <div className="aspect-[4/3] w-full overflow-hidden bg-slate-200 relative">
+                                                <div className="absolute top-4 left-4 z-10">
+                                                    <span className="bg-white/90 backdrop-blur-md text-neutral-900 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-wider shadow-sm">
+                                                        {post.category}
+                                                    </span>
+                                                </div>
+                                                <img
+                                                    src={post.image || '/placeholder-image.jpg'}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                />
+                                                {/* Overlay on hover */}
+                                                <div className="absolute inset-0 bg-neutral-900/0 group-hover:bg-neutral-900/20 transition-colors duration-500"></div>
+                                            </div>
+
+                                            <div className="p-8 flex flex-col flex-grow relative">
+                                                {/* Date Badge */}
+                                                <div className="absolute -top-6 right-8 bg-neutral-900 text-white p-3 rounded-xl shadow-lg text-center min-w-[60px]">
+                                                    <span className="block text-[18px] font-black leading-none">{post.event_date ? new Date(post.event_date).getDate() : 'N/A'}</span>
+                                                    <span className="block text-[9px] font-bold uppercase text-white/60">
+                                                        {post.event_date ? new Date(post.event_date).toLocaleDateString('en-US', { month: 'short' }) : 'N/A'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 mb-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                                                    {post.location && (
+                                                        <span className="flex items-center gap-1.5">
+                                                            <MapPin className="w-3 h-3 text-rose-500" />
+                                                            <span className="line-clamp-1">{post.location}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <h3 className="text-xl font-black text-slate-900 mb-4 group-hover:text-rose-600 transition-colors leading-tight uppercase tracking-tight line-clamp-2">
+                                                    {post.title}
+                                                </h3>
+
+                                                <p className="text-slate-500 text-sm leading-relaxed mb-8 line-clamp-3 font-medium">
+                                                    {post.excerpt}
+                                                </p>
+
+                                                <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        Read More
+                                                    </span>
+                                                    <div className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-rose-50 group-hover:text-rose-600 transition-all">
+                                                        <ArrowRight size={14} className="-rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-32 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                            <Search size={24} />
+                                        </div>
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No updates match your search.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
         </PublicLayout>
     );
 }

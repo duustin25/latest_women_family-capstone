@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import PublicLayout from '@/layouts/PublicLayout';
-import { ShieldCheck, Award, Landmark, UserCheck, Heart, ShieldAlert, Users } from "lucide-react";
+import { Landmark, UserCheck, Heart, ShieldAlert, Users } from "lucide-react";
 
 interface Official {
     id: number;
@@ -8,6 +8,8 @@ interface Official {
     position: string;
     committee?: string;
     image_path: string;
+    contact?: string;
+    email?: string;
 }
 
 interface Props {
@@ -18,9 +20,7 @@ interface Props {
 
 export default function Index({ head, secretary, staff }: Props) {
     const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME || 'Barangay 183 Villamor';
-
-    // Default Avatar generator
-    const defaultImage = "https://ui-avatars.com/api/?background=random&name=";
+    const defaultImage = "https://ui-avatars.com/api/?background=random&color=fff&name=";
 
     const presidents = [
         { org: "KALIPI", name: "ELENA REYES", icon: <UserCheck size={18} /> },
@@ -29,83 +29,132 @@ export default function Index({ head, secretary, staff }: Props) {
         { org: "ERPAT", name: "RAMIL RODRIGUEZ", icon: <Users size={18} /> },
     ];
 
-    const OrgCard = ({ image_path, name, position, committee, className = "" }: any) => {
+    const OfficialCard = ({ image_path, name, position, committee, className = "", isHead = false }: any) => {
         const imgSrc = image_path || defaultImage + encodeURIComponent(name);
 
         return (
-            <div className={`flex flex-col items-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 shadow-sm p-4 rounded-md w-64 text-center z-10 ${className}`}>
-                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-600 mb-3 bg-slate-100 dark:bg-slate-800">
-                    <img src={imgSrc} alt={name} className="w-full h-full object-cover" />
+            <div className={`relative group z-10 flex flex-col items-center ${className}`}>
+                <div className={`
+                    relative w-64 bg-white rounded-2xl shadow-lg border transition-all duration-300
+                    flex flex-col items-center p-6 text-center
+                    ${isHead ? 'border-yellow-400 shadow-yellow-900/10 scale-105' : 'border-slate-100 hover:border-purple-200 hover:-translate-y-1 hover:shadow-xl'}
+                `}>
+
+                    {/* Role Badge */}
+                    <div className={`
+                        absolute -top-3 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm
+                        ${isHead ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-900 text-white'}
+                    `}>
+                        {position}
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="w-20 h-20 rounded-full p-1 bg-white border border-slate-100 shadow-inner mb-4 mt-2 overflow-hidden">
+                        <img src={imgSrc} alt={name} className="w-full h-full object-cover rounded-full" />
+                    </div>
+
+                    <h3 className="font-black text-slate-900 text-sm uppercase leading-tight mb-1 group-hover:text-purple-700 transition-colors">
+                        {name}
+                    </h3>
+
+                    {committee && (
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wide mb-4 line-clamp-2">
+                            {committee}
+                        </p>
+                    )}
+
+
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase leading-tight mb-1">{name}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">{position}</p>
-                {committee && (
-                    <p className="text-slate-400 dark:text-slate-500 text-[9px] font-medium uppercase mt-2 border-t border-slate-100 dark:border-slate-800 pt-2 w-full">
-                        {committee}
-                    </p>
-                )}
             </div>
         );
     };
 
     return (
         <PublicLayout>
-            <Head title="Structure" />
+            <Head title={`Officials - ${brgyName}`} />
 
-            <div className="bg-slate-50 dark:bg-slate-950 min-h-screen pb-24 font-sans selection:bg-blue-100">
-                {/* --- SIMPLE HEADER --- */}
-                <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-12 text-center shadow-sm">
-                    <h1 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2">
-                        Organizational Structure
-                    </h1>
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                        {brgyName} • Office of Women and Family Protection
-                    </p>
+            <div className="bg-slate-50 min-h-screen pb-32 font-sans selection:bg-purple-200">
+
+                {/* --- HEADER --- */}
+                <div className="bg-white border-b border-slate-100 py-16 text-center relative overflow-hidden">
+                    <div className="relative z-10 container mx-auto px-4">
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter mb-2">
+                            Organizational <span className="text-purple-600">Chart</span>
+                        </h1>
+                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+                            {brgyName} • Official Hierarchy
+                        </p>
+                    </div>
                 </div>
 
+                {/* --- TREE CONTAINER --- */}
                 <div className="container mx-auto px-4 mt-16 overflow-x-auto">
-                    <div className="w-full min-w-[800px] flex flex-col items-center">
+                    {/* Add min-width to ensure the tree doesn't break on small screens, allowing horizontal scroll */}
+                    <div className="min-w-[768px] flex flex-col items-center pb-20">
 
-                        {/* --- LEVEL 1: HEAD --- */}
-                        <div className="flex flex-col items-center">
+                        {/* LEVEL 1: HEAD */}
+                        <div className="flex flex-col items-center relative z-30">
                             {head ? (
-                                <OrgCard {...head} className="border-t-4 border-t-purple-600 dark:border-t-purple-500" />
+                                <OfficialCard {...head} isHead={true} />
                             ) : (
-                                <div className="p-4 text-slate-400 border border-dashed text-sm">No Active Head</div>
+                                <div className="p-8 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs font-black uppercase">Vacant Position</div>
                             )}
-                            {/* Vertical Line Down */}
-                            <div className="w-px h-12 bg-slate-400 dark:bg-slate-600"></div>
+                            {/* Vertical Line from Head */}
+                            <div className="w-0.5 h-16 bg-slate-300"></div>
                         </div>
 
-                        {/* --- LEVEL 2: SECRETARY --- */}
-                        <div className="flex flex-col items-center relative">
+                        {/* LEVEL 2: SECRETARY */}
+                        <div className="flex flex-col items-center relative z-20">
                             {secretary ? (
-                                <OrgCard {...secretary} />
+                                <OfficialCard {...secretary} />
                             ) : (
-                                <div className="p-4 text-slate-400 border border-dashed text-sm">No Secretary</div>
+                                <div className="p-8 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs font-black uppercase">Vacant Position</div>
                             )}
-                            <div className="w-px h-12 bg-slate-400 dark:bg-slate-600"></div>
+                            {/* Vertical Line from Secretary */}
+                            <div className="w-0.5 h-16 bg-slate-300"></div>
                         </div>
 
-                        {/* --- LEVEL 3: STAFF (BRANCHING) --- */}
-                        <div className="flex flex-col items-center w-full">
-                            <div className="relative w-[30%] lg:w-[60%] h-px bg-slate-400 dark:bg-slate-600 mb-8 self-center">
-                                <div className="absolute left-1/2 -top-12 h-12 w-px bg-slate-400 dark:bg-slate-600 -translate-x-1/2"></div>
-                            </div>
+                        {/* LEVEL 3: STAFF BRANCHING */}
+                        <div className="w-full max-w-6xl flex flex-col items-center relative z-10">
 
-                            <div className="grid grid-cols-3 gap-x-8 gap-y-12">
-                                {staff.length > 0 ? staff.map((member) => (
-                                    <div key={member.id} className="flex flex-col items-center relative">
-                                        {/* Connector Up to Horizontal Line */}
-                                        <div className="absolute -top-12 bottom-full left-1/2 w-px h-12 bg-slate-400 dark:bg-slate-600 -translate-x-1/2"></div>
-                                        {/* Dot at intersection */}
-                                        <div className="absolute -top-[49px] left-1/2 w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full -translate-x-1/2"></div>
+                            {/* Horizontal Connector Line */}
+                            {staff.length > 0 && (
+                                <div className="relative w-full h-0.5 bg-slate-300 mb-12">
+                                    {/* Center Vertical Connect coming from above */}
+                                    <div className="absolute left-1/2 -top-4  h-4 w-0.5 bg-slate-300 -translate-x-1/2"></div>
 
-                                        <OrgCard {...member} className="w-56" />
-                                    </div>
-                                )) : (
-                                    <div className="col-span-3 text-center text-slate-400 text-sm italic">
-                                        No staff members added yet.
+                                    {/* Left End Vertical Drop */}
+                                    <div className="absolute left-[10%] top-0 h-12 w-0.5 bg-slate-300 translate-y-0.5"></div>
+                                    {/* Right End Vertical Drop */}
+                                    <div className="absolute right-[10%] top-0 h-12 w-0.5 bg-slate-300 translate-y-0.5"></div>
+
+                                    {/* Center Group Vertical Drop (for multiple rows if needed, simplified here to distribute) */}
+                                </div>
+                            )}
+
+                            {/* Staff Cards Grid - Positioned to align with line drops */}
+                            <div className="grid grid-cols-3 gap-x-12 gap-y-16 w-full">
+                                {staff.length > 0 ? staff.map((member, index) => {
+                                    // Logic to determine connector line position based on index if strictly visual logic needed
+                                    // For a simplified flexible grid that looks like a tree:
+                                    return (
+                                        <div key={member.id} className="flex flex-col items-center relative">
+                                            {/* Connector from Horizontal Line above */}
+                                            {/* We simulate specific connectors. For a pure CSS tree, we'd need exact width calcs. 
+                                                Here we act as if the horizontal line covers them. 
+                                                A simple robust way is: Center connector for middle items, Left/Right for edges.
+                                            */}
+                                            <div className="absolute -top-[49px] h-[49px] w-0.5 bg-slate-300"></div>
+
+                                            {/* Dot at junction */}
+                                            <div className="absolute -top-[4px] w-2 h-2 bg-slate-200 rounded-full border border-slate-300 z-10"></div>
+
+                                            <OfficialCard {...member} />
+                                        </div>
+                                    );
+                                }) : (
+                                    <div className="col-span-3 text-center py-10">
+                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest italic">No staff members assigned.</p>
                                     </div>
                                 )}
                             </div>
@@ -114,23 +163,15 @@ export default function Index({ head, secretary, staff }: Props) {
                     </div>
                 </div>
 
-                {/* --- RELATED ORGS SECTION --- */}
-                <div className="mt-32 border-t border-slate-200 dark:border-slate-800 pt-16">
-                    <div className="container mx-auto px-4 text-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">
-                            <Landmark size={12} /> Accredited Partners
+                {/* --- LEGEND / PARTNERS --- */}
+                <div className="container mx-auto px-4 max-w-4xl mt-12 border-t border-slate-200 pt-12">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 opacity-60 hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest">
+                            <span className="w-3 h-3 bg-yellow-400 rounded-full"></span> Executive
+                            <span className="w-3 h-3 bg-slate-900 rounded-full"></span> Admin / Staff
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-                            {presidents.map((org, i) => (
-                                <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-purple-200 transition-all flex flex-col items-center group">
-                                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center mb-3 group-hover:bg-purple-50 group-hover:text-purple-600 transition-colors">
-                                        {org.icon}
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase">{org.name}</h4>
-                                    <p className="text-purple-600 dark:text-purple-400 text-[9px] font-bold uppercase tracking-wider mt-1">{org.org} President</p>
-                                </div>
-                            ))}
+                        <div className="text-[10px] font-black uppercase text-slate-300">
+                            Official Organizational Chart • Updated 2026
                         </div>
                     </div>
                 </div>

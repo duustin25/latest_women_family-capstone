@@ -26,8 +26,6 @@ use App\Http\Controllers\Public\PublicOrganizationController;
 use App\Http\Controllers\Public\MembershipController;
 use App\Http\Controllers\Public\ChatbotController;
 
-
-
 Route::post('/chatbot/query', [ChatbotController::class, 'query'])->middleware('throttle:10,1');
 Route::get('/chat', [ChatbotController::class, 'index'])->name('chat.index');
 Route::post('/chat/send', [ChatbotController::class, 'chat'])->name('chat.send');
@@ -62,16 +60,16 @@ Route::prefix('organizations')->group(function () {
 // 4. Consolidated Public Services (Fixing the BadMethodCallException)
 Route::controller(PublicServicesController::class)->group(function () {
     Route::get('/vawc', 'vawc')->name('vawc.index');
-    Route::get('/vawc/report', 'vawcReport')->name('vawc.report');
-    Route::post('/vawc/report', 'storeVawcReport')->name('vawc.report.store');
+    // Route::get('/vawc/report', 'vawcReport')->name('vawc.report'); // DISABLED: Offline Reporting Only
+    // Route::post('/vawc/report', 'storeVawcReport')->name('vawc.report.store');
 
     Route::get('/gad', 'gad')->name('gad.index');
     Route::get('/gad/register', 'gadRegister')->name('gad.register');
     Route::post('/gad/register', [PublicServicesController::class, 'storeMembershipApplication'])->name('gad.register.store');
 
     Route::get('/bcpc', 'bcpc')->name('bcpc.index');
-    Route::get('/bcpc/report', 'bcpcReport')->name('bcpc.report');
-    Route::post('/bcpc/report', 'storeBcpcReport')->name('bcpc.report.store');
+    // Route::get('/bcpc/report', 'bcpcReport')->name('bcpc.report'); // DISABLED: Offline Reporting Only
+    // Route::post('/bcpc/report', 'storeBcpcReport')->name('bcpc.report.store');
 
     Route::get('/officials', 'officials')->name('officials.index');
     Route::get('/laws', 'laws')->name('public.laws.index');
