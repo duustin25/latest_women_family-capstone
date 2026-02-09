@@ -15,6 +15,7 @@ interface Application {
     id: number;
     fullname: string;
     organization_name: string;
+    organization_color: string;
     status: string;
     created_at: string;
 }
@@ -208,8 +209,10 @@ export default function Index({ applications, filters, organizations }: PageProp
 
                                                 {/* ORGANIZATION */}
                                                 <td className="p-5 align-middle">
-                                                    <div className="flex items-center gap-2">
-                                                        <Building2 size={12} className="text-neutral-400" />
+                                                    <div className="flex items-center gap-3">
+                                                        <div
+                                                            className={`w-2.5 h-2.5 rounded-full shadow-sm ${app.organization_color || 'bg-slate-300'}`}
+                                                        />
                                                         <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-tight">
                                                             {app.organization_name}
                                                         </span>
@@ -219,8 +222,8 @@ export default function Index({ applications, filters, organizations }: PageProp
                                                 {/* STATUS */}
                                                 <td className="p-5 align-middle">
                                                     <Badge variant="outline" className={`px-2.5 py-1 uppercase text-[10px] tracking-wide font-bold ${app.status === 'Approved' ? 'text-emerald-600 border-emerald-200 bg-emerald-50' :
-                                                            app.status === 'Pending' ? 'text-amber-600 border-amber-200 bg-amber-50' :
-                                                                'text-red-600 border-red-200 bg-red-50'
+                                                        app.status === 'Pending' ? 'text-amber-600 border-amber-200 bg-amber-50' :
+                                                            'text-red-600 border-red-200 bg-red-50'
                                                         }`}>
                                                         {app.status}
                                                     </Badge>

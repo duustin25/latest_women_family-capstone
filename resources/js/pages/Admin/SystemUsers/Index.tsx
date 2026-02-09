@@ -18,6 +18,7 @@ interface SystemUser {
     role: string;
     organization?: {
         name: string;
+        color_theme: string;
     }
 }
 
@@ -183,8 +184,10 @@ export default function Index({ users, filters }: PageProps) {
                                                 {/* ORGANIZATION */}
                                                 <td className="p-5 align-middle">
                                                     {user.organization ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <Shield size={12} className="text-neutral-400" />
+                                                        <div className="flex items-center gap-3">
+                                                            <div
+                                                                className={`w-2.5 h-2.5 rounded-full shadow-sm ${user.organization.color_theme || 'bg-slate-300'}`}
+                                                            />
                                                             <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-tight">
                                                                 {user.organization.name}
                                                             </span>

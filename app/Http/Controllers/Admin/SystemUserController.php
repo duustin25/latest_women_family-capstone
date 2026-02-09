@@ -66,7 +66,8 @@ class SystemUserController extends Controller
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'role' => $validated['role'],
-            'organization_id' => $validated['organization_id'] ?? null,
+            // Explicitly set organization_id to null if not a president
+            'organization_id' => $validated['role'] === 'president' ? ($validated['organization_id'] ?? null) : null,
         ]);
 
         return redirect()->route('admin.system-users.index')->with('success', 'System Account Created.');
@@ -85,7 +86,8 @@ class SystemUserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
-            'organization_id' => $validated['organization_id'] ?? null,
+            // Explicitly set organization_id to null if not a president
+            'organization_id' => $validated['role'] === 'president' ? ($validated['organization_id'] ?? null) : null,
         ];
 
         // Only update password if provided

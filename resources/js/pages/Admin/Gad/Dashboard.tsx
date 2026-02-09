@@ -95,7 +95,7 @@ export default function GadDashboard({ totalUtilized = 0, recentActivities = [] 
                                         type="number"
                                         value={annualBudget}
                                         onChange={(e) => setAnnualBudget(parseFloat(e.target.value) || 0)}
-                                        className="text-4xl font-black text-neutral-900 dark:text-white border-none shadow-none focus-visible:ring-0 p-0 h-auto w-full bg-transparent tracking-tighter"
+                                        className="text-6xl font-black text-neutral-900 dark:text-white border-none shadow-none focus-visible:ring-0 p-0 h-auto w-full bg-transparent tracking-tighter"
                                     />
                                 </div>
                                 <p className="text-xs text-neutral-500 font-medium ml-1">
