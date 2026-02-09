@@ -7,29 +7,6 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
-// 1. ADDED THE FORMATTING LOGIC FROM ANNOUNCEMENTS
-const formatContent = (text?: string) => {
-    if (!text) return null;
-
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-    return text.split(urlRegex).map((part, index) => {
-        if (part.match(urlRegex)) {
-            const href = part.startsWith('http') ? part : `https://${part}`;
-            return (
-                <a
-                    key={index}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
-                >
-                    {part}
-                </a>
-            );
-        }
-        return part;
-    });
-};
 
 export default function Show({ organization }: { organization: any }) {
     const record = organization.data;
@@ -97,9 +74,11 @@ export default function Show({ organization }: { organization: any }) {
                                     <Info className={`w-5 h-5 ${record.color_theme?.replace('bg-', 'text-') || 'text-[#0038a8]'} dark:text-blue-400`} /> Mission & Description
                                 </h3>
                                 {/* Applied same whitespace and formatting logic as announcements */}
-                                <div className="whitespace-pre-wrap leading-relaxed text-slate-700 dark:text-slate-300 italic border-l-4 border-slate-100 dark:border-slate-800 pl-6 text-lg">
-                                    {formatContent(record.description)}
-                                </div>
+                                {/* Applied same whitespace and formatting logic as announcements */}
+                                <div
+                                    className="leading-relaxed text-slate-700 dark:text-slate-300 italic border-l-4 border-slate-100 dark:border-slate-800 pl-6 text-lg [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+                                    dangerouslySetInnerHTML={{ __html: record.description || '' }}
+                                />
                             </div>
                         </article>
 

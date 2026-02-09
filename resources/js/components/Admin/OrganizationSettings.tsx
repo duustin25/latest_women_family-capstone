@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Users, Palette, Building2, Upload, ListChecks, Plus, CheckCircle2, Trash2 } from "lucide-react";
+import { Users, Palette, Building2, Upload, ListChecks, Plus, CheckCircle2, Trash2, Info } from "lucide-react";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 interface OrganizationSettingsProps {
     data: any;
@@ -59,6 +60,17 @@ export default function OrganizationSettings({ data, setData, record }: Organiza
                             placeholder="President Name"
                         />
                     </span>
+                </div>
+
+                <div className="mt-6">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-2 flex items-center gap-2">
+                        <Info size={12} /> Organization Mission / Description
+                    </label>
+                    <RichTextEditor
+                        value={data.description}
+                        onChange={(val: string) => setData('description', val)}
+                        className="min-h-[100px] bg-neutral-50 dark:bg-neutral-950/50"
+                    />
                 </div>
             </header>
 
