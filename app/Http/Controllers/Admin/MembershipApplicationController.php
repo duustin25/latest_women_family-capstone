@@ -94,4 +94,53 @@ class MembershipApplicationController extends Controller
             'organization' => new \App\Http\Resources\OrganizationResource($application->organization),
         ]);
     }
+
+    /**
+     * Show the form for editing the application.
+     */
+    public function edit(MembershipApplication $application)
+    {
+        $application->load('organization');
+
+        // Use specific form for KALIPI corrections
+        if ($application->organization->slug === 'kalipi') {
+            return Inertia::render('Public/Organizations/Apply/KalipiForm', [
+                'organization' => $application->organization,
+                'mode' => 'admin-edit',
+                'application' => $application
+            ]);
+        }
+
+        return Inertia::render('Admin/Applications/Edit', [
+            'application' => new MembershipApplicationResource($application),
+            'organization' => new \App\Http\Resources\OrganizationResource($application->organization),
+        ]);
+    }
+
+    /**
+     * Update the application data.
+     */
+    public function update(Request $request, MembershipApplication $application)
+    {
+        // 1. Validate Basic Info
+        $validated = $request->validate([
+            'fullname' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            // We allow updating the JSON blobs directly if needed, or specific fields
+            'personal_data' => 'nullable|array',
+            'family_data' => 'nullable|array',
+            // 'submission_data' => 'nullable|array', // Usually fixed requirements
+        ]);
+
+        // 2. Update the record
+        $application->update($validated);
+
+        // 3. Log the "Edit" action in Audit Logs (Optional but recommended)
+        // \App\Models\AuditLog::create([ ... ]); 
+        // For now, we rely on the system user knowing they did it. 
+        // If you have a specific Audit Service, call it here.
+
+        return redirect()->route('admin.applications.show', $application->id)
+            ->with('success', 'Application details updated successfully.');
+    }
 }

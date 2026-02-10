@@ -1,6 +1,6 @@
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { ArrowLeft, Printer, CheckCircle, XCircle, Building2 } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, XCircle, Building2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,9 +45,14 @@ export default function ReviewGeneral({ application }: { application: any }) {
                             </Badge>
                             <a href={`/admin/applications/${record.id}/print`} target="_blank" rel="noopener noreferrer">
                                 <Button variant="outline" size="sm" className="border-2 uppercase font-black text-xs">
-                                    <Printer className="w-4 h-4 mr-2" /> Print Official Form
+                                    <Printer className="w-4 h-4 mr-2" /> Print
                                 </Button>
                             </a>
+                            <Link href={`/admin/applications/${record.id}/edit`}>
+                                <Button variant="outline" size="sm" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 uppercase font-black text-xs">
+                                    <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                </Button>
+                            </Link>
                         </div>
                     </div>
 

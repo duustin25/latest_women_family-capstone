@@ -18,8 +18,13 @@ class MembershipController extends Controller
 
     public function create(Organization $organization)
     {
-        // Force the dynamic form for all organizations
+        // Default to dynamic form
         $view = 'Public/Organizations/Apply/DynamicForm';
+
+        // Use specific form for KALIPI
+        if ($organization->slug === 'kalipi') {
+            $view = 'Public/Organizations/Apply/KalipiForm';
+        }
 
         return Inertia::render($view, [
             'organization' => $organization,

@@ -186,6 +186,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('applications/{application}/print', [MembershipApplicationController::class, 'print'])->name('applications.print');
         Route::get('applications/{application}', [MembershipApplicationController::class, 'show'])->name('applications.show');
         Route::patch('applications/{application}/status', [MembershipApplicationController::class, 'updateStatus'])->name('applications.update-status');
+        Route::get('applications/{application}/edit', [MembershipApplicationController::class, 'edit'])->name('applications.edit');
+        Route::put('applications/{application}', [MembershipApplicationController::class, 'update'])->name('applications.update');
 
 
         Route::get('analytics/print', [AnalyticsController::class, 'print'])->name('analytics.print');

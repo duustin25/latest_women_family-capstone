@@ -1,6 +1,6 @@
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { ArrowLeft, Printer, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, XCircle, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,6 +51,11 @@ export default function ReviewKalipi({ application }: { application: any }) {
                                     <Printer className="w-4 h-4 mr-2" /> Print Official Form
                                 </Button>
                             </a>
+                            <Link href={`/admin/applications/${record.id}/edit`}>
+                                <Button variant="outline" size="sm" className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 uppercase font-black text-xs">
+                                    <Edit className="w-4 h-4 mr-2" /> Edit Details
+                                </Button>
+                            </Link>
                         </div>
                     </div>
 
@@ -110,7 +115,7 @@ export default function ReviewKalipi({ application }: { application: any }) {
                                 <FormBox className="col-span-4" label="Civil Status" value={record.personal_data.civil_status} />
 
                                 {/* Row 4 */}
-                                <FormBox className="col-span-4" label="Cellphone No." value={record.personal_data.company?.tel} />
+                                <FormBox className="col-span-4" label="Telephone No." value={record.personal_data.company?.tel} />
                                 <FormBox className="col-span-8" label="Sectoral Categories (PWD/Solo Parent/IP)" value={record.personal_data.sectoral_category} />
 
                                 {/* Row 5 */}
@@ -134,10 +139,28 @@ export default function ReviewKalipi({ application }: { application: any }) {
                             </div>
                         </div>
 
+                        {/* 2.5 SECTION: DYNAMIC DATA (From Custom Fields) */}
+                        {record.submission_data && Object.keys(record.submission_data).length > 0 && (
+                            <div className="px-8 pb-8">
+                                <h3 className="font-black uppercase text-sm mb-4 flex items-center">
+                                    <span className="mr-2">II.</span> Additional Information
+                                </h3>
+                                <div className="border border-slate-300 dark:border-slate-600 grid grid-cols-12">
+                                    {Object.entries(record.submission_data).map(([key, value]: [string, any], index) => (
+                                        <FormBox key={index} className="col-span-12 md:col-span-6" label={key.replace(/_/g, ' ')} value={
+                                            Array.isArray(value) ? value.join(', ') :
+                                                typeof value === 'object' ? JSON.stringify(value) :
+                                                    value
+                                        } />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* 3. SECTION II: FAMILY DATA (Table Layout) */}
                         <div className="px-8 pb-8">
                             <h3 className="font-black uppercase text-sm mb-4 flex items-center">
-                                <span className="mr-2">II.</span> Family Occupation
+                                <span className="mr-2">III.</span> Family Occupation
                             </h3>
 
                             <div className="border border-slate-300 dark:border-slate-600">
