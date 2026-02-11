@@ -17,7 +17,12 @@ const vawcNum = import.meta.env.VITE_HOTLINE_VAWC || '0998-765-4321';
 const brgyMail = import.meta.env.VITE_OFFICIAL_EMAIL || 'brgy183@gov.ph';
 const offcialFb = import.meta.env.VITE_OFFICIAL_FB || '#';
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
+interface PublicLayoutProps {
+    children: React.ReactNode;
+    bgColor?: string;
+}
+
+export default function PublicLayout({ children, bgColor = "bg-slate-50" }: PublicLayoutProps) {
     // 2. MOVE HOOKS INSIDE THE FUNCTION
     const { props } = usePage<any>();
     const { auth } = props;
@@ -51,7 +56,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900">
+        <div className={`min-h-screen ${bgColor} text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900`}>
             {/* 4. ADD THE TOASTER COMPONENT HERE */}
             <Toaster position="top-right" richColors closeButton />
             <ChatbotWidget />

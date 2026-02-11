@@ -34,6 +34,14 @@ export default function Index({ head, secretary, staff }: Props) {
 
         return (
             <div className={`relative group z-10 flex flex-col items-center ${className}`}>
+                {/* FIXED BACKGROUND LOGO */}
+                <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                    <img
+                        src="/Logo/barangay183LOGO.png"
+                        alt="Barangay 183 Logo"
+                        className="w-[500px] opacity-5"
+                    />
+                </div>
                 <div className={`
                     relative w-64 bg-white rounded-2xl shadow-lg border transition-all duration-300
                     flex flex-col items-center p-6 text-center

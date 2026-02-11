@@ -80,6 +80,15 @@ export default function Laws() {
         <PublicLayout>
             <Head title="Laws & Rights" />
 
+            {/* FIXED BACKGROUND LOGO */}
+            <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                <img
+                    src="/Logo/barangay183LOGO.png"
+                    alt="Barangay 183 Logo"
+                    className="w-[500px] opacity-10"
+                />
+            </div>
+
             <div className="py-12 bg-slate-50 dark:bg-slate-950 min-h-screen">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     {/* Header */}

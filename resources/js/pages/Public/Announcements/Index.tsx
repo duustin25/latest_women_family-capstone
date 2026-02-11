@@ -20,12 +20,21 @@ export default function Index({ announcements = { data: [] } }: any) {
     });
 
     return (
-        <PublicLayout>
-            <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-rose-200 selection:text-rose-900">
+        <PublicLayout bgColor="bg-transparent">
+            <div className="min-h-screen text-slate-900 font-sans selection:bg-rose-200 selection:text-rose-900">
                 <Head title="Announcements - Brgy 183 Villamor" />
 
+                {/* FIXED BACKGROUND LOGO */}
+                <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                    <img
+                        src="/Logo/barangay183LOGO.png"
+                        alt="Barangay 183 Logo"
+                        className="w-[500px] opacity-10"
+                    />
+                </div>
+
                 {/* --- HERO SECTION --- */}
-                <div className="relative h-[400px] bg-neutral-900 overflow-hidden flex items-center justify-center">
+                <div className="relative z-10 h-[400px] bg-neutral-900 overflow-hidden flex items-center justify-center">
                     <div className="absolute inset-0 z-0 opacity-40">
                         <img
                             src="https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?q=80&w=2000"
@@ -49,7 +58,7 @@ export default function Index({ announcements = { data: [] } }: any) {
                     </div>
                 </div>
 
-                <main className="bg-slate-50 min-h-[60vh] -mt-10 relative z-30 rounded-t-[40px] px-4 md:px-0">
+                <main className=" min-h-[60vh] -mt-10 relative z-30 rounded-t-[40px] px-4 md:px-0">
 
                     {/* FILTER BAR - Floating Card Style */}
                     <div className="container mx-auto max-w-6xl -translate-y-1/2">
@@ -60,8 +69,8 @@ export default function Index({ announcements = { data: [] } }: any) {
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
                                         className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat
-                                                ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/30 scale-105'
-                                                : 'bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                                            ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/30 scale-105'
+                                            : 'bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-900'
                                             }`}
                                     >
                                         {cat}

@@ -53,7 +53,7 @@ const mainNavItems: NavItem[] = [
         icon: User2,
     },
     {
-        title: 'GAD Dashboard',
+        title: 'GAD',
         href: '/admin/gad/dashboard',
         icon: Activity,
     },

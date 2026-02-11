@@ -20,8 +20,18 @@ export default function Index({ organizations = { data: [] } }: any) {
             <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-purple-200 selection:text-purple-900">
                 <Head title="Accredited Organizations - Brgy 183 Villamor" />
 
+                {/* FIXED BACKGROUND LOGO */}
+                <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                    <img
+                        src="/Logo/barangay183LOGO.png"
+                        alt="Barangay 183 Logo"
+                        className="w-[500px] opacity-10"
+                    />
+                </div>
+
+
                 {/* --- HERO SECTION --- */}
-                <div className="bg-white border-b border-slate-100 py-16 md:py-24 relative overflow-hidden">
+                <div className="border-b border-slate-100 py-16 md:py-24 relative overflow-hidden">
                     {/* Background Pattern */}
                     <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 opacity-50 -skew-x-12 translate-x-12"></div>
 

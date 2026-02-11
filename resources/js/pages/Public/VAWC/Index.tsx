@@ -18,6 +18,15 @@ export default function VawcIndex() {
     return (
         <PublicLayout>
             <Head title="VAWC Support - Brgy 183 Villamor" />
+            {/* FIXED BACKGROUND LOGO */}
+            <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                <img
+                    src="/Logo/barangay183LOGO.png"
+                    alt="Barangay 183 Logo"
+                    className="w-[500px] opacity-10"
+                />
+            </div>
+
             <div className="min-h-screen bg-white font-sans text-slate-800">
 
                 {/* --- HERO SECTION (MATCHING GAD STYLE) --- */}

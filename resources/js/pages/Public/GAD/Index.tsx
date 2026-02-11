@@ -82,7 +82,7 @@ const ActivitySection = ({ title, icon: Icon, activities, colorClass, bgClass, b
     // Logic: Slice the array if not expanded
     const displayedActivities = isExpanded ? activities : activities.slice(0, INITIAL_LIMIT);
     const hiddenCount = activities.length - INITIAL_LIMIT;
-
+    ``
     return (
         <div className={`rounded-xl border ${borderClass} overflow-hidden mb-10`}>
             {/* Section Header */}
@@ -94,6 +94,7 @@ const ActivitySection = ({ title, icon: Icon, activities, colorClass, bgClass, b
                     </span>
                 </h3>
             </div>
+
 
             {/* Grid Content */}
             <div className="p-6 bg-white">
@@ -149,6 +150,16 @@ export default function GadIndex({ activities = [], stats }: { activities?: GadA
     return (
         <PublicLayout>
             <Head title="Gender and Development - Brgy 183 Villamor" />
+
+            {/* FIXED BACKGROUND LOGO */}
+            <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                <img
+                    src="/Logo/barangay183LOGO.png"
+                    alt="Barangay 183 Logo"
+                    className="w-[500px] opacity-10"
+                />
+            </div>
+
             <div className="min-h-screen bg-white">
 
                 {/* HERO SECTION */}

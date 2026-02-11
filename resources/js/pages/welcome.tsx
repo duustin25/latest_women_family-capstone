@@ -46,11 +46,20 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
     ];
 
     return (
-        <PublicLayout>
+        <PublicLayout bgColor="bg-transparent">
             <Head title="Welcome - Brgy 183 Villamor" />
 
+            {/* FIXED BACKGROUND LOGO */}
+            <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                <img
+                    src="/Logo/barangay183LOGO.png"
+                    alt="Barangay 183 Logo"
+                    className="w-[500px] opacity-10"
+                />
+            </div>
+
             {/* 1. HERO SECTION - With Carousel Background */}
-            <section className="relative bg-neutral-900 text-white overflow-hidden h-[600px] lg:h-[700px] flex items-center">
+            <section className="relative z-10 bg-neutral-900 text-white overflow-hidden h-[600px] lg:h-[700px] flex items-center">
 
                 {/* CAROUSEL BACKGROUND */}
                 <div className="absolute inset-0 z-0 select-none pointer-events-none">
@@ -112,7 +121,7 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
 
 
             {/* 3. COMMUNITY UPDATES */}
-            <section className="py-20 bg-neutral-50 border-t border-neutral-200">
+            <section className="py-20 border-t border-neutral-200 relative z-10">
                 <div className="container mx-auto px-6">
                     <div className="flex items-end justify-between mb-12">
                         <div>
@@ -179,7 +188,7 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
             </section>
 
             {/* 4. ACCREDITED ORGANIZATIONS */}
-            <section className="py-20 bg-white border-t border-neutral-100">
+            <section className="py-20 border-t border-neutral-100 relative z-10">
                 <div className="container mx-auto px-6">
                     <div className="text-center max-w-2xl mx-auto mb-16">
                         <h2 className="text-purple-600 font-bold uppercase tracking-widest text-xs mb-3">Community Partners</h2>
