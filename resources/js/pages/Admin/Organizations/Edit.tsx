@@ -1,6 +1,5 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Save, LayoutTemplate, Settings } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { useState } from 'react';
@@ -8,7 +7,7 @@ import LivePaperPreview from "@/components/Admin/LivePaperPreview";
 import OrganizationSettings from "@/components/Admin/OrganizationSettings";
 import FormBuilder from "@/components/Admin/FormBuilder";
 
-export default function Edit({ organization }: { organization: any }) {
+export default function Edit({ organization, users }: { organization: any, users?: any[] }) {
     const record = organization?.data ?? organization;
     const [activeTab, setActiveTab] = useState<'settings' | 'builder'>('settings');
 
@@ -83,7 +82,7 @@ export default function Edit({ organization }: { organization: any }) {
 
                             <div className="bg-transparent min-h-[500px]">
                                 {activeTab === 'settings' ? (
-                                    <OrganizationSettings data={data} setData={setData} record={record} />
+                                    <OrganizationSettings data={data} setData={setData} record={record} users={users} />
                                 ) : (
                                     <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
                                 )}

@@ -46,7 +46,7 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
     ];
 
     return (
-        <PublicLayout bgColor="bg-transparent">
+        <PublicLayout>
             <Head title="Welcome - Brgy 183 Villamor" />
 
             {/* FIXED BACKGROUND LOGO */}

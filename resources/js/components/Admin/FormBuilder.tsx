@@ -76,7 +76,7 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                 </div>
                 <div className="flex flex-wrap gap-2 justify-end max-w-[500px] mt-4 sm:mt-0">
                     <span className="text-[10px] uppercase font-bold text-neutral-400 self-center mr-2">Add Field:</span>
-                    {['text', 'email', 'number', 'textarea', 'select', 'checkbox', 'table'].map(type => (
+                    {['section', 'text', 'email', 'number', 'textarea', 'select', 'checkbox', 'checkbox_group', 'repeater'].map(type => (
                         <Button
                             key={type}
                             type="button"
@@ -142,14 +142,17 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                             <Select value={field.type} onValueChange={(val) => updateFormField(index, 'type', val)}>
                                                 <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
+                                                    <SelectItem value="section">Section Header</SelectItem>
                                                     <SelectItem value="text">Text Input</SelectItem>
                                                     <SelectItem value="email">Email Address</SelectItem>
                                                     <SelectItem value="number">Number</SelectItem>
                                                     <SelectItem value="textarea">Long Text</SelectItem>
                                                     <SelectItem value="select">Dropdown</SelectItem>
                                                     <SelectItem value="radio">Radio Buttons</SelectItem>
-                                                    <SelectItem value="checkbox">Checkbox</SelectItem>
-                                                    <SelectItem value="table">Data Table</SelectItem>
+                                                    <SelectItem value="checkbox">Checkbox (Yes/No)</SelectItem>
+                                                    <SelectItem value="checkbox_group">Checkbox Group</SelectItem>
+                                                    <SelectItem value="repeater">Repeater Group</SelectItem>
+                                                    <SelectItem value="file">File Upload</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -171,42 +174,106 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                         </div>
                                     )}
 
-                                    {field.type === 'table' && (
+                                    {/* Repeater Config */}
+                                    {field.type === 'repeater' && (
                                         <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded text-sm">
-                                            <Label className="text-[10px] font-bold uppercase text-orange-500 mb-2 block">Table Columns</Label>
+                                            <Label className="text-[10px] font-bold uppercase text-orange-500 mb-2 block">Repeater Fields</Label>
+                                            <p className="text-[10px] text-neutral-400 mb-2">Define the fields inside this repeater.</p>
+
+                                            {/* Reuse FormBuilder recursively or simplified list? 
+                                                Recursive is complex. Let's do a simplified column definer for now, similar to table columns. 
+                                                Actually, the Seeder uses 'schema' for repeaters. Let's map 'columns' in UI to 'schema' for repeater.
+                                            */}
                                             <div className="space-y-2">
-                                                {field.columns && field.columns.map((col: any, colIndex: number) => (
+                                                {(field.schema || field.columns || []).map((col: any, colIndex: number) => (
                                                     <div key={colIndex} className="flex gap-2">
-                                                        <Input value={col.name} onChange={e => {
-                                                            const newCols = [...field.columns];
-                                                            newCols[colIndex].name = e.target.value;
-                                                            updateFormField(index, 'columns', newCols);
-                                                        }} placeholder="Col Name" className="h-8 bg-white" />
+                                                        <Input value={col.label} onChange={e => {
+                                                            const newSchema = [...(field.schema || field.columns || [])];
+                                                            newSchema[colIndex] = { ...newSchema[colIndex], label: e.target.value, id: e.target.value.toLowerCase().replace(/\s+/g, '_') };
+                                                            updateFormField(index, 'schema', newSchema);
+                                                        }} placeholder="Field Label" className="h-8 bg-white" />
+
                                                         <Select value={col.type} onValueChange={val => {
-                                                            const newCols = [...field.columns];
-                                                            newCols[colIndex].type = val;
-                                                            updateFormField(index, 'columns', newCols);
+                                                            const newSchema = [...(field.schema || field.columns || [])];
+                                                            newSchema[colIndex] = { ...newSchema[colIndex], type: val };
+                                                            updateFormField(index, 'schema', newSchema);
                                                         }}>
                                                             <SelectTrigger className="h-8 w-24"><SelectValue /></SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="text">Text</SelectItem>
-                                                                <SelectItem value="number">Number</SelectItem>
                                                                 <SelectItem value="date">Date</SelectItem>
+                                                                <SelectItem value="select">Select</SelectItem>
                                                             </SelectContent>
                                                         </Select>
+
                                                         <Button type="button" variant="ghost" size="sm" onClick={() => {
-                                                            const newCols = field.columns.filter((_: any, i: number) => i !== colIndex);
-                                                            updateFormField(index, 'columns', newCols);
+                                                            const newSchema = (field.schema || field.columns).filter((_: any, i: number) => i !== colIndex);
+                                                            updateFormField(index, 'schema', newSchema);
                                                         }}><Trash2 size={12} className="text-red-400" /></Button>
                                                     </div>
                                                 ))}
                                                 <Button type="button" variant="link" size="sm" onClick={() => {
-                                                    const newCols = [...(field.columns || []), { name: 'New Column', type: 'text' }];
-                                                    updateFormField(index, 'columns', newCols);
-                                                }} className="text-[10px] h-auto p-0 text-orange-600">+ Add Column</Button>
+                                                    const newSchema = [...(field.schema || field.columns || []), { id: 'new_field', label: 'New Field', type: 'text', width: 'w-1/4' }];
+                                                    updateFormField(index, 'schema', newSchema);
+                                                }} className="text-[10px] h-auto p-0 text-orange-600">+ Add Repeater Field</Button>
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* VISIBILITY LOGIC EDITOR */}
+                                    <div className="bg-neutral-100 dark:bg-neutral-800 p-4 rounded border border-dashed border-neutral-300 dark:border-neutral-700">
+                                        <Label className="text-[10px] font-bold uppercase text-neutral-500 mb-2 block flex items-center gap-2">
+                                            <Settings2 size={10} /> Visibility Logic
+                                        </Label>
+
+                                        {!field.visible_if ? (
+                                            <Button type="button" variant="outline" size="sm" className="text-[10px] h-6" onClick={() => updateFormField(index, 'visible_if', ['', 'eq', ''])}>
+                                                + Add Condition
+                                            </Button>
+                                        ) : (
+                                            <div className="flex gap-2 items-center">
+                                                <span className="text-[10px] font-bold text-neutral-400">IF</span>
+                                                <Input
+                                                    value={field.visible_if[0]}
+                                                    onChange={e => {
+                                                        const newRule = [...field.visible_if];
+                                                        newRule[0] = e.target.value;
+                                                        updateFormField(index, 'visible_if', newRule);
+                                                    }}
+                                                    placeholder="Field ID (e.g. classification)"
+                                                    className="h-7 text-xs w-32 bg-white"
+                                                />
+                                                <Select value={field.visible_if[1]} onValueChange={val => {
+                                                    const newRule = [...field.visible_if];
+                                                    newRule[1] = val;
+                                                    updateFormField(index, 'visible_if', newRule);
+                                                }}>
+                                                    <SelectTrigger className="h-7 w-20 text-xs bg-white"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="eq">Equals</SelectItem>
+                                                        <SelectItem value="neq">Not Equals</SelectItem>
+                                                        <SelectItem value="in">In</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <Input
+                                                    value={field.visible_if[2]}
+                                                    onChange={e => {
+                                                        const newRule = [...field.visible_if];
+                                                        newRule[2] = e.target.value;
+                                                        updateFormField(index, 'visible_if', newRule);
+                                                    }}
+                                                    placeholder="Value (e.g. Rape Victim)"
+                                                    className="h-7 text-xs w-32 bg-white"
+                                                />
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => updateFormField(index, 'visible_if', null)}>
+                                                    <Trash2 size={12} className="text-red-400" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <p className="text-[9px] text-neutral-400 mt-2">
+                                            * Enter the <b>ID</b> of the controlling field (e.g., 'classification') and the value to match.
+                                        </p>
+                                    </div>
 
                                     <div className="flex gap-4 pt-2">
                                         <div className="w-1/2">

@@ -49,11 +49,14 @@ class MembershipApplicationController extends Controller
     {
         $application->load('organization');
 
-        $view = match ($application->organization->slug) {
-            'kalipi' => 'Admin/Applications/ReviewKalipi',
-            'solo-parents' => 'Admin/Applications/ReviewSoloParent',
-            default => 'Admin/Applications/ReviewGeneral',
-        };
+        // Default to General Review, or specific if needed.
+        // For now, removing hardcoded Kalipi since we migrated it to dynamic.
+        $view = 'Admin/Applications/ReviewGeneral';
+
+        // Use specific form for Solo Parent if customized
+        if ($application->organization->slug === 'solo-parent-federation') {
+            $view = 'Admin/Applications/ReviewSoloParent';
+        }
 
         return Inertia::render($view, [
             'application' => new MembershipApplicationResource($application),
@@ -102,15 +105,7 @@ class MembershipApplicationController extends Controller
     {
         $application->load('organization');
 
-        // Use specific form for KALIPI corrections
-        if ($application->organization->slug === 'kalipi') {
-            return Inertia::render('Public/Organizations/Apply/KalipiForm', [
-                'organization' => $application->organization,
-                'mode' => 'admin-edit',
-                'application' => $application
-            ]);
-        }
-
+        // Use generic edit form for all
         return Inertia::render('Admin/Applications/Edit', [
             'application' => new MembershipApplicationResource($application),
             'organization' => new \App\Http\Resources\OrganizationResource($application->organization),

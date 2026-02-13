@@ -44,7 +44,18 @@ class OrganizationController extends Controller
         if (!$request->user()->isAdmin()) {
             abort(403, 'Only Admins can create organizations.');
         }
-        return Inertia::render('Admin/Organizations/Create');
+
+        // Fetch potential presidents (users with role 'president')
+        // Or fetch all users if you want to promote someone from the list
+        // Let's fetch 'president' role users for now, or maybe all users to be flexible? 
+        // The prompt implies "Users are not showing", so likely ANY user could be picked to be president.
+        // Let's fetch all users for flexibility, or filter if the list is huge. 
+        // For a capstone/school project, fetching all is fine.
+        $users = \App\Models\User::where('role', 'president')->orderBy('name')->get(['id', 'name', 'role']);
+
+        return Inertia::render('Admin/Organizations/Create', [
+            'users' => $users
+        ]);
     }
 
     public function store(Request $request)
@@ -77,8 +88,11 @@ class OrganizationController extends Controller
 
     public function edit(Organization $organization)
     {
+        $users = \App\Models\User::where('role', 'president')->orderBy('name')->get(['id', 'name', 'role']);
+
         return Inertia::render('Admin/Organizations/Edit', [
-            'organization' => new OrganizationResource($organization)
+            'organization' => new OrganizationResource($organization),
+            'users' => $users
         ]);
     }
 

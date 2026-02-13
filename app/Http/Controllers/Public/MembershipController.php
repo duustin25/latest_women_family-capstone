@@ -21,11 +21,6 @@ class MembershipController extends Controller
         // Default to dynamic form
         $view = 'Public/Organizations/Apply/DynamicForm';
 
-        // Use specific form for KALIPI
-        if ($organization->slug === 'kalipi') {
-            $view = 'Public/Organizations/Apply/KalipiForm';
-        }
-
         return Inertia::render($view, [
             'organization' => $organization,
             'mode' => $this->getContext()
@@ -78,26 +73,26 @@ class MembershipController extends Controller
                     case 'date':
                         $fieldRules[] = 'date';
                         break;
+                    case 'file':
+                        // Basic file validation
+                        $fieldRules[] = 'file';
+                        $fieldRules[] = 'mimes:jpg,jpeg,png,pdf';
+                        $fieldRules[] = 'max:5120'; // 5MB
+                        break;
                     case 'checkbox':
-                        // Checkbox usually comes as boolean or "on"
-                        // We can be loose here or strict 'boolean'
                         $fieldRules[] = 'boolean';
                         break;
-                    case 'text':
-                    case 'textarea':
-                    case 'select':
-                    case 'radio':
                     default:
-                        $fieldRules[] = 'string';
+                        $fieldRules[] = 'string'; // Default string for text, select, etc.
+                        // Ideally we could relax this for arrays (checkbox_group)
+                        if ($field['type'] === 'checkbox_group') {
+                            $fieldRules = ['nullable', 'array']; // Override for arrays
+                        }
                         break;
                 }
 
-                // Add to rules array using dot notation for JSON validation
-                // The frontend sends data in 'submission_data' array
-                // So we validate 'submission_data.field_id'
-                // NOTE: We used field.id in the frontend form builder
                 $fieldId = $field['id'];
-                $rules['submission_data.' . $fieldId] = implode('|', $fieldRules);
+                $rules['submission_data.' . $fieldId] = $fieldRules;
             }
         }
 
@@ -105,7 +100,32 @@ class MembershipController extends Controller
             'submission_data.*.required' => 'This field is required.'
         ]);
 
+        // 4. HANDLE FILE UPLOADS
+        // Logic: Iterate through schema, if it's a file type, check request, store, and replace value with path.
+        $submissionData = $request->input('submission_data', []);
 
+        // Ensure submissionData is an array
+        if (!is_array($submissionData)) {
+            $submissionData = [];
+        }
+
+        if (!empty($organization->form_schema)) {
+            foreach ($organization->form_schema as $field) {
+                if ($field['type'] === 'file') {
+                    $fieldId = $field['id'];
+                    // Check if file exists in the request using dot notation
+                    if ($request->hasFile("submission_data.$fieldId")) {
+                        $file = $request->file("submission_data.$fieldId");
+                        if ($file->isValid()) {
+                            // Store file
+                            $path = $file->store('uploads/requirements', 'public');
+                            // Update the data array with the path string
+                            $submissionData[$fieldId] = $path;
+                        }
+                    }
+                }
+            }
+        }
         // 4. PERSISTENCE
         $organization->membershipApplications()->create([
             'fullname' => $validated['fullname'],
@@ -128,5 +148,18 @@ class MembershipController extends Controller
 
         return redirect()->route('public.organizations.show', $organization->slug)
             ->with('success', 'Application Submitted! Please wait for Barangay verification.');
+    }
+
+    public function print(Organization $organization, MembershipApplication $application)
+    {
+        // Simple security: Ensure application belongs to organization
+        if ($application->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        return Inertia::render('Public/Organizations/Apply/PrintView', [
+            'organization' => new \App\Http\Resources\OrganizationResource($organization),
+            'application' => new \App\Http\Resources\MembershipApplicationResource($application),
+        ]);
     }
 }

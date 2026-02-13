@@ -1,3 +1,4 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Users, Palette, Building2, Upload, ListChecks, Plus, CheckCircle2, Trash2, Info } from "lucide-react";
@@ -7,9 +8,10 @@ interface OrganizationSettingsProps {
     data: any;
     setData: (key: string, value: any) => void;
     record: any;
+    users?: any[];
 }
 
-export default function OrganizationSettings({ data, setData, record }: OrganizationSettingsProps) {
+export default function OrganizationSettings({ data, setData, record, users = [] }: OrganizationSettingsProps) {
     const colorOptions = [
         { name: 'WFP Blue', class: 'bg-[#0038a8]' },
         { name: 'Red', class: 'bg-red-600' },
@@ -53,12 +55,28 @@ export default function OrganizationSettings({ data, setData, record }: Organiza
                 <div className="flex flex-wrap gap-6 text-neutral-500 dark:text-neutral-400 font-bold tracking-wider items-center">
                     <span className="flex items-center gap-2 px-3 py-1 bg-neutral-50 dark:bg-neutral-950 rounded-sm hover:bg-neutral-100 transition-colors">
                         <Users className="w-4 h-4 text-neutral-400" /> Pres.
-                        <Input
-                            value={data.president_name}
-                            onChange={e => setData('president_name', e.target.value)}
-                            className="h-6 w-48 border-none bg-transparent shadow-none text-current font-bold focus:bg-white p-0 px-1"
-                            placeholder="President Name"
-                        />
+                        {/* President Selection */}
+                        <div className="w-48">
+                            <Select
+                                value={data.president_name}
+                                onValueChange={(val) => setData('president_name', val)}
+                            >
+                                <SelectTrigger className="h-6 border-none bg-transparent shadow-none text-current font-bold focus:bg-white p-0 px-1">
+                                    <SelectValue placeholder="Select President..." />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px]">
+                                    {users && users.map((user: any) => (
+                                        <SelectItem key={user.id} value={user.name}>
+                                            {user.name} <span className="text-xs text-neutral-400 ml-2">({user.role})</span>
+                                        </SelectItem>
+                                    ))}
+                                    {/* Fallback if current president name is not in list (e.g. manually typed before) */}
+                                    {data.president_name && !users?.some(u => u.name === data.president_name) && (
+                                        <SelectItem value={data.president_name}>{data.president_name} (Legacy)</SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </span>
                 </div>
 

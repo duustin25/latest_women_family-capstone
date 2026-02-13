@@ -1,11 +1,8 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save, Upload, CheckCircle2, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import PublicLayout from '@/layouts/PublicLayout';
 import DynamicFields from '@/components/DynamicFields';
 
@@ -16,19 +13,21 @@ export default function DynamicForm({ organization }: { organization: any }) {
         submission_data: {} as Record<string, any>,
     });
 
+    // START: Updated handleInputChange to support nested updates
     const handleInputChange = (fieldId: string, value: any) => {
         setData('submission_data', {
             ...data.submission_data,
             [fieldId]: value
         });
     };
+    // END: Updated handleInputChange
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/organizations/${organization.slug}/apply`);
+        post(`/organizations/${organization.slug}/apply`, {
+            forceFormData: true,
+        });
     };
-
-
 
     return (
         <PublicLayout>
@@ -88,7 +87,7 @@ export default function DynamicForm({ organization }: { organization: any }) {
                             {/* Dynamic Fields */}
                             {organization.form_schema && organization.form_schema.length > 0 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xs font-black text-blue-600 uppercase tracking-widest border-b pb-2">Organization Requirements</h3>
+                                    {/* Removed redundant header since sections handle it now */}
                                     <DynamicFields
                                         schema={organization.form_schema}
                                         data={data.submission_data}

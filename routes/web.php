@@ -53,6 +53,9 @@ Route::prefix('organizations')->group(function () {
     Route::post('/{organization}/apply', [MembershipController::class, 'store'])
         ->name('public.organizations.submit')->middleware('throttle:3,1');
 
+    Route::get('/{organization}/apply/{application}/print', [MembershipController::class, 'print'])
+        ->name('public.organizations.print');
+
 });
 
 
