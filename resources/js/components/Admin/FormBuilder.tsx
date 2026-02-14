@@ -76,7 +76,7 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                 </div>
                 <div className="flex flex-wrap gap-2 justify-end max-w-[500px] mt-4 sm:mt-0">
                     <span className="text-[10px] uppercase font-bold text-neutral-400 self-center mr-2">Add Field:</span>
-                    {['section', 'text', 'email', 'number', 'textarea', 'select', 'checkbox', 'checkbox_group', 'repeater'].map(type => (
+                    {['section', 'text', 'email', 'number', 'textarea', 'select', 'checkbox', 'checkbox_group'].map(type => (
                         <Button
                             key={type}
                             type="button"
@@ -127,6 +127,13 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
 
                             <AccordionContent className="p-6 border-t border-neutral-100 dark:border-neutral-800">
                                 <div className="grid grid-cols-1 gap-6">
+                                    {/* CORE FIELD INDICATOR */}
+                                    {field.is_core && (
+                                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded text-xs font-bold uppercase tracking-wide mb-6 flex items-center gap-2">
+                                            <Settings2 size={14} /> Core System Field - Only Layout can be modified
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <Label className="text-[10px] font-bold uppercase text-neutral-400">Label</Label>
@@ -135,23 +142,28 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                                 onChange={e => updateFormField(index, 'label', e.target.value)}
                                                 className="font-bold border-neutral-200"
                                                 placeholder="Question"
+                                                disabled={field.is_core} // LOCK
                                             />
                                         </div>
                                         <div className="space-y-1">
                                             <Label className="text-[10px] font-bold uppercase text-neutral-400">Type</Label>
-                                            <Select value={field.type} onValueChange={(val) => updateFormField(index, 'type', val)}>
+                                            <Select
+                                                value={field.type}
+                                                onValueChange={(val) => updateFormField(index, 'type', val)}
+                                                disabled={field.is_core} // LOCK
+                                            >
                                                 <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="section">Section Header</SelectItem>
                                                     <SelectItem value="text">Text Input</SelectItem>
                                                     <SelectItem value="email">Email Address</SelectItem>
                                                     <SelectItem value="number">Number</SelectItem>
+                                                    <SelectItem value="date">Date</SelectItem>
                                                     <SelectItem value="textarea">Long Text</SelectItem>
                                                     <SelectItem value="select">Dropdown</SelectItem>
                                                     <SelectItem value="radio">Radio Buttons</SelectItem>
                                                     <SelectItem value="checkbox">Checkbox (Yes/No)</SelectItem>
                                                     <SelectItem value="checkbox_group">Checkbox Group</SelectItem>
-                                                    <SelectItem value="repeater">Repeater Group</SelectItem>
                                                     <SelectItem value="file">File Upload</SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -159,7 +171,7 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                     </div>
 
                                     {/* Specific Configs (Options/Columns) */}
-                                    {(field.type === 'select' || field.type === 'radio') && (
+                                    {(!field.is_core && (field.type === 'select' || field.type === 'radio')) && (
                                         <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded text-sm">
                                             <Label className="text-[10px] font-bold uppercase text-indigo-500 mb-2 block">Options</Label>
                                             <div className="space-y-2">
@@ -170,52 +182,6 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                                     </div>
                                                 ))}
                                                 <Button type="button" variant="link" size="sm" onClick={() => addOption(index)} className="text-[10px] h-auto p-0 text-indigo-600">+ Add Option</Button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Repeater Config */}
-                                    {field.type === 'repeater' && (
-                                        <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded text-sm">
-                                            <Label className="text-[10px] font-bold uppercase text-orange-500 mb-2 block">Repeater Fields</Label>
-                                            <p className="text-[10px] text-neutral-400 mb-2">Define the fields inside this repeater.</p>
-
-                                            {/* Reuse FormBuilder recursively or simplified list? 
-                                                Recursive is complex. Let's do a simplified column definer for now, similar to table columns. 
-                                                Actually, the Seeder uses 'schema' for repeaters. Let's map 'columns' in UI to 'schema' for repeater.
-                                            */}
-                                            <div className="space-y-2">
-                                                {(field.schema || field.columns || []).map((col: any, colIndex: number) => (
-                                                    <div key={colIndex} className="flex gap-2">
-                                                        <Input value={col.label} onChange={e => {
-                                                            const newSchema = [...(field.schema || field.columns || [])];
-                                                            newSchema[colIndex] = { ...newSchema[colIndex], label: e.target.value, id: e.target.value.toLowerCase().replace(/\s+/g, '_') };
-                                                            updateFormField(index, 'schema', newSchema);
-                                                        }} placeholder="Field Label" className="h-8 bg-white" />
-
-                                                        <Select value={col.type} onValueChange={val => {
-                                                            const newSchema = [...(field.schema || field.columns || [])];
-                                                            newSchema[colIndex] = { ...newSchema[colIndex], type: val };
-                                                            updateFormField(index, 'schema', newSchema);
-                                                        }}>
-                                                            <SelectTrigger className="h-8 w-24"><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="text">Text</SelectItem>
-                                                                <SelectItem value="date">Date</SelectItem>
-                                                                <SelectItem value="select">Select</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-
-                                                        <Button type="button" variant="ghost" size="sm" onClick={() => {
-                                                            const newSchema = (field.schema || field.columns).filter((_: any, i: number) => i !== colIndex);
-                                                            updateFormField(index, 'schema', newSchema);
-                                                        }}><Trash2 size={12} className="text-red-400" /></Button>
-                                                    </div>
-                                                ))}
-                                                <Button type="button" variant="link" size="sm" onClick={() => {
-                                                    const newSchema = [...(field.schema || field.columns || []), { id: 'new_field', label: 'New Field', type: 'text', width: 'w-1/4' }];
-                                                    updateFormField(index, 'schema', newSchema);
-                                                }} className="text-[10px] h-auto p-0 text-orange-600">+ Add Repeater Field</Button>
                                             </div>
                                         </div>
                                     )}
@@ -288,15 +254,40 @@ export default function FormBuilder({ schema, onSchemaChange }: FormBuilderProps
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <label className="flex items-center gap-2 cursor-pointer mt-4">
-                                            <input type="checkbox" checked={field.required} onChange={e => updateFormField(index, 'required', e.target.checked)} className="rounded text-blue-600 focus:ring-blue-600" />
-                                            <span className="text-[10px] font-bold uppercase text-neutral-500">Required</span>
+                                        <div className="w-1/2">
+                                            <Label className="text-[10px] font-bold uppercase text-neutral-400">Layout</Label>
+                                            <Select value={field.layout || 'inline'} onValueChange={(val) => updateFormField(index, 'layout', val)}>
+                                                <SelectTrigger className="h-8 text-xs bg-neutral-50"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="inline">Inline (Label: Line)</SelectItem>
+                                                    <SelectItem value="block">Block (Label over Line)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 flex gap-6">
+                                        <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={field.required}
+                                                onChange={e => updateFormField(index, 'required', e.target.checked)}
+                                                className="rounded text-blue-600 focus:ring-blue-600"
+                                                disabled={field.is_core} // LOCK
+                                            />
+                                            <span className={`text-[10px] font-bold uppercase ${field.is_core ? 'text-neutral-300' : 'text-neutral-500'}`}>Required</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                            <input type="checkbox" checked={field.start_row} onChange={e => updateFormField(index, 'start_row', e.target.checked)} className="rounded text-blue-600 focus:ring-blue-600" />
+                                            <span className="text-[10px] font-bold uppercase text-neutral-500">Start on New Row</span>
                                         </label>
                                     </div>
 
-                                    <Button type="button" variant="destructive" size="sm" onClick={() => removeFormField(index)} className="w-full mt-4 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
-                                        <Trash2 size={14} className="mr-2" /> Delete Field
-                                    </Button>
+                                    {!field.is_core && (
+                                        <Button type="button" variant="destructive" size="sm" onClick={() => removeFormField(index)} className="w-full mt-4 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200">
+                                            <Trash2 size={14} className="mr-2" /> Delete Field
+                                        </Button>
+                                    )}
                                 </div>
                             </AccordionContent>
                         </AccordionItem>

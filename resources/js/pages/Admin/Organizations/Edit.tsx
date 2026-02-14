@@ -11,6 +11,28 @@ export default function Edit({ organization, users }: { organization: any, users
     const record = organization?.data ?? organization;
     const [activeTab, setActiveTab] = useState<'settings' | 'builder'>('settings');
 
+    // Helper to ensure core fields exist
+    const ensureCoreFields = (schema: any[]) => {
+        const coreFields = [
+            { id: 'fullname', type: 'text', label: 'Full Name', required: true, width: 'w-full', layout: 'block', is_core: true },
+            { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true },
+        ];
+
+        const existingIds = new Set(schema.map(f => f.id));
+        const missingCore = coreFields.filter(f => !existingIds.has(f.id));
+
+        // If we have missing core fields, prepend them. 
+        // Also force-update existing core fields to have is_core: true just in case.
+        const updatedSchema = schema.map(f => {
+            if (f.id === 'fullname' || f.id === 'address') {
+                return { ...f, is_core: true, required: true }; // Enforce core props
+            }
+            return f;
+        });
+
+        return [...missingCore, ...updatedSchema];
+    };
+
     const { data, setData, post, processing, errors } = useForm({
         _method: 'PUT',
         name: record?.name || '',
@@ -19,7 +41,7 @@ export default function Edit({ organization, users }: { organization: any, users
         color_theme: record?.color_theme || 'bg-[#0038a8]',
         image: null as File | null,
         requirements: record?.requirements || [],
-        form_schema: record?.form_schema || [],
+        form_schema: ensureCoreFields(record?.form_schema || []),
     });
 
     const handleSubmit = (e: React.FormEvent) => {

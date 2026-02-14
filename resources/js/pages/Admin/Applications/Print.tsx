@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Head } from '@inertiajs/react';
+import DynamicFields from '@/components/DynamicFields';
 
 interface PrintProps {
     application: any;
@@ -9,184 +10,145 @@ interface PrintProps {
 export default function Print({ application, organization }: PrintProps) {
     const record = application.data;
     const org = organization.data;
-    const submission = record.submission_data || {};
+
+    // Parse submission_data
+    let submissionData = typeof record.submission_data === 'string'
+        ? JSON.parse(record.submission_data)
+        : record.submission_data || {};
+
+    // BACKWARD COMPATIBILITY: Inject legacy fields if missing in dynamic data
+    if (!submissionData.fullname && record.fullname) {
+        submissionData.fullname = record.fullname;
+    }
+    if (!submissionData.address && record.address) {
+        submissionData.address = record.address;
+    }
 
     // Auto-trigger print dialog on mount
     useEffect(() => {
         const timer = setTimeout(() => {
             window.print();
-        }, 500); // 500ms delay to ensure images load
+        }, 800);
         return () => clearTimeout(timer);
     }, []);
 
-    // Helper to format values (handle arrays like checkboxes)
-    const formatAnswer = (value: any) => {
-        if (Array.isArray(value)) return value.join(', ');
-        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-        if (!value) return 'N/A';
-        return value;
-    };
-
     return (
-        <div className="bg-white min-h-screen text-black font-serif p-8 md:p-12 max-w-[8.5in] mx-auto">
+        <div className="bg-white min-h-screen text-black p-0 mx-auto" style={{ fontFamily: 'Arial, sans-serif', maxWidth: '8.5in' }}>
             <Head title={`Print Application - ${record.fullname}`} />
 
             {/* --- OFFICIAL HEADER --- */}
-            <header className="text-center mb-10 border-b-2 border-black pb-6">
-                <div className="flex justify-center items-center gap-6 mb-4">
-                    <img src="/Logo/women&family_logo.png" className="h-20 w-auto object-contain grayscale" alt="Logo" />
-                    <div>
-                        <p className="text-sm uppercase tracking-widest font-bold">Republic of the Philippines</p>
-                        <p className="text-sm uppercase tracking-widest font-bold">City of Pasay</p>
-                        <h1 className="text-xl font-black uppercase tracking-widest mt-1">Barangay 183 Villamor</h1>
-                        <p className="text-xs uppercase font-bold mt-1">Office of the Punong Barangay</p>
+            <header className="mb-8 relative">
+                {/* Grid Layout for Header: Logo - Text - Logo */}
+                <div className="grid grid-cols-[1.5in_1fr_1.5in] items-center gap-4 text-center">
+                    {/* Left Logo */}
+                    <div className="flex justify-center">
+                        <img
+                            src="/Logo/barangay183LOGO.png"
+                            className="h-28 w-28 object-contain"
+                            alt="Barangay Logo"
+                        />
                     </div>
-                    {/* Placeholder for Barangay Logo if desired, duplicating left logo for symmetry */}
-                    <div className="h-20 w-20 opacity-0"></div>
+
+                    {/* Center Text */}
+                    <div className="flex flex-col items-center justify-center">
+                        <p className="text-[12pt] leading-tight">Republic of the Philippines</p>
+                        <h1 className="text-[14pt] font-bold uppercase leading-tight mt-1">
+                            {import.meta.env.VITE_BARANGAY_NAME}
+                        </h1>
+                        <p className="text-[11pt] leading-tight mt-1">
+                            {import.meta.env.VITE_BARANGAY_ADDRESS}
+                        </p>
+                        <p className="text-[11pt] leading-tight text-gray-800">
+                            {import.meta.env.VITE_BARANGAY_LANDLINE}
+                        </p>
+                    </div>
+
+                    {/* Right Logo */}
+                    <div className="flex justify-center">
+                        <img
+                            src="/Logo/women&family_logo.png"
+                            className="h-28 w-28 object-contain"
+                            alt="WFP Logo"
+                        />
+                    </div>
                 </div>
 
-                <div className="mt-6">
-                    <h2 className="text-2xl font-black uppercase tracking-tight">{org.name}</h2>
-                    <p className="text-sm font-bold uppercase tracking-widest border border-black inline-block px-4 py-1 mt-2">
-                        Official Membership Application Form
-                    </p>
+                {/* Application Title */}
+                <div className="mt-8 text-center">
+                    <h2 className="text-[14pt] font-bold uppercase underline tracking-wide">APPLICATION</h2>
+                    <h3 className="text-[12pt] mt-1">{org.name}</h3>
                 </div>
             </header>
 
-            {/* --- APPLICANT INFORMATION --- */}
-            <section className="mb-8">
-                <h3 className="text-sm font-bold uppercase border-b border-black mb-4 pb-1">I. Applicant Information</h3>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                    <div>
-                        <p className="text-xs font-bold uppercase text-gray-500 mb-1">Full Name</p>
-                        <p className="font-bold border-b border-gray-400 pb-1">{record.fullname}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold uppercase text-gray-500 mb-1">Date Filed</p>
-                        <p className="font-bold border-b border-gray-400 pb-1">{record.created_at}</p>
-                    </div>
-                    <div className="col-span-2">
-                        <p className="text-xs font-bold uppercase text-gray-500 mb-1">Address</p>
-                        <p className="font-bold border-b border-gray-400 pb-1">{record.address}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold uppercase text-gray-500 mb-1">Application Status</p>
-                        <p className="font-bold border-b border-gray-400 pb-1 uppercase">{record.status}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold uppercase text-gray-500 mb-1">Application ID</p>
-                        <p className="font-bold border-b border-gray-400 pb-1 font-mono">#{record.id}</p>
-                    </div>
-                </div>
+            {/* --- DYNAMIC CONTENT (Replaces hardcoded sections) --- */}
+            <section className="mb-6 px-2">
+                <DynamicFields
+                    schema={org.form_schema || []}
+                    data={submissionData}
+                    setData={() => { }} // Read-only for print
+                    mode="view"
+                />
             </section>
 
-            {/* --- DYNAMIC FORM ANSWERS --- */}
-            <section className="mb-12">
-                <h3 className="text-sm font-bold uppercase border-b border-black mb-4 pb-1">II. Questionnaire Responses</h3>
-
-                {org.form_schema && org.form_schema.length > 0 ? (
-                    <div className="flex flex-wrap gap-x-6 gap-y-6 text-sm">
-                        {org.form_schema.map((field: any, index: number) => (
-                            <div
-                                key={index}
-                                className={`break-inside-avoid ${field.width === 'w-1/2' ? 'w-[calc(50%-12px)]' : field.width === 'w-1/3' ? 'w-[calc(33.33%-16px)]' : field.width === 'w-1/4' ? 'w-[calc(25%-18px)]' : 'w-full'}`}
-                            >
-                                <p className="text-xs font-bold uppercase text-gray-500 mb-1">
-                                    {index + 1}. {field.label}
-                                </p>
-
-                                {field.type === 'table' ? (
-                                    <div className="border border-black mt-2">
-                                        <table className="w-full text-xs">
-                                            <thead>
-                                                <tr className="border-b border-black bg-gray-100">
-                                                    {field.columns?.map((col: any, cIdx: number) => (
-                                                        <th key={cIdx} className="px-2 py-1 text-left border-r border-black last:border-r-0">
-                                                            {col.name}
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(submission[field.id] || []).length > 0 ? (
-                                                    (submission[field.id] || []).map((row: any, rIdx: number) => (
-                                                        <tr key={rIdx} className="border-b border-black last:border-b-0">
-                                                            {field.columns?.map((col: any, cIdx: number) => (
-                                                                <td key={cIdx} className="px-2 py-1 border-r border-black last:border-r-0">
-                                                                    {row[col.name]}
-                                                                </td>
-                                                            ))}
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan={field.columns?.length || 1} className="px-2 py-4 text-center italic text-gray-500">
-                                                            No entries.
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ) : (
-                                    <div className="border-b border-gray-400 pb-1 min-h-[1.5em]">
-                                        <p className="font-medium whitespace-pre-wrap">
-                                            {formatAnswer(submission[field.id])}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="italic text-gray-500 text-sm text-center py-4">No additional questions were required for this application.</p>
-                )}
-            </section>
-
-            {/* --- OATH & SIGNATURES --- */}
-            <section className="mt-auto pt-8 break-inside-avoid">
-                <p className="text-xs text-justify italic mb-8 leading-relaxed">
-                    I hereby certify that the information provided in this form is true and correct to the best of my knowledge.
-                    I understand that any false statement may be grounds for the rejection of this application or revocation of membership.
-                </p>
-
-                <div className="grid grid-cols-2 gap-12 mt-16 text-center">
-                    <div>
-                        <div className="border-b-2 border-black w-full mb-2"></div>
-                        <p className="text-xs font-bold uppercase">Signature over Printed Name of Applicant</p>
-                    </div>
-
-                    <div>
-                        <div className="border-b-2 border-black w-full mb-2 relative">
-                            {/* Ideally, digital signature if available */}
-                            {record.approved_by && (
-                                <span className="absolute bottom-1 left-0 right-0 font-script text-lg text-blue-900">
-                                    /s/ {record.approved_by}
-                                </span>
-                            )}
+            {/* --- SIGNATURES --- */}
+            <section className="mt-16 px-2 text-[11pt] break-inside-avoid">
+                <div className="flex justify-end mb-16">
+                    <div className="text-center w-64">
+                        <div className="h-8 border-b border-black mb-1 relative font-bold">
+                            {record.fullname}
                         </div>
-                        <p className="text-xs font-bold uppercase">Approved By: {org.president_name || 'Organization President'}</p>
+                        <p className="italic text-[10pt]">Applicant's Signature over Printed name</p>
                     </div>
                 </div>
 
-                <div className="mt-12 text-[10px] text-center text-gray-400 border-t pt-4">
-                    <p>Generated by Barangay 183 Villamor Women & Family Portal System on {new Date().toLocaleDateString()}</p>
-                    <p>{org.name} | Application Ref: {record.id}</p>
+                <div className="grid grid-cols-2 gap-12 mt-8">
+                    <div className="text-center">
+                        <p className="mb-8 italic text-left pl-8">Noted by:</p>
+                        <div className="border-b border-black w-3/4 mx-auto mb-1"></div>
+                        <p className="font-bold">Kagawad In-Charge</p>
+                    </div>
+
+                    <div className="text-center">
+                        <p className="mb-8 italic text-left pl-8">Recommending Approval:</p>
+                        <div className="border-b border-black w-3/4 mx-auto mb-1 font-bold">
+                            {org.president_name || 'Kathleen Kaye D. Amarille'}
+                        </div>
+                        <p className="font-bold">{org.name} President</p>
+                    </div>
+                </div>
+
+                <div className="text-center mt-12 w-1/2 mx-auto">
+                    <p className="mb-8 italic">Approved by:</p>
+                    <div className="border-b border-black w-full mb-1 font-bold uppercase">
+                        Gerald John M. Sobrevega
+                    </div>
+                    <p className="font-bold">BARANGAY KAGAWAD</p>
+                    <p className="text-[10pt]">Committee Head, Women and Family</p>
                 </div>
             </section>
 
             <style>
                 {`
                     @media print {
-                        body { 
-                            background: white; 
-                            -webkit-print-color-adjust: exact; 
-                        }
                         @page { 
                             size: letter; 
-                            margin: 0.5in; 
+                            margin: 1in; 
                         }
-                        .no-print { display: none; }
+                        body { 
+                            -webkit-print-color-adjust: exact; 
+                        }
+                    }
+                    /* Screen preview simulation */
+                    @media screen {
+                        body {
+                            background: #f0f0f0;
+                            padding: 2rem;
+                        }
+                        div[class*="min-h-screen"] {
+                            margin: 0 auto;
+                            padding: 1in; /* Match print margin for preview */
+                            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                        }
                     }
                 `}
             </style>

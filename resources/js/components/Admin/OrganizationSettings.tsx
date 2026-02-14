@@ -48,12 +48,12 @@ export default function OrganizationSettings({ data, setData, record, users = []
                 <Input
                     value={data.name}
                     onChange={e => setData('name', e.target.value)}
-                    className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white mb-6 leading-none tracking-tighter uppercase border-none bg-transparent shadow-none hover:bg-neutral-50 focus:bg-white focus:ring-2 h-auto py-2 px-2 -ml-2 rounded-sm"
+                    className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white mb-6 leading-none tracking-tighter uppercase border-none bg-transparent shadow-none focus:bg-neutral-200 dark:focus:bg-neutral-800 focus:ring-2 h-auto py-2 px-2 -ml-2 rounded-sm"
                     placeholder="ORGANIZATION NAME"
                 />
 
                 <div className="flex flex-wrap gap-6 text-neutral-500 dark:text-neutral-400 font-bold tracking-wider items-center">
-                    <span className="flex items-center gap-2 px-3 py-1 bg-neutral-50 dark:bg-neutral-950 rounded-sm hover:bg-neutral-100 transition-colors">
+                    <span className="flex items-center gap-2 px-3 py-1 bg-neutral-50 dark:bg-neutral-950 rounded-sm transition-colors">
                         <Users className="w-4 h-4 text-neutral-400" /> Pres.
                         {/* President Selection */}
                         <div className="w-48">
@@ -61,7 +61,7 @@ export default function OrganizationSettings({ data, setData, record, users = []
                                 value={data.president_name}
                                 onValueChange={(val) => setData('president_name', val)}
                             >
-                                <SelectTrigger className="h-6 border-none bg-transparent shadow-none text-current font-bold focus:bg-white p-0 px-1">
+                                <SelectTrigger className="h-6 border-none bg-transparent shadow-none text-current font-bold p-0 px-1">
                                     <SelectValue placeholder="Select President..." />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[300px]">

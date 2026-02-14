@@ -60,6 +60,7 @@ class MembershipApplicationController extends Controller
 
         return Inertia::render($view, [
             'application' => new MembershipApplicationResource($application),
+            'organization' => new \App\Http\Resources\OrganizationResource($application->organization),
             'mode' => 'admin'
         ]);
     }

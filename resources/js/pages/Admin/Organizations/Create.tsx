@@ -8,7 +8,7 @@ import LivePaperPreview from "@/components/Admin/LivePaperPreview";
 import OrganizationSettings from "@/components/Admin/OrganizationSettings";
 import FormBuilder from "@/components/Admin/FormBuilder";
 
-export default function Create() {
+export default function Create({ users }: { users: any[] }) {
     const [activeTab, setActiveTab] = useState<'settings' | 'builder'>('settings');
 
     const { data, setData, post, processing, errors } = useForm({
@@ -19,9 +19,13 @@ export default function Create() {
         image: null as File | null,
         requirements: [] as string[],
         form_schema: [
-            { id: 'field_1', type: 'text', label: 'Full Name', required: true, width: 'w-full' },
-            { id: 'field_2', type: 'email', label: 'Email Address', required: true, width: 'w-1/2' },
-            { id: 'field_3', type: 'number', label: 'Contact Number', required: true, width: 'w-1/2' },
+            // CORE FIELDS (LOCKED)
+            { id: 'fullname', type: 'text', label: 'Full Name', required: true, width: 'w-full', layout: 'block', is_core: true },
+            { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true }, // Verified: User prefers 'text' over 'textarea'
+
+            // Example Dynamic Fields
+            { id: 'contact_number', type: 'number', label: 'Contact Number', required: true, width: 'w-full' },
+            { id: 'email', type: 'email', label: 'Email Address', required: false, width: 'w-full' },
         ] as any[], // Default schema to start with
     });
 
@@ -83,7 +87,7 @@ export default function Create() {
 
                             <div className="bg-transparent min-h-[500px]">
                                 {activeTab === 'settings' ? (
-                                    <OrganizationSettings data={data} setData={setData} record={{}} />
+                                    <OrganizationSettings data={data} setData={setData} record={{}} users={users} />
                                 ) : (
                                     <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
                                 )}

@@ -31,26 +31,36 @@ class MembershipController extends Controller
     {
         $isAdmin = Auth::check();
 
-        // 1. DUPLICATE CHECK (Must be BEFORE creation)
-        $exists = $organization->membershipApplications()
-            ->where('fullname', $request->fullname)
-            ->where('status', 'Pending')
-            ->exists();
+        // 1. VALIDATE CORE FIELDS FIRST
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+        ]);
 
-        if ($exists) {
+        $fullname = $request->input('fullname');
+        $address = $request->input('address');
+
+        // 2. DUPLICATE CHECK (Prevent flooding)
+        // Check if this person has an active application (Pending or Approved)
+        $existingApplication = $organization->membershipApplications()
+            ->where('fullname', $fullname)
+            ->whereIn('status', ['Pending', 'Approved'])
+            ->first();
+
+        if ($existingApplication) {
             return back()->withErrors([
-                'fullname' => 'An active pending application already exists for this name.'
+                'fullname' => 'An active application (Pending or Approved) already exists for this name.'
             ]);
         }
 
-        // 2. BASE VALIDATION RULES
+        // 3. SUBMISSION DATA VALIDATION (Dynamic)
         $rules = [
-            'fullname' => 'required|string|max:255',
-            'address' => 'required|string',
-            'submission_data' => 'nullable|array', // New JSON column
+            'submission_data' => 'nullable|array',
         ];
 
-        // 3. DYNAMIC VALIDATION LOGIC
+        // 4. DYNAMIC VALIDATION LOGIC
+        $customAttributes = []; // Store label mappings
+
         if (!empty($organization->form_schema)) {
             foreach ($organization->form_schema as $field) {
                 // Determine validation rules for this field
@@ -82,6 +92,10 @@ class MembershipController extends Controller
                     case 'checkbox':
                         $fieldRules[] = 'boolean';
                         break;
+                    case 'repeater':
+                        $fieldRules[] = 'nullable';
+                        $fieldRules[] = 'array';
+                        break;
                     default:
                         $fieldRules[] = 'string'; // Default string for text, select, etc.
                         // Ideally we could relax this for arrays (checkbox_group)
@@ -92,21 +106,25 @@ class MembershipController extends Controller
                 }
 
                 $fieldId = $field['id'];
-                $rules['submission_data.' . $fieldId] = $fieldRules;
+                $dbFieldKey = 'submission_data.' . $fieldId;
+
+                $rules[$dbFieldKey] = $fieldRules;
+                $customAttributes[$dbFieldKey] = $field['label']; // Map ID to Label
             }
         }
 
         $validated = $request->validate($rules, [
-            'submission_data.*.required' => 'This field is required.'
-        ]);
+            'submission_data.*.required' => 'The :attribute is required.', // Use :attribute placeholder
+        ], $customAttributes);
 
-        // 4. HANDLE FILE UPLOADS
+        // 5. HANDLE FILE UPLOADS
         // Logic: Iterate through schema, if it's a file type, check request, store, and replace value with path.
-        $submissionData = $request->input('submission_data', []);
+        // Re-fetch submission data from validated or request to ensure we have it
+        $finalSubmissionData = $request->input('submission_data', []);
 
         // Ensure submissionData is an array
-        if (!is_array($submissionData)) {
-            $submissionData = [];
+        if (!is_array($finalSubmissionData)) {
+            $finalSubmissionData = [];
         }
 
         if (!empty($organization->form_schema)) {
@@ -120,18 +138,19 @@ class MembershipController extends Controller
                             // Store file
                             $path = $file->store('uploads/requirements', 'public');
                             // Update the data array with the path string
-                            $submissionData[$fieldId] = $path;
+                            $finalSubmissionData[$fieldId] = $path;
                         }
                     }
                 }
             }
         }
-        // 4. PERSISTENCE
+
+        // 6. PERSISTENCE
         $organization->membershipApplications()->create([
-            'fullname' => $validated['fullname'],
-            'address' => $validated['address'],
+            'fullname' => $fullname,
+            'address' => $address,
             // We store the dynamic answers in the new JSON column
-            'submission_data' => $validated['submission_data'] ?? [],
+            'submission_data' => $finalSubmissionData,
             // Deprecated columns can be left empty or migrated later if needed
             'personal_data' => [],
             'family_data' => [],
@@ -143,7 +162,7 @@ class MembershipController extends Controller
         // 5. FLASH MESSAGE REDIRECT
         if ($isAdmin) {
             return redirect()->route('admin.applications.index')
-                ->with('success', 'Manual record for ' . $validated['fullname'] . ' has been registered.');
+                ->with('success', 'Manual record for ' . $fullname . ' has been registered.');
         }
 
         return redirect()->route('public.organizations.show', $organization->slug)
