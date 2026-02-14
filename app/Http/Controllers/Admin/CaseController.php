@@ -111,23 +111,18 @@ class CaseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $type = $request->input('type');
 
         if ($type === 'VAWC') {
-            $validated = $request->validate([
-                'victim_name' => 'required|string',
-                'victim_age' => 'nullable|numeric',
-                'complainant_name' => 'nullable|string',
-                'complainant_contact' => 'nullable|string',
-                'relation_to_victim' => 'nullable|string',
-                'abuse_type' => 'required|string', // Physical, Sexual, etc.
-                'incident_date' => 'required|date',
-                'incident_location' => 'required|string',
-                'description' => 'required|string',
-                'status' => 'nullable|string', // Admin might set initial status
-            ]);
+            // Use the dedicated FormRequest for validation
+            // We resolve the request from the container, which triggers validation.
+            // Then we get the validated data.
+            $validated = app(\App\Http\Requests\StoreVawcRequest::class)->validated();
 
             // Auto-generate Case Number
             $validated['case_number'] = 'VAWC-' . date('Ymd') . '-' . rand(1000, 9999);
@@ -139,17 +134,8 @@ class CaseController extends Controller
             VawcReport::create($validated);
 
         } elseif ($type === 'BCPC' || $type === 'CPP') {
-            $validated = $request->validate([
-                'victim_name' => 'nullable|string',
-                'victim_age' => 'nullable|numeric',
-                'victim_gender' => 'nullable|string',
-                'concern_type' => 'required|string', // Abuse, Abandonment, CICL
-                'location' => 'required|string',
-                'description' => 'required|string',
-                'informant_name' => 'nullable|string',
-                'informant_contact' => 'nullable|string',
-                'status' => 'nullable|string',
-            ]);
+            // Use the dedicated FormRequest for validation
+            $validated = app(\App\Http\Requests\StoreBcpcRequest::class)->validated();
 
             $validated['case_number'] = 'BCPC-' . date('Ymd') . '-' . rand(1000, 9999);
             $validated['status'] = 'New';

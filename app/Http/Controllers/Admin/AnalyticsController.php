@@ -14,19 +14,40 @@ class AnalyticsController extends Controller
     {
         $currentYear = $request->input('year', Carbon::now()->year);
 
-        // Fetch dynamic types for VAWC specifically
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+        // 1. VAWC DATA
+        $vawcTypes = \App\Models\AbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
-        $reports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
+        $vawcReports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
             ->whereYear('incident_date', $currentYear)
             ->whereNotNull('abuse_type')
             ->where('status', '!=', 'Dismissed')
             ->groupBy('month', 'abuse_type')
             ->get();
 
-        $data = $this->formatAnalyticsData($reports, $abuseTypes);
+        $vawcData = $this->formatAnalyticsData($vawcReports, $vawcTypes);
+
+        // 2. BCPC DATA
+        $bcpcTypes = \App\Models\AbuseType::where('is_active', true)
+            ->whereIn('category', ['BCPC', 'Both'])
+            ->get();
+
+        $bcpcReports = \App\Models\BcpcReport::selectRaw('MONTH(created_at) as month, concern_type, COUNT(*) as count')
+            ->whereYear('created_at', $currentYear)
+            ->whereNotNull('concern_type')
+            ->where('status', '!=', 'Dismissed')
+            ->groupBy('month', 'concern_type')
+            ->get();
+
+        // Map BCPC reports to match formatAnalyticsData expectation (concern_type -> abuse_type)
+        $bcpcReportsMapped = $bcpcReports->map(function ($item) {
+            $item->abuse_type = $item->concern_type;
+            return $item;
+        });
+
+        $bcpcData = $this->formatAnalyticsData($bcpcReportsMapped, $bcpcTypes);
+
 
         // Mock stats (Dynamic implementation would query DB)
         $stats = [
@@ -36,13 +57,22 @@ class AnalyticsController extends Controller
         ];
 
         // Pass types meta for Chart colors
-        $chartConfig = $abuseTypes->map(function ($t) {
+        $vawcChartConfig = $vawcTypes->map(function ($t) {
             return [
                 'key' => strtolower($t->name),
                 'label' => $t->name,
-                'color' => $t->color ?? '#000000'
+                'color' => $t->color ?? '#ce1126'
             ];
         });
+
+        $bcpcChartConfig = $bcpcTypes->map(function ($t) {
+            return [
+                'key' => strtolower($t->name),
+                'label' => $t->name,
+                'color' => $t->color ?? '#0057b7'
+            ];
+        });
+
 
         // GAD Analytics Data
         $gadActivities = \App\Models\GadActivity::whereYear('date_scheduled', $currentYear)->get();
@@ -70,10 +100,14 @@ class AnalyticsController extends Controller
 
         return Inertia::render('Admin/Analytics/Index', [
             'stats' => $stats,
-            'analyticsData' => $data,
+            'analyticsData' => $vawcData, // Default for non-toggle views if any
+            'vawcData' => $vawcData,
+            'bcpcData' => $bcpcData,
             'currentYear' => (int) $currentYear,
-            'chartConfig' => $chartConfig,
-            'gadStats' => $gadStats // Passed to view
+            'chartConfig' => $vawcChartConfig,
+            'vawcChartConfig' => $vawcChartConfig,
+            'bcpcChartConfig' => $bcpcChartConfig,
+            'gadStats' => $gadStats
         ]);
     }
 

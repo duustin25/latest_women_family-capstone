@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Users, AlertTriangle, Activity, Plus, FileText } from 'lucide-react';
+import { TrendingUp, Users, AlertTriangle, Activity, Plus, FileText, Baby } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +16,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 // Ensure route is typed (for Ziggy)
 declare const route: (name: string, params?: any) => string;
@@ -49,14 +50,17 @@ interface GadStats {
 
 interface PageProps {
     stats: Stats;
-    analyticsData: ChartData[];
+    vawcData: ChartData[];
+    bcpcData: ChartData[];
     currentYear: number;
-    chartConfig: ChartConfig[];
+    vawcChartConfig: ChartConfig[];
+    bcpcChartConfig: ChartConfig[];
     gadStats: GadStats;
 }
 
-export default function Index({ stats, analyticsData, currentYear, chartConfig, gadStats }: PageProps) {
+export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, gadStats }: PageProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [chartMode, setChartMode] = useState<'VAWC' | 'BCPC'>('VAWC');
 
     // Form for Adding New Abuse Type
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -73,6 +77,10 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig, 
             }
         });
     };
+
+    const isVawc = chartMode === 'VAWC';
+    const activeColor = isVawc ? 'text-[#ce1126]' : 'text-blue-600';
+    const activeBg = isVawc ? 'bg-[#ce1126]' : 'bg-blue-600';
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Analytics', href: '#' }]}>
@@ -212,16 +220,49 @@ export default function Index({ stats, analyticsData, currentYear, chartConfig, 
                 </div>
 
                 {/* Main Chart Section */}
-                <Card className="col-span-6">
-                    <CardHeader>
-                        <CardTitle>Rates of Women's Abuse by Month</CardTitle>
-                        <CardDescription>
-                            Monthly breakdown of reported abuse types for {currentYear}.
-                        </CardDescription>
+                <Card className="col-span-6 transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle className={cn("transition-colors duration-300", activeColor)}>
+                                {isVawc ? "Rates of Women's Abuse by Month" : "BCPC Case Concerns by Month"}
+                            </CardTitle>
+                            <CardDescription>
+                                Monthly breakdown of reported {isVawc ? 'abuse types' : 'child welfare concerns'} for {currentYear}.
+                            </CardDescription>
+                        </div>
+
+                        {/* TOGGLE SWITCH */}
+                        <div className="flex bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg">
+                            <button
+                                onClick={() => setChartMode('VAWC')}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all",
+                                    isVawc ? "bg-white dark:bg-neutral-900 shadow-sm text-[#ce1126]" : "text-neutral-500 hover:text-neutral-700"
+                                )}
+                            >
+                                <AlertTriangle className="w-4 h-4" />
+                                VAWC
+                            </button>
+                            <button
+                                onClick={() => setChartMode('BCPC')}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all",
+                                    !isVawc ? "bg-white dark:bg-neutral-900 shadow-sm text-blue-600" : "text-neutral-500 hover:text-neutral-700"
+                                )}
+                            >
+                                <Baby className="w-4 h-4" />
+                                BCPC
+                            </button>
+                        </div>
                     </CardHeader>
+
                     <CardContent className="pl-5">
                         {/* Pass dynamic data and config */}
-                        <AnalyticsChart data={analyticsData} config={chartConfig} />
+                        <AnalyticsChart
+                            key={chartMode} // Force re-render animation
+                            data={isVawc ? vawcData : bcpcData}
+                            config={isVawc ? vawcChartConfig : bcpcChartConfig}
+                        />
                     </CardContent>
                 </Card>
 
