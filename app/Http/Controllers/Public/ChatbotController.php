@@ -19,11 +19,10 @@ class ChatbotController extends Controller
     {
         $request->validate(['message' => 'required|string']);
 
-        $response = $bot->processQuery($request->input('message'));
+        $result = $bot->processQuery($request->input('message'));
 
-        return response()->json([
-            'response' => $response,
-        ]);
+        // Result is now an array ['response' => string, 'suggestions' => array]
+        return response()->json($result);
     }
 
     public function chat(Request $request, \App\Services\ChatbotService $bot)

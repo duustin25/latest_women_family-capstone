@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, Sparkles, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { route } from 'ziggy-js';
@@ -22,10 +22,12 @@ const SUGGESTIONS = [
     "What is RA 9262?"
 ];
 
-// Simple text indicator instead of bouncing dots
+// Modern animated dots indicator
 const TypingIndicator = () => (
-    <div className="text-xs text-slate-500 italic pl-1">
-        The Sentinel is typing...
+    <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+        <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" />
     </div>
 );
 
@@ -34,7 +36,7 @@ export default function Chatbot({ className }: { className?: string }) {
         {
             id: 'welcome',
             role: 'assistant',
-            content: "Good day. I am The Sentinel, the official automated assistant for the Women & Family Protection Management System. How may I assist you?",
+            content: "Greetings. I am The Sentinel, your dedicated AI assistant for the Women & Family Protection system. How may I be of service today?",
             timestamp: new Date()
         }
     ]);
@@ -44,13 +46,18 @@ export default function Chatbot({ className }: { className?: string }) {
 
     const scrollToBottom = () => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            scrollRef.current.scrollTo({
+                top: scrollRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     };
 
+    const [currentSuggestions, setCurrentSuggestions] = useState<string[]>([]);
+
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isLoading]);
+    }, [messages, isLoading, currentSuggestions]);
 
     const handleSend = async (e?: React.FormEvent, overrideInput?: string) => {
         if (e) e.preventDefault();
@@ -68,6 +75,7 @@ export default function Chatbot({ className }: { className?: string }) {
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
+        setCurrentSuggestions([]); // Clear previous suggestions
 
         try {
             const response = await axios.post(route('chat.send'), { message: userMessage.content });
@@ -79,12 +87,16 @@ export default function Chatbot({ className }: { className?: string }) {
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, botMessage]);
+
+            if (response.data.suggestions && Array.isArray(response.data.suggestions)) {
+                setCurrentSuggestions(response.data.suggestions);
+            }
         } catch (error) {
             console.error("Chat error:", error);
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "System Error: Unable to connect to server. Please try again or contact support.",
+                content: "Network Error: Unable to reach the secure server. Please try again later.",
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, errorMessage]);
@@ -94,61 +106,84 @@ export default function Chatbot({ className }: { className?: string }) {
     };
 
     return (
-        <Card className={cn("w-full max-w-2xl mx-auto h-[600px] flex flex-col border-2 border-[#6b21a8] bg-white rounded-sm shadow-none", className)}>
-            {/* Strict Header */}
-            <CardHeader className="border-b border-[#6b21a8] bg-[#6b21a8] p-4 shrink-0 rounded-t-sm rounded-b-none">
-                <CardTitle className="flex items-center gap-3 text-lg text-white font-bold uppercase tracking-wider">
-                    <div className="bg-white p-1 rounded-none border border-yellow-400">
-                        <Bot className="h-5 w-5 text-[#6b21a8]" />
+        <Card className={cn(
+            "w-full mx-auto flex flex-col overflow-hidden transition-all duration-300",
+            "border-0 shadow-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl ring-1 ring-slate-900/5 dark:ring-white/10",
+            className
+        )}>
+            {/* Premium Header */}
+            <CardHeader className="relative overflow-hidden border-b border-indigo-500/20 bg-gradient-to-r from-[#6b21a8] via-[#7c3aed] to-[#6b21a8] p-4 shrink-0">
+                <div className="absolute inset-0 bg-[url('/img/grid.svg')] opacity-20" />
+                <div className="relative flex items-center gap-3">
+                    <div className="relative">
+                        <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 opacity-75 blur animate-pulse" />
+                        <div className="relative bg-white p-1.5 rounded-full">
+                            <Bot className="h-5 w-5 text-[#6b21a8]" />
+                        </div>
+                        <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#6b21a8] bg-green-400" />
                     </div>
-                    <div className="flex flex-col">
-                        <span>The Sentinel</span>
-                        <span className="text-[10px] uppercase font-medium text-yellow-400 opacity-100">
-                            Automated Assistance Unit
+                    <div className="flex flex-col text-white">
+                        <CardTitle className="text-base font-bold tracking-wide flex items-center gap-2">
+                            The Sentinel <Sparkles className="h-3 w-3 text-yellow-300" />
+                        </CardTitle>
+                        <span className="text-[10px] uppercase font-medium text-indigo-100 tracking-wider">
+                            AI-Powered Assistant
                         </span>
                     </div>
-                </CardTitle>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-auto text-white/80 hover:text-white hover:bg-white/10 rounded-full"
+                        onClick={() => {
+                            setMessages([messages[0]]);
+                            setIsLoading(false);
+                        }}
+                        title="Reset Chat"
+                    >
+                        <RefreshCcw className="h-4 w-4" />
+                    </Button>
+                </div>
             </CardHeader>
 
             {/* Chat Area */}
-            <CardContent className="flex-1 overflow-hidden p-0 relative flex flex-col bg-slate-50">
+            <CardContent className="flex-1 overflow-hidden p-0 relative flex flex-col bg-slate-50/50 dark:bg-slate-950/50">
                 <div
                     ref={scrollRef}
-                    className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+                    className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth custom-scrollbar"
                 >
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
                             className={cn(
-                                "flex w-full gap-3 max-w-[90%]",
+                                "flex w-full gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300",
                                 msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
                             )}
                         >
                             <Avatar className={cn(
-                                "h-8 w-8 shrink-0 border border-slate-300 rounded-sm",
-                                msg.role === 'assistant'
-                                    ? "bg-white"
-                                    : "bg-slate-200"
+                                "h-8 w-8 shrink-0 border border-white dark:border-slate-700 shadow-sm",
+                                msg.role === 'assistant' ? "bg-indigo-50 dark:bg-indigo-900/50" : "bg-slate-100 dark:bg-slate-800"
                             )}>
-                                <AvatarFallback className="rounded-sm font-bold text-xs">
-                                    {msg.role === 'assistant' ? <Bot size={16} className="text-[#6b21a8]" /> : <User size={16} className="text-slate-700" />}
+                                <AvatarFallback className="font-bold text-xs">
+                                    {msg.role === 'assistant' ? <Bot size={16} className="text-[#6b21a8] dark:text-indigo-400" /> : <User size={16} className="text-slate-600 dark:text-slate-400" />}
                                 </AvatarFallback>
                             </Avatar>
 
                             <div className={cn(
-                                "p-3 rounded-sm text-sm border",
-                                msg.role === 'user'
-                                    ? "bg-[#6b21a8] text-white border-[#581c87]"
-                                    : "bg-white text-slate-800 border-slate-200"
+                                "flex flex-col gap-1",
+                                msg.role === 'user' ? "items-end" : "items-start"
                             )}>
-                                <div className="font-bold text-[10px] uppercase mb-1 opacity-80 tracking-wide">
-                                    {msg.role === 'user' ? 'Citizen' : 'System Bot'}
+                                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium px-1">
+                                    {msg.role === 'user' ? 'You' : 'Sentinel'}
                                 </div>
-                                {msg.content}
                                 <div className={cn(
-                                    "text-[9px] mt-2 font-mono text-right",
-                                    msg.role === 'user' ? "text-purple-200" : "text-slate-400"
+                                    "p-3.5 text-sm shadow-sm relative group transition-all duration-200 hover:shadow-md",
+                                    msg.role === 'user'
+                                        ? "bg-gradient-to-br from-[#6b21a8] to-[#7c3aed] text-white rounded-2xl rounded-tr-sm"
+                                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-sm"
                                 )}>
+                                    {msg.content}
+                                </div>
+                                <div className="text-[9px] text-slate-400 dark:text-slate-500 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                             </div>
@@ -156,20 +191,26 @@ export default function Chatbot({ className }: { className?: string }) {
                     ))}
 
                     {isLoading && (
-                        <div className="flex w-full gap-3 mr-auto max-w-[90%]">
-                            <TypingIndicator />
+                        <div className="flex w-full gap-3 mr-auto max-w-[85%] animate-in fade-in">
+                            <Avatar className="h-8 w-8 shrink-0 border border-white dark:border-slate-700 shadow-sm bg-indigo-50 dark:bg-indigo-900/50">
+                                <AvatarFallback><Bot size={16} className="text-[#6b21a8] dark:text-indigo-400" /></AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-1 items-start">
+                                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium px-1">Sentinel</div>
+                                <TypingIndicator />
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Suggestions Area - Squared Chips */}
-                {!isLoading && messages.length < 4 && (
-                    <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-hide shrink-0 pb-3 bg-slate-50 border-t border-slate-200 pt-3">
-                        {SUGGESTIONS.map((suggestion, idx) => (
+                {/* Suggestions Area - Glassy Pills */}
+                {!isLoading && (
+                    <div className="px-4 py-3 flex gap-2 overflow-x-auto scrollbar-hide shrink-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-t border-slate-100 dark:border-slate-800">
+                        {(currentSuggestions.length > 0 ? currentSuggestions : SUGGESTIONS).map((suggestion, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => handleSend(undefined, suggestion)}
-                                className="whitespace-nowrap px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide bg-white text-[#6b21a8] border border-[#6b21a8] rounded-sm hover:bg-[#6b21a8] hover:text-white transition-colors"
+                                className="whitespace-nowrap px-3 py-1.5 text-[11px] font-semibold text-[#6b21a8] dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-full hover:bg-[#6b21a8] hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white transition-all duration-200 hover:shadow-sm active:scale-95"
                             >
                                 {suggestion}
                             </button>
@@ -179,22 +220,22 @@ export default function Chatbot({ className }: { className?: string }) {
             </CardContent>
 
             {/* Input Area */}
-            <CardFooter className="p-3 bg-white border-t border-[#6b21a8] shrink-0">
-                <form onSubmit={(e) => handleSend(e)} className="flex w-full gap-2 items-end">
+            <CardFooter className="p-3 bg-white dark:bg-slate-900 shrink-0 border-t border-slate-100 dark:border-slate-800">
+                <form onSubmit={(e) => handleSend(e)} className="flex w-full gap-2 items-end relative">
                     <Input
-                        placeholder="Type your query here..."
+                        placeholder="Type your query..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        className="flex-1 min-h-[44px] max-h-32 bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-500 focus-visible:ring-[#6b21a8] focus-visible:border-[#6b21a8] rounded-sm py-3"
+                        className="flex-1 min-h-[44px] max-h-32 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 focus:border-[#6b21a8] dark:focus:border-[#6b21a8] focus:ring-1 focus:ring-[#6b21a8] rounded-xl pl-4 pr-10 py-3 transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         disabled={isLoading}
                     />
                     <Button
                         type="submit"
                         size="icon"
                         disabled={isLoading || !input.trim()}
-                        className="h-[44px] w-[44px] bg-[#6b21a8] hover:bg-[#581c87] text-white rounded-sm shrink-0"
+                        className="absolute right-1 bottom-1 h-[36px] w-[36px] rounded-lg bg-[#6b21a8] hover:bg-[#581c87] text-white shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Send className="h-5 w-5" />
+                        <Send className="h-4 w-4" />
                     </Button>
                 </form>
             </CardFooter>

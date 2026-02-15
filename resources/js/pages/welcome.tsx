@@ -117,18 +117,18 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                 </div>
             </section>
 
-            {/* 2. CORE SERVICES GRID */}
+            {/* 2. CORE SERVICES GRID (Placeholder - keeping structure intact) */}
 
 
             {/* 3. COMMUNITY UPDATES */}
-            <section className="py-20 border-t border-neutral-200 relative z-10">
+            <section className="py-20 border-t border-neutral-200 dark:border-neutral-800 relative z-10 transition-colors">
                 <div className="container mx-auto px-6">
                     <div className="flex items-end justify-between mb-12">
                         <div>
-                            <h2 className="text-neutral-500 font-bold uppercase tracking-widest text-xs mb-2">Barangay Updates</h2>
-                            <h3 className="text-3xl font-black text-neutral-900 uppercase tracking-tighter">Latest Announcements</h3>
+                            <h2 className="text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-widest text-xs mb-2">Barangay Updates</h2>
+                            <h3 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tighter">Latest Announcements</h3>
                         </div>
-                        <Link href="/announcements" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900 hover:text-blue-600 transition-colors">
+                        <Link href="/announcements" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                             View All <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -136,8 +136,8 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {announcements.data.length > 0 ? (
                             announcements.data.map((post: any) => (
-                                <Link key={post.id} href={`/announcements/${post.slug}`} className="group bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-neutral-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                    <div className="aspect-[16/9] bg-neutral-100 relative overflow-hidden">
+                                <Link key={post.id} href={`/announcements/${post.slug}`} className="group bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                    <div className="aspect-[16/9] bg-neutral-100 dark:bg-neutral-800 relative overflow-hidden">
 
                                         {/* GAD Badge if applicable */}
                                         {post.category === 'GAD' && (
@@ -153,7 +153,7 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                                         />
                                     </div>
                                     <div className="p-8">
-                                        <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-4">
+                                        <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-4">
                                             <span className="flex items-center gap-1">
                                                 <Calendar size={12} /> {post.date}
                                             </span>
@@ -163,24 +163,24 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                                                 </span>
                                             )}
                                         </div>
-                                        <h4 className="text-lg font-black text-neutral-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                                        <h4 className="text-lg font-black text-neutral-900 dark:text-white leading-tight mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                                             {post.title}
                                         </h4>
-                                        <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+                                        <p className="text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                                             {post.excerpt}
                                         </p>
                                     </div>
                                 </Link>
                             ))
                         ) : (
-                            <div className="col-span-full py-16 text-center border-2 border-dashed border-neutral-200 rounded-2xl">
-                                <p className="text-neutral-400 font-bold uppercase text-xs tracking-wider">No announcements posted yet</p>
+                            <div className="col-span-full py-16 text-center border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl">
+                                <p className="text-neutral-400 dark:text-neutral-500 font-bold uppercase text-xs tracking-wider">No announcements posted yet</p>
                             </div>
                         )}
                     </div>
 
                     <div className="mt-8 text-center md:hidden">
-                        <Link href="/announcements" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900">
+                        <Link href="/announcements" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white">
                             View All Updates <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -188,24 +188,24 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
             </section>
 
             {/* 4. ACCREDITED ORGANIZATIONS */}
-            <section className="py-20 border-t border-neutral-100 relative z-10">
+            <section className="py-20 border-t border-neutral-100 dark:border-neutral-800 relative z-10 transition-colors">
                 <div className="container mx-auto px-6">
                     <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-purple-600 font-bold uppercase tracking-widest text-xs mb-3">Community Partners</h2>
-                        <h3 className="text-3xl font-black text-neutral-900 uppercase tracking-tighter mb-4">Accredited Organizations</h3>
-                        <p className="text-neutral-500 font-medium">Verified local groups working together for community development.</p>
+                        <h2 className="text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest text-xs mb-3">Community Partners</h2>
+                        <h3 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tighter mb-4">Accredited Organizations</h3>
+                        <p className="text-neutral-500 dark:text-neutral-400 font-medium">Verified local groups working together for community development.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {organizations.data.length > 0 ? (
                             organizations.data.map((org: any) => (
-                                <Link key={org.id} href={`/organizations/${org.slug}`} className="flex items-center gap-4 p-5 bg-neutral-50 hover:bg-white border border-neutral-100 hover:border-purple-200 rounded-xl transition-all group">
+                                <Link key={org.id} href={`/organizations/${org.slug}`} className="flex items-center gap-4 p-5 bg-neutral-50 dark:bg-neutral-900 hover:bg-white dark:hover:bg-neutral-800 border border-neutral-100 dark:border-neutral-800 hover:border-purple-200 dark:hover:border-purple-900 rounded-xl transition-all group shadow-sm hover:shadow-md">
                                     <div className={`w-3 h-3 rounded-full shrink-0 ${org.color_theme || 'bg-neutral-300'}`}></div>
                                     <div className="min-w-0">
-                                        <h4 className="font-bold text-neutral-900 text-sm uppercase tracking-tight truncate group-hover:text-purple-700 transition-colors">
+                                        <h4 className="font-bold text-neutral-900 dark:text-white text-sm uppercase tracking-tight truncate group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
                                             {org.name}
                                         </h4>
-                                        <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider mt-0.5">
+                                        <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mt-0.5">
                                             View Profile <ChevronRight size={10} />
                                         </div>
                                     </div>
@@ -213,13 +213,13 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                             ))
                         ) : (
                             <div className="col-span-full text-center py-10">
-                                <p className="text-neutral-400 text-xs font-bold uppercase">No organizations found</p>
+                                <p className="text-neutral-400 dark:text-neutral-500 text-xs font-bold uppercase">No organizations found</p>
                             </div>
                         )}
                     </div>
 
                     <div className="mt-12 text-center">
-                        <Link href="/organizations" className="inline-flex items-center justify-center px-8 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-black uppercase text-[10px] tracking-[0.2em] rounded-full transition-colors">
+                        <Link href="/organizations" className="inline-flex items-center justify-center px-8 py-3 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-full transition-colors">
                             View Full Directory
                         </Link>
                     </div>
