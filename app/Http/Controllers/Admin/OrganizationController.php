@@ -151,4 +151,50 @@ class OrganizationController extends Controller
         $organization->delete();
         return redirect()->route('admin.organizations.index')->with('success', 'Organization deleted.');
     }
+
+    public function members(Request $request, Organization $organization)
+    {
+        // RBAC: President can only see their own organization's members
+        $user = $request->user();
+        if ($user->isPresident() && $user->organization_id !== $organization->id) {
+            abort(403, 'You can only view members of your own organization.');
+        }
+
+        $query = \App\Models\MembershipApplication::with('organization')
+            ->where('organization_id', $organization->id)
+            ->where('status', 'Approved');
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('fullname', 'LIKE', "%{$searchTerm}%");
+        }
+
+        // Setup Sorting
+        $sortColumn = $request->input('sort', 'actioned_at'); // default sort
+        $sortDirection = $request->input('direction', 'desc');
+
+        $coreColumns = ['fullname', 'address', 'actioned_at', 'status'];
+        $sortDirectionSafe = $sortDirection === 'asc' ? 'asc' : 'desc';
+
+        if (in_array($sortColumn, $coreColumns)) {
+            $query->orderBy($sortColumn, $sortDirectionSafe);
+        } else {
+            // Assume it is a dynamic JSON field inside `submission_data`
+            // Sanitize column name to alphanumerics/underscores to prevent SQL injection issues
+            $safeColumn = preg_replace('/[^a-zA-Z0-9_]/', '', $sortColumn);
+            if ($safeColumn) {
+                $query->orderBy("submission_data->{$safeColumn}", $sortDirectionSafe);
+            } else {
+                $query->latest('actioned_at');
+            }
+        }
+
+        $members = $query->paginate(15)->withQueryString();
+
+        return Inertia::render('Admin/Organizations/Members', [
+            'organization' => new OrganizationResource($organization),
+            'members' => \App\Http\Resources\MembershipApplicationResource::collection($members),
+            'filters' => $request->only(['search', 'sort', 'direction'])
+        ]);
+    }
 }

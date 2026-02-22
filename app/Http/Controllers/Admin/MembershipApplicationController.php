@@ -18,16 +18,29 @@ class MembershipApplicationController extends Controller
     {
         // RBAC: Use Service to scope applications (President sees only their Org, Admin sees all)
         // Pass query params as filters
-        $filters = $request->only(['search', 'status', 'organization_id']);
+        $filters = $request->only(['search', 'status', 'organization_id', 'income']);
         $applications = $service->getScopedApplications($request->user(), $filters);
 
         // Fetch organizations for filter dropdown
         $organizations = Organization::orderBy('name')->get();
 
+        // Fetch distinct monthly_income values from personal_data JSON for the filter dropdown
+        // Uses MySQL JSON extraction syntax. If using SQLite/Postgres, syntax might vary slightly, 
+        // but '->>' is standard in Laravel for JSON extraction in where/select.
+        $incomes = MembershipApplication::selectRaw("JSON_UNQUOTE(JSON_EXTRACT(personal_data, '$.monthly_income')) as income")
+            ->whereNotNull('personal_data->monthly_income')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(personal_data, '$.monthly_income')) != ''")
+            ->distinct()
+            ->pluck('income')
+            ->filter()
+            ->sort()
+            ->values();
+
         return Inertia::render('Admin/Applications/Index', [
             'applications' => MembershipApplicationResource::collection($applications),
             'filters' => $filters,
-            'organizations' => $organizations
+            'organizations' => $organizations,
+            'incomes' => $incomes
         ]);
     }
 
@@ -49,14 +62,8 @@ class MembershipApplicationController extends Controller
     {
         $application->load('organization');
 
-        // Default to General Review, or specific if needed.
-        // For now, removing hardcoded Kalipi since we migrated it to dynamic.
-        $view = 'Admin/Applications/ReviewGeneral';
-
-        // Use specific form for Solo Parent if customized
-        if ($application->organization->slug === 'solo-parent-federation') {
-            $view = 'Admin/Applications/ReviewSoloParent';
-        }
+        // All applications now use the unified dynamic review page
+        $view = 'Admin/Applications/ReviewData';
 
         return Inertia::render($view, [
             'application' => new MembershipApplicationResource($application),

@@ -169,6 +169,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // This turns 'announcements.index' into 'admin.announcements.index'
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['role:admin,head,president']], function () {
         Route::resource('announcements', AnnouncementController::class);
+        Route::get('organizations/{organization:slug}/members', [OrganizationController::class, 'members'])->name('organizations.members');
         Route::resource('organizations', OrganizationController::class);
 
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');

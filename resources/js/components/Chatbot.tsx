@@ -176,7 +176,7 @@ export default function Chatbot({ className }: { className?: string }) {
                                     {msg.role === 'user' ? 'You' : 'Sentinel'}
                                 </div>
                                 <div className={cn(
-                                    "p-3.5 text-sm shadow-sm relative group transition-all duration-200 hover:shadow-md",
+                                    "p-3.5 text-sm shadow-sm relative group transition-all duration-200 hover:shadow-md whitespace-pre-wrap leading-relaxed",
                                     msg.role === 'user'
                                         ? "bg-gradient-to-br from-[#6b21a8] to-[#7c3aed] text-white rounded-2xl rounded-tr-sm"
                                         : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-100 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-tl-sm"

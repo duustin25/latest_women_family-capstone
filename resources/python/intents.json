@@ -125,6 +125,42 @@
             ]
         },
         {
+            "tag": "organizations_general",
+            "patterns": [
+                "What organizations can I join?",
+                "List of groups",
+                "Community organizations",
+                "NGOs in the barangay",
+                "Who are the accredited organizations?",
+                "Group for women",
+                "Group for parents",
+                "What are the organizations?",
+                "Show me the organizations",
+                "Anong mga organisasyon?"
+            ],
+            "responses": [
+                "ACTION_FETCH_ALL_ORGANIZATIONS"
+            ]
+        },
+        {
+            "tag": "organization_info",
+            "patterns": [
+                "Tell me about KALIPI",
+                "Tell me about Solo Parent",
+                "Details of ERPAT",
+                "How to join PWD Association",
+                "Requirements for KALIPI",
+                "Requirements for Solo Parent",
+                "Application form for KALIPI",
+                "Info about senior citizens group",
+                "Paano sumali sa KALIPI?",
+                "Anong requirements sa Solo Parent?"
+            ],
+            "responses": [
+                "ACTION_FETCH_ORG_INFO"
+            ]
+        },
+        {
             "tag": "announcements",
             "patterns": [
                 "Any news?",
@@ -136,31 +172,6 @@
             ],
             "responses": [
                 "ACTION_FETCH_ANNOUNCEMENTS"
-            ]
-        },
-        {
-            "tag": "requirements_kalipi",
-            "patterns": [
-                "Requirements for KALIPI",
-                "Join KALIPI",
-                "Paano sumali sa KALIPI?",
-                "Ano kailangan sa KALIPI?"
-            ],
-            "responses": [
-                "ACTION_FETCH_ORG_REQUIREMENTS_KALIPI"
-            ]
-        },
-        {
-            "tag": "requirements_solo_parent",
-            "patterns": [
-                "Requirements for Solo Parent",
-                "Join Solo Parent",
-                "Paano sumali sa Solo Parent?",
-                "Ano requirements ng Solo Parent?",
-                "Single mom benefits"
-            ],
-            "responses": [
-                "ACTION_FETCH_ORG_REQUIREMENTS_SOLO_PARENT"
             ]
         },
         {

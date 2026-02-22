@@ -37,14 +37,17 @@ interface PageProps {
         search?: string;
         status?: string;
         organization_id?: string;
+        income?: string;
     };
     organizations: Organization[];
+    incomes: string[];
 }
 
-export default function Index({ applications, filters, organizations }: PageProps) {
+export default function Index({ applications, filters, organizations, incomes }: PageProps) {
     const [searchQuery, setSearchQuery] = useState(filters?.search ?? '');
     const [statusFilter, setStatusFilter] = useState(filters?.status ?? 'All');
     const [orgFilter, setOrgFilter] = useState(filters?.organization_id ?? 'All');
+    const [incomeFilter, setIncomeFilter] = useState(filters?.income ?? 'All');
 
     const appsData = applications?.data ?? [];
 
@@ -53,12 +56,14 @@ export default function Index({ applications, filters, organizations }: PageProp
             search: searchQuery,
             status: statusFilter,
             organization_id: orgFilter,
+            income: incomeFilter,
             [key]: value
         };
 
         if (value === 'All') delete newFilters[key as keyof typeof newFilters];
         if (newFilters.status === 'All') delete newFilters.status;
         if (newFilters.organization_id === 'All') delete newFilters.organization_id;
+        if (newFilters.income === 'All') delete newFilters.income;
 
         router.get('/admin/applications', newFilters as any, { preserveState: true });
     };

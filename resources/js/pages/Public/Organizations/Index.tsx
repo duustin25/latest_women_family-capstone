@@ -117,9 +117,10 @@ export default function Index({ organizations = { data: [] } }: any) {
                                                 </div>
                                             </div>
 
-                                            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 line-clamp-3 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
-                                                {org.description}
-                                            </p>
+                                            <div
+                                                className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8 line-clamp-3 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors"
+                                                dangerouslySetInnerHTML={{ __html: org.description }}
+                                            />
 
                                             <div className="mt-auto flex items-center justify-between border-t border-slate-200/50 dark:border-neutral-800 pt-6">
                                                 <div className="flex -space-x-2">

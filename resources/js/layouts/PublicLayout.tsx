@@ -13,12 +13,13 @@ import { toast, Toaster } from 'sonner';
 import ChatbotWidget from '@/components/ChatbotWidget';
 import { useAppearance } from '@/hooks/use-appearance';
 
-const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME || 'Barangay 183 Villamor';
-const cityName = import.meta.env.VITE_APP_CITY_NAME || 'Pasay City';
-const brgyNum = import.meta.env.VITE_HOTLINE_BRGY || '0912-345-6789';
-const vawcNum = import.meta.env.VITE_HOTLINE_VAWC || '0998-765-4321';
-const brgyMail = import.meta.env.VITE_OFFICIAL_EMAIL || 'brgy183@gov.ph';
-const offcialFb = import.meta.env.VITE_OFFICIAL_FB || '#';
+const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME;
+const cityName = import.meta.env.VITE_APP_CITY_NAME;
+const brgyNum = import.meta.env.VITE_HOTLINE_BRGY;
+const vawcNum = import.meta.env.VITE_HOTLINE_VAWC;
+const brgyMail = import.meta.env.VITE_OFFICIAL_EMAIL;
+const offcialFb = import.meta.env.VITE_OFFICIAL_FB;
+const brgyZone = import.meta.env.VITE_APP_ZONE;
 
 interface PublicLayoutProps {
     children: React.ReactNode;
@@ -56,8 +57,8 @@ export default function PublicLayout({ children, bgColor = "bg-slate-50" }: Publ
         { name: 'Home', href: '/' },
         { name: 'Announcements', href: '/announcements' },
         { name: 'Laws', href: '/laws' },
-        { name: 'VAWC', href: '/vawc' },
-        { name: 'BCPC', href: '/bcpc' },
+        { name: 'VAWC Services', href: '/vawc' },
+        { name: 'BCPC Services', href: '/bcpc' },
         { name: 'GAD Initiatives', href: '/gad' },
         { name: 'Organizations', href: '/organizations' },
         { name: 'Officials', href: '/officials' },
@@ -99,11 +100,14 @@ export default function PublicLayout({ children, bgColor = "bg-slate-50" }: Publ
                             </div>
                             <div>
                                 <h1 className="text-lg lg:text-xl font-black uppercase leading-none tracking-tight">
-                                    Women & Family <span className="text-yellow-400 font-black">Protection</span>
+                                    {brgyName}, {brgyZone}, {cityName}
                                 </h1>
                                 <p className="text-[9px] font-black opacity-90 uppercase tracking-[0.3em] mt-1 flex items-center gap-1">
-                                    <MapPin size={10} className="text-yellow-500" /> {brgyName}, {cityName}
+                                    Office of the Women and Family
                                 </p>
+                            </div>
+                            <div className="bg-white p-1 rounded-full shadow-lg border-2 border-yellow-400">
+                                <img src="/Logo/barangay183LOGO.png" className="w-12 h-12 lg:w-14 lg:h-14 object-contain" alt="Logo" />
                             </div>
                         </div>
 

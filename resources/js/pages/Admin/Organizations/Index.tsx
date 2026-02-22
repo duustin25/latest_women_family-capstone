@@ -182,6 +182,11 @@ export default function Index({ organization, filters }: PageProps) {
                                                 {/* ACTIONS */}
                                                 <td className="p-5 pr-8 align-middle text-right">
                                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Link href={`/admin/organizations/${org.slug}/members`} title="View Members">
+                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                                <Users size={14} />
+                                                            </Button>
+                                                        </Link>
                                                         <Link href={`/admin/organizations/${org.slug}/edit`}>
                                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
                                                                 <Edit3 size={14} />

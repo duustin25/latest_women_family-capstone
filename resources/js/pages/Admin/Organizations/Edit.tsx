@@ -63,9 +63,9 @@ export default function Edit({ organization, users }: { organization: any, users
                 <Button
                     onClick={handleSubmit}
                     disabled={processing}
-                    className="h-16 w-16 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-4 border-white dark:border-neutral-900"
+                    className="h-16 w-32 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-4 border-white dark:border-neutral-900"
                 >
-                    {processing ? <span className="animate-spin text-xl">⏳</span> : <Save size={28} />}
+                    {processing ? <span className="text-xl">Updating...</span> : <p className="text-xl">Update</p>}
                 </Button>
             </div>
 

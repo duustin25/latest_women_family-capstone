@@ -90,6 +90,10 @@ class MembershipService
             $query->where('organization_id', $filters['organization_id']);
         }
 
+        if (!empty($filters['income']) && $filters['income'] !== 'All') {
+            $query->where('personal_data->monthly_income', $filters['income']);
+        }
+
         return $query->paginate($perPage)->withQueryString();
     }
 }

@@ -32,7 +32,7 @@ class ChatbotService
             if (json_last_error() === JSON_ERROR_NONE && isset($result['response'])) {
                 // Check if response is an ACTION tag
                 if (str_starts_with($result['response'], 'ACTION_')) {
-                    return $this->handleAction($result['response']);
+                    return $this->handleAction($result['response'], $query);
                 }
 
                 return ['response' => $result['response']];
@@ -50,7 +50,7 @@ class ChatbotService
         }
     }
 
-    private function handleAction(string $action): array
+    private function handleAction(string $action, string $query): array
     {
         // ---------------------------------------------------------
         // DYNAMIC ACTION MAPPING ENGINE
@@ -67,10 +67,10 @@ class ChatbotService
                 return $this->fetchOfficials();
             case 'ACTION_FETCH_LAWS':
                 return $this->fetchLaws();
-            case 'ACTION_FETCH_ORG_REQUIREMENTS_KALIPI':
-                return $this->fetchOrgRequirements('KALIPI');
-            case 'ACTION_FETCH_ORG_REQUIREMENTS_SOLO_PARENT':
-                return $this->fetchOrgRequirements('Solo Parent');
+            case 'ACTION_FETCH_ALL_ORGANIZATIONS':
+                return $this->fetchAllOrganizations();
+            case 'ACTION_FETCH_ORG_INFO':
+                return $this->fetchOrgInfo($query);
             case 'ACTION_DISAMBIGUATE_REPORT':
                 // Intent Disambiguation:
                 // If the user's intent is vague (e.g., "Report"), we ask for clarification
@@ -96,7 +96,7 @@ class ChatbotService
         $response = "Here are the latest announcements:\n\n";
         foreach ($news as $item) {
             $date = $item->created_at->format('M d, Y');
-            $response .= "📢 **{$item->title}** ({$date})\n{$item->content}\n\n"; // Assuming 'content' or 'body'
+            $response .= "{$item->title} ({$date})\n{$item->content}\n\n";
         }
 
         return ['response' => $response];
@@ -113,7 +113,7 @@ class ChatbotService
         $response = "Here are our Barangay Officials:\n\n";
         foreach ($officials as $official) {
             // Adjust fields based on your Official model (e.g., name, position)
-            $response .= "👤 **{$official->name}** - {$official->position}\n";
+            $response .= "{$official->name} - {$official->position}\n";
         }
 
         return ['response' => $response];
@@ -129,25 +129,77 @@ class ChatbotService
 
         return [
             'response' => "Here are some key laws protecting women and children:\n\n" .
-                "📜 **RA 9262 (Anti-VAWC Act)**: Protects women and children from violence.\n" .
-                "📜 **RA 7610**: Special Protection of Children Against Abuse, Exploitation and Discrimination Act.\n" .
-                "📜 **RA 11313 (Safe Spaces Act)**: Penalizes gender-based sexual harassment in public spaces and online.\n\n" .
+                "RA 9262 (Anti-VAWC Act): Protects women and children from violence.\n" .
+                "RA 7610: Special Protection of Children Against Abuse, Exploitation and Discrimination Act.\n" .
+                "RA 11313 (Safe Spaces Act): Penalizes gender-based sexual harassment in public spaces and online.\n\n" .
                 "For more details, please visit the 'Laws' page."
         ];
     }
 
-    private function fetchOrgRequirements(string $orgName): array
+    private function fetchAllOrganizations(): array
     {
-        $org = Organization::where('name', 'LIKE', "%{$orgName}%")->first();
+        $orgs = Organization::all();
 
-        if (!$org) {
-            return ['response' => "I couldn't find information for {$orgName}."];
+        if ($orgs->isEmpty()) {
+            return ['response' => "There are currently no accredited organizations listed."];
         }
 
-        $reqs = $org->requirements; // Assuming cast to array
-        $reqList = is_array($reqs) ? implode(", ", $reqs) : $reqs;
+        $response = "Here are the accredited organizations you can join. You can recognize them by their purpose:\n\n";
 
-        return ['response' => "To join **{$org->name}**, you need:\n\n{$reqList}\n\nYou can apply directly on the Organizations page."];
+        foreach ($orgs as $org) {
+            $pres = Str::limit($org->president_name, 20);
+            $response .= "{$org->name}\nPresident: {$pres}\n\n";
+        }
+
+        $response .= "Tip: Ask 'Tell me about [Organization Name]' for requirements and application forms.";
+
+        return [
+            'response' => $response,
+            'suggestions' => $orgs->pluck('name')->map(fn($n) => "Tell me about $n")->take(4)->toArray()
+        ];
+    }
+
+    private function fetchOrgInfo(string $query): array
+    {
+        // "Poor Man's NER": Iterate through all orgs and check if their name exists in the user's query
+        // This handles "Tell me about KALIPI" -> Matches "KALIPI"
+
+        $orgs = Organization::all();
+        $matchedOrg = null;
+
+        foreach ($orgs as $org) {
+            // Check if org name or commonly known alias is in the query (case insensitive)
+            if (Str::contains(strtolower($query), strtolower($org->name))) {
+                $matchedOrg = $org;
+                break;
+            }
+            // Add other matching logic if needed (e.g., abbreviations)
+        }
+
+        if (!$matchedOrg) {
+            // If no specific org found in query, return list
+            return $this->fetchAllOrganizations();
+        }
+
+        // Build detailed response
+        $reqs = $matchedOrg->requirements;
+        $reqList = is_array($reqs) ? implode("\n• ", $reqs) : $reqs;
+
+        $response = "Here are the details for {$matchedOrg->name}:\n\n";
+        $response .= "President: {$matchedOrg->president_name}\n\n";
+        // $response .= "Purpose: {$matchedOrg->description}\n\n";
+        $response .= "Requirements: {$reqList}\n\n";
+
+        if ($matchedOrg->form_schema) {
+            $response .= "Application Form: Available online.\n";
+        }
+
+        $response .= "\nYou can apply directly by visiting the Tab>Organizations page.";
+
+        return [
+            'response' => $response,
+            'suggestions' => ['Join ' . $matchedOrg->name, 'List all organizations']
+        ];
     }
 
     private function fallbackLogic(string $query): string
@@ -158,7 +210,7 @@ class ChatbotService
             return "To join an organization, please navigate to the Organizations page and click 'Join'. Requirements usually include a valid ID and proof of residency.";
         }
 
-        if (Str::contains($query, ['vawc', 'abuse', 'report', 'emergency'])) {
+        if (Str::contains($query, ['vawc', 'bcpc', 'abuse', 'report', 'emergency'])) {
             return "If this is an emergency, please call 911 immediately. To file a VAWC report, use the red 'Report Case' button on the dashboard.";
         }
 
