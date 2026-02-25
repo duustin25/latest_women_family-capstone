@@ -7,15 +7,15 @@ import { cn } from "@/lib/utils";
 // Import Partials
 import CaseReferralSettings from './Partials/CaseReferralSettings';
 import AppearanceSettings from './Partials/AppearanceSettings';
-import OngoingStatus from './Partials/OngoingStatus';
+import CaseStatus from './Partials/CaseStatus';
 
 interface PageProps {
-    abuseTypes: any[];
-    referralPartners: any[];
-    ongoingStatuses: any[];
+    caseAbuseTypes: any[];
+    caseReferralAgencies: any[];
+    caseStatuses: any[];
 }
 
-export default function Index({ abuseTypes, referralPartners, ongoingStatuses }: PageProps) {
+export default function Index({ caseAbuseTypes, caseReferralAgencies, caseStatuses }: PageProps) {
     const [activeTab, setActiveTab] = useState('case_categories');
 
     const tabs = [
@@ -60,8 +60,8 @@ export default function Index({ abuseTypes, referralPartners, ongoingStatuses }:
                     <div className="mt-6 animate-in fade-in zoom-in-95 duration-300">
                         {activeTab === 'case_categories' && (
                             <div className="space-y-6">
-                                <CaseReferralSettings abuseTypes={abuseTypes} referralPartners={referralPartners} />
-                                <OngoingStatus statuses={ongoingStatuses} />
+                                <CaseReferralSettings caseAbuseTypes={caseAbuseTypes} caseReferralAgencies={caseReferralAgencies} />
+                                <CaseStatus statuses={caseStatuses} />
                             </div>
                         )}
 

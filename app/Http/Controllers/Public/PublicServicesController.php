@@ -33,7 +33,7 @@ class PublicServicesController extends Controller
 
     public function vawcReport()
     {
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)->get();
+        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)->get();
         return Inertia::render('Public/VAWC/Report', [
             'abuseTypes' => $abuseTypes
         ]);

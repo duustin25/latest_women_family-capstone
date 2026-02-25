@@ -27,7 +27,7 @@ interface CaseRecord {
     referred_to?: string | null;
 }
 
-export default function Index({ cases: initialCases, ongoingStatuses = [] }: { cases: CaseRecord[], ongoingStatuses?: string[] }) {
+export default function Index({ cases: initialCases, caseStatuses = [] }: { cases: CaseRecord[], caseStatuses?: string[] }) {
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All'); // 'All', 'VAWC', 'BCPC'
     const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +39,7 @@ export default function Index({ cases: initialCases, ongoingStatuses = [] }: { c
     const normalizeStatus = (s: string) => {
         if (!s) return 'new';
         const lower = s.toLowerCase();
-        if (ongoingStatuses.some(os => os.toLowerCase() === lower)) return 'on-going';
+        if (caseStatuses.some(os => os.toLowerCase() === lower)) return 'on-going';
         if (['under mediation', 'intervention/diversion program', 'bpo issued', 'ongoing', 'on-going'].includes(lower)) return 'on-going';
         return lower;
     };

@@ -26,7 +26,7 @@ interface CaseData {
     [key: string]: any;
 }
 
-export default function Edit({ caseData, abuseTypes, referralPartners, ongoingStatuses }: { caseData: CaseData, abuseTypes: any[], referralPartners: any[], ongoingStatuses: any[] }) {
+export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, caseStatuses }: { caseData: CaseData, caseAbuseTypes: any[], caseReferralAgencies: any[], caseStatuses: any[] }) {
     const { data, setData, patch, processing, errors } = useForm({
         type: caseData.type,
         status: caseData.status,
@@ -44,9 +44,9 @@ export default function Edit({ caseData, abuseTypes, referralPartners, ongoingSt
         caseData.status, // Ensure current status is always valid/visible
         "New",
         // Dynamic Ongoing Statuses
-        ...(ongoingStatuses ? ongoingStatuses.map(s => `Ongoing: ${s.name}`) : []),
+        ...(caseStatuses ? caseStatuses.map(s => `Ongoing: ${s.name}`) : []),
         // Dynamic Referrals
-        ...(referralPartners ? referralPartners.map(p => `Referred: ${p.name}`) : []),
+        ...(caseReferralAgencies ? caseReferralAgencies.map(p => `Referred: ${p.name}`) : []),
         "Resolved",
         "Closed",
         "Dismissed"

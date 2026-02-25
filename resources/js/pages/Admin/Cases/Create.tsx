@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft, Save, AlertTriangle, Baby } from 'lucide-react';
 import { route } from 'ziggy-js';
 
-interface AbuseType {
+interface CaseAbuseType {
     id: number;
     name: string;
     category: string;
@@ -17,10 +17,10 @@ interface AbuseType {
 
 interface PageProps {
     type: string;
-    abuseTypes?: AbuseType[];
+    caseAbuseTypes?: CaseAbuseType[];
 }
 
-export default function Create({ type, abuseTypes = [] }: PageProps) {
+export default function Create({ type, caseAbuseTypes = [] }: PageProps) {
     // Determine mode strictly
     const isVAWC = type === 'VAWC';
 
@@ -50,7 +50,7 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
     const bgSoft = isVAWC ? 'bg-rose-50 dark:bg-rose-950/30' : 'bg-sky-50 dark:bg-sky-950/30';
 
     // Filter types strictly
-    const options = abuseTypes.filter(t => t.category === type || t.category === 'Both');
+    const options = caseAbuseTypes.filter(t => t.category === type || t.category === 'Both');
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();

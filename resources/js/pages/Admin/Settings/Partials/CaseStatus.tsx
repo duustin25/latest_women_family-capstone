@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
-interface OngoingStatus {
+interface CaseStatus {
     id: number;
     name: string;
     description?: string;
@@ -30,9 +30,9 @@ interface OngoingStatus {
     is_active: boolean;
 }
 
-export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] }) {
+export default function CaseStatus({ statuses }: { statuses: CaseStatus[] }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingStatus, setEditingStatus] = useState<OngoingStatus | null>(null);
+    const [editingStatus, setEditingStatus] = useState<CaseStatus | null>(null);
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         name: '',
@@ -47,7 +47,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
         setIsDialogOpen(true);
     };
 
-    const openEdit = (status: OngoingStatus) => {
+    const openEdit = (status: CaseStatus) => {
         setEditingStatus(status);
         setData({
             name: status.name,
@@ -62,7 +62,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
         e.preventDefault();
 
         if (editingStatus) {
-            patch(route('admin.settings.ongoing-statuses.update', editingStatus.id), {
+            patch(route('admin.settings.case-statuses.update', editingStatus.id), {
                 onSuccess: () => {
                     setIsDialogOpen(false);
                     toast.success('Status updated successfully');
@@ -73,7 +73,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
                 }
             });
         } else {
-            post(route('admin.settings.ongoing-statuses.store'), {
+            post(route('admin.settings.case-statuses.store'), {
                 onSuccess: () => {
                     setIsDialogOpen(false);
                     toast.success('Status added successfully');
@@ -92,7 +92,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
                 <div>
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        Case Ongoing Statuses
+                        Case Statuses
                     </CardTitle>
                     <CardDescription>
                         Manage sub-statuses for cases marked as "Ongoing" (e.g., Under Mediation, BPO Monitoring).
@@ -154,7 +154,7 @@ export default function OngoingStatus({ statuses }: { statuses: OngoingStatus[] 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingStatus ? 'Edit Status' : 'Add New Ongoing Status'}</DialogTitle>
+                        <DialogTitle>{editingStatus ? 'Edit Status' : 'Add New Case Status'}</DialogTitle>
                         <DialogDescription>
                             Define a new track for ongoing cases.
                         </DialogDescription>

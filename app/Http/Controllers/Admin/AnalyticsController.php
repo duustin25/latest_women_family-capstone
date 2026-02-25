@@ -15,7 +15,7 @@ class AnalyticsController extends Controller
         $currentYear = $request->input('year', Carbon::now()->year);
 
         // 1. VAWC DATA
-        $vawcTypes = \App\Models\AbuseType::where('is_active', true)
+        $vawcTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
@@ -29,7 +29,7 @@ class AnalyticsController extends Controller
         $vawcData = $this->formatAnalyticsData($vawcReports, $vawcTypes);
 
         // 2. BCPC DATA
-        $bcpcTypes = \App\Models\AbuseType::where('is_active', true)
+        $bcpcTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['BCPC', 'Both'])
             ->get();
 
@@ -116,7 +116,7 @@ class AnalyticsController extends Controller
         $year = $request->input('year', Carbon::now()->year);
 
         // Similar data fetching logic as index
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 

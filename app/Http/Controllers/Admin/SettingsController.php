@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AbuseType;
-use App\Models\ReferralPartner;
+use App\Models\CaseAbuseType;
+use App\Models\CaseReferralAgency;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,37 +12,37 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        $abuseTypes = AbuseType::orderBy('category')->orderBy('name')->get();
-        $referralPartners = ReferralPartner::orderBy('category')->orderBy('name')->get();
-        $ongoingStatuses = \App\Models\OngoingStatus::orderBy('name')->get();
+        $abuseTypes = CaseAbuseType::orderBy('category')->orderBy('name')->get();
+        $referralPartners = CaseReferralAgency::orderBy('category')->orderBy('name')->get();
+        $caseStatuses = \App\Models\CaseStatus::orderBy('name')->get();
 
         return Inertia::render('Admin/Settings/Index', [
             'abuseTypes' => $abuseTypes,
             'referralPartners' => $referralPartners,
-            'ongoingStatuses' => $ongoingStatuses
+            'caseStatuses' => $caseStatuses
         ]);
     }
 
     public function storeAbuseType(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:abuse_types,name',
+            'name' => 'required|string|unique:case_abuse_types,name',
             'category' => 'required|string|in:VAWC,BCPC,Both',
             'color' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
 
-        AbuseType::create($validated);
+        CaseAbuseType::create($validated);
 
         return back()->with('success', 'Abuse Type added successfully.');
     }
 
     public function updateAbuseType(Request $request, $id)
     {
-        $type = AbuseType::findOrFail($id);
+        $type = CaseAbuseType::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|unique:abuse_types,name,' . $id,
+            'name' => 'sometimes|required|string|unique:case_abuse_types,name,' . $id,
             'category' => 'sometimes|required|string|in:VAWC,BCPC,Both',
             'color' => 'nullable|string',
             'description' => 'nullable|string',
@@ -62,14 +62,14 @@ class SettingsController extends Controller
             'contact_info' => 'nullable|string',
         ]);
 
-        ReferralPartner::create($validated);
+        CaseReferralAgency::create($validated);
 
         return back()->with('success', 'Partner added successfully.');
     }
 
     public function updateReferralPartner(Request $request, $id)
     {
-        $partner = ReferralPartner::findOrFail($id);
+        $partner = CaseReferralAgency::findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string',
@@ -83,26 +83,26 @@ class SettingsController extends Controller
         return back()->with('success', 'Partner updated.');
     }
 
-    public function storeOngoingStatus(Request $request)
+    public function storeCaseStatus(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:ongoing_statuses,name',
+            'name' => 'required|string|unique:case_statuses,name',
             'description' => 'nullable|string',
             'type' => 'required|in:VAWC,BCPC,Both',
             'is_active' => 'boolean'
         ]);
 
-        \App\Models\OngoingStatus::create($validated);
+        \App\Models\CaseStatus::create($validated);
 
         return back()->with('success', 'Status added successfully.');
     }
 
-    public function updateOngoingStatus(Request $request, $id)
+    public function updateCaseStatus(Request $request, $id)
     {
-        $status = \App\Models\OngoingStatus::findOrFail($id);
+        $status = \App\Models\CaseStatus::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|unique:ongoing_statuses,name,' . $id,
+            'name' => 'sometimes|required|string|unique:case_statuses,name,' . $id,
             'description' => 'nullable|string',
             'type' => 'required|in:VAWC,BCPC,Both',
             'is_active' => 'boolean'

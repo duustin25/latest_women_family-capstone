@@ -86,7 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $currentYear = \Carbon\Carbon::now()->year;
 
         // Fetch dynamic types (same as AnalyticsController)
-        $abuseTypes = \App\Models\AbuseType::where('is_active', true)
+        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
@@ -206,12 +206,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Settings Module (Abuse Types & Partners)
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
-        Route::post('/settings/abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.abuse-types.store');
-        Route::patch('/settings/abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.abuse-types.update');
-        Route::post('/settings/partners', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.partners.store');
-        Route::patch('/settings/partners/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.partners.update');
-        Route::post('/settings/ongoing-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeOngoingStatus'])->name('settings.ongoing-statuses.store');
-        Route::patch('/settings/ongoing-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateOngoingStatus'])->name('settings.ongoing-statuses.update');
+        Route::post('/settings/case-abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.case-abuse-types.store');
+        Route::patch('/settings/case-abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.case-abuse-types.update');
+        Route::post('/settings/case-referral-agencies', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.case-referral-agencies.store');
+        Route::patch('/settings/case-referral-agencies/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.case-referral-agencies.update');
+        // Case Statuses Settings Routes
+        Route::post('/settings/case-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeCaseStatus'])->name('settings.case-statuses.store');
+        Route::patch('/settings/case-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCaseStatus'])->name('settings.case-statuses.update');
 
 
         // GAD Module

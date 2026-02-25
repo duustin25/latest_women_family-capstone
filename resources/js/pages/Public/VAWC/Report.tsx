@@ -13,10 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { route } from 'ziggy-js';
 
 interface PageProps {
-    abuseTypes: { id: number; name: string }[];
+    caseAbuseTypes: { id: number; name: string }[];
 }
 
-export default function VawcReport({ abuseTypes }: PageProps) {
+export default function VawcReport({ caseAbuseTypes }: PageProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         complainant_name: '',
         complainant_contact: '',
@@ -156,8 +156,8 @@ export default function VawcReport({ abuseTypes }: PageProps) {
                                                 <SelectValue placeholder="Select Abuse Type" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {abuseTypes && abuseTypes.length > 0 ? (
-                                                    abuseTypes.map((t) => (
+                                                {caseAbuseTypes && caseAbuseTypes.length > 0 ? (
+                                                    caseAbuseTypes.map((t) => (
                                                         <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>
                                                     ))
                                                 ) : (

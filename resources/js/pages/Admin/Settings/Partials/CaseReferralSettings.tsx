@@ -13,7 +13,7 @@ import { route } from 'ziggy-js';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Define Interfaces locally so this component is self-contained
-export interface AbuseType {
+export interface CaseAbuseType {
     id: number;
     name: string;
     category: string;
@@ -21,7 +21,7 @@ export interface AbuseType {
     is_active: boolean;
 }
 
-export interface ReferralPartner {
+export interface CaseReferralAgency {
     id: number;
     name: string;
     category: string;
@@ -30,11 +30,11 @@ export interface ReferralPartner {
 }
 
 interface CaseCategoriesProps {
-    abuseTypes: AbuseType[];
-    referralPartners: ReferralPartner[];
+    caseAbuseTypes: CaseAbuseType[];
+    caseReferralAgencies: CaseReferralAgency[];
 }
 
-export default function CaseCategories({ abuseTypes, referralPartners }: CaseCategoriesProps) {
+export default function CaseCategories({ caseAbuseTypes, caseReferralAgencies }: CaseCategoriesProps) {
     // Modal States
     const [isAbuseModalOpen, setIsAbuseModalOpen] = useState(false);
     const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
@@ -74,7 +74,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
         setIsAbuseModalOpen(true);
     };
 
-    const openEditAbuse = (item: AbuseType) => {
+    const openEditAbuse = (item: CaseAbuseType) => {
         setIsEditingAbuse(true);
         setEditingAbuseId(item.id);
         abuseForm.setData({
@@ -90,7 +90,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
         e.preventDefault();
 
         if (isEditingAbuse && editingAbuseId) {
-            abuseForm.patch(route('admin.settings.abuse-types.update', editingAbuseId), {
+            abuseForm.patch(route('admin.settings.case-abuse-types.update', editingAbuseId), {
                 onSuccess: () => {
                     setIsAbuseModalOpen(false);
                     abuseForm.reset();
@@ -99,7 +99,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                 }
             });
         } else {
-            abuseForm.post(route('admin.settings.abuse-types.store'), {
+            abuseForm.post(route('admin.settings.case-abuse-types.store'), {
                 onSuccess: () => {
                     setIsAbuseModalOpen(false);
                     abuseForm.reset();
@@ -109,7 +109,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
     };
 
     const toggleAbuseStatus = (id: number, currentStatus: boolean) => {
-        router.patch(route('admin.settings.abuse-types.update', id), {
+        router.patch(route('admin.settings.case-abuse-types.update', id), {
             is_active: !currentStatus,
         }, {
             preserveScroll: true,
@@ -125,7 +125,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
         setIsPartnerModalOpen(true);
     };
 
-    const openEditPartner = (item: ReferralPartner) => {
+    const openEditPartner = (item: CaseReferralAgency) => {
         setIsEditingPartner(true);
         setEditingPartnerId(item.id);
         partnerForm.setData({
@@ -140,7 +140,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
         e.preventDefault();
 
         if (isEditingPartner && editingPartnerId) {
-            partnerForm.patch(route('admin.settings.partners.update', editingPartnerId), {
+            partnerForm.patch(route('admin.settings.case-referral-agencies.update', editingPartnerId), {
                 onSuccess: () => {
                     setIsPartnerModalOpen(false);
                     partnerForm.reset();
@@ -149,7 +149,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                 }
             });
         } else {
-            partnerForm.post(route('admin.settings.partners.store'), {
+            partnerForm.post(route('admin.settings.case-referral-agencies.store'), {
                 onSuccess: () => {
                     setIsPartnerModalOpen(false);
                     partnerForm.reset();
@@ -159,7 +159,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
     };
 
     const togglePartnerStatus = (id: number, currentStatus: boolean) => {
-        router.patch(route('admin.settings.partners.update', id), {
+        router.patch(route('admin.settings.case-referral-agencies.update', id), {
             is_active: !currentStatus,
         }, {
             preserveScroll: true,
@@ -252,7 +252,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {abuseTypes.map(item => (
+                            {caseAbuseTypes.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.name}</TableCell>
                                     <TableCell>
@@ -374,7 +374,7 @@ export default function CaseCategories({ abuseTypes, referralPartners }: CaseCat
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {referralPartners.map(item => (
+                            {caseReferralAgencies.map(item => (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-bold">{item.name}</TableCell>
                                     <TableCell>
