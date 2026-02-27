@@ -8,28 +8,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Activity, FileText, User } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { route } from 'ziggy-js';
+import { getStatusBadgeStyle } from '@/lib/status-colors';
 
 interface CaseData {
     id: number;
     case_number: string;
     type: string;
-    status: string;
+    status: any;
     victim_name?: string;
-    informant_name?: string;
+    complainant_name?: string;
     description: string;
     incident_date?: string;
     abuse_type?: string;
-    concern_type?: string;
+    abuseType?: any;
+    // concern_type is removed since we use abuse_type universally
     referral_to?: string;
     referral_notes?: string;
     created_at: string;
     [key: string]: any;
 }
 
-export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, caseStatuses }: { caseData: CaseData, caseAbuseTypes: any[], caseReferralAgencies: any[], caseStatuses: any[] }) {
-    const { data, setData, patch, processing, errors } = useForm({
+export default function Edit({ caseData, abuseTypes, referralPartners, caseStatuses }: { caseData: CaseData, abuseTypes: any[], referralPartners: any[], caseStatuses: any[] }) {
+
+    // Safely extract string values from potentially nested Eloquent relationships
+    const extractName = (field: any, defaultVal: string) => {
+        if (!field) return defaultVal;
+        if (typeof field === 'object' && field.name) return field.name;
+        if (typeof field === 'string') return field;
+        return defaultVal;
+    };
+
+    const currentStatusName = extractName(caseData.status, 'New');
+
+    // Reconstruct the correct UI prefix so the Select Dropdown can match the incoming DB state
+    let initialStatusValue = currentStatusName;
+    if (caseData.referralAgency && caseData.referralAgency.name) {
+        initialStatusValue = `Referred: ${caseData.referralAgency.name}`;
+    } else if (
+        !['New', 'Resolved', 'Closed', 'Dismissed'].includes(currentStatusName) &&
+        !currentStatusName.toLowerCase().includes('referred')
+    ) {
+        initialStatusValue = `Ongoing: ${currentStatusName}`;
+    }
+
+    const currentAbuseTypeName = extractName(caseData.abuseType || caseData.abuse_type, 'N/A');
+
+    const { data, setData, patch, processing, errors } = useForm<{
+        type: string;
+        status: string;
+        referral_notes: string;
+    }>({
         type: caseData.type,
-        status: caseData.status,
+        status: initialStatusValue,
         referral_notes: caseData.referral_notes || '',
     });
 
@@ -41,12 +71,12 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
 
     // "Smart Status" Options
     const workflowSteps = Array.from(new Set([
-        caseData.status, // Ensure current status is always valid/visible
+        currentStatusName, // Ensure current status is always valid/visible
         "New",
         // Dynamic Ongoing Statuses
         ...(caseStatuses ? caseStatuses.map(s => `Ongoing: ${s.name}`) : []),
         // Dynamic Referrals
-        ...(caseReferralAgencies ? caseReferralAgencies.map(p => `Referred: ${p.name}`) : []),
+        ...(referralPartners ? referralPartners.map(p => `Referred: ${p.name}`) : []),
         "Resolved",
         "Closed",
         "Dismissed"
@@ -55,18 +85,6 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         patch(route('admin.cases.update', caseData.id));
-    };
-
-    // Helper to determine badge color (updated to outline logic)
-    const getStatusColor = (s: string) => {
-        const norm = s.toLowerCase();
-        if (norm === 'new') return 'text-red-700 border-red-200 dark:border-red-900';
-        if (norm.includes('ongoing')) return 'text-blue-700 border-blue-200 dark:border-blue-900';
-        if (norm.includes('referred')) return 'text-purple-700 border-purple-200 dark:border-purple-900';
-        if (norm === 'resolved') return 'text-emerald-700 border-emerald-200 dark:border-emerald-900';
-        if (norm === 'closed') return 'text-slate-700 border-slate-200 dark:border-slate-800';
-        if (norm === 'dismissed') return 'text-neutral-600 border-neutral-200 dark:border-neutral-800';
-        return 'text-slate-700 border-slate-200 dark:border-slate-800';
     };
 
     return (
@@ -116,9 +134,9 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
                                 <div>
                                     <Label className="text-[10px] font-black uppercase text-neutral-400">Current Status</Label>
                                     <div className="mt-1">
-                                        <Badge variant="outline" className={`${getStatusColor(caseData.status)} bg-white dark:bg-neutral-900 text-sm py-1 px-3`}>
-                                            {caseData.status}
-                                        </Badge>
+                                        <div className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-black uppercase tracking-widest ${getStatusBadgeStyle(currentStatusName)}`}>
+                                            {currentStatusName}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -145,10 +163,10 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
 
                                 <div>
                                     <Label className="text-[10px] font-black uppercase text-neutral-400 mb-1 block">
-                                        {isVawc ? 'Abuse Type' : 'Nature of Concern'}
+                                        Abuse / Concern Type
                                     </Label>
                                     <p className="font-bold text-neutral-800 dark:text-neutral-200">
-                                        {isVawc ? (caseData.abuse_type || 'N/A') : (caseData.concern_type || 'N/A')}
+                                        {currentAbuseTypeName}
                                     </p>
                                 </div>
 
@@ -171,11 +189,11 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
                                     <>
                                         <div>
                                             <Label className="text-[10px] font-black uppercase text-neutral-400 mb-1 block">Informant</Label>
-                                            <p className="font-medium text-neutral-800 dark:text-neutral-200">{caseData.informant_name || 'Anonymous'}</p>
+                                            <p className="font-medium text-neutral-800 dark:text-neutral-200">{caseData.complainant_name || 'Anonymous'}</p>
                                         </div>
                                         <div>
                                             <Label className="text-[10px] font-black uppercase text-neutral-400 mb-1 block">Contact</Label>
-                                            <p className="font-mono text-sm text-neutral-600 dark:text-neutral-400">{caseData.informant_contact || 'N/A'}</p>
+                                            <p className="font-mono text-sm text-neutral-600 dark:text-neutral-400">{caseData.complainant_contact || 'N/A'}</p>
                                         </div>
                                     </>
                                 )}
@@ -220,7 +238,7 @@ export default function Edit({ caseData, caseAbuseTypes, caseReferralAgencies, c
                                     <Label className="text-xs font-bold uppercase text-neutral-500">Select Process Step</Label>
                                     <Select
                                         onValueChange={v => setData('status', v)}
-                                        defaultValue={workflowSteps.includes(caseData.status) ? caseData.status : undefined}
+                                        defaultValue={workflowSteps.includes(currentStatusName) ? currentStatusName : undefined}
                                     >
                                         <SelectTrigger className="h-11 font-medium">
                                             <SelectValue placeholder="Select Process Step..." />

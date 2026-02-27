@@ -9,10 +9,14 @@ class CaseReferralAgency extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'category',
-        'contact_info',
-        'is_active',
+    protected $fillable = ['name', 'category', 'contact_info', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
+
+    public function caseReports()
+    {
+        return $this->hasMany(CaseReport::class, 'referral_agency_id');
+    }
 }

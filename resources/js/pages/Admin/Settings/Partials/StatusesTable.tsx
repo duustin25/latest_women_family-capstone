@@ -30,7 +30,7 @@ interface CaseStatus {
     is_active: boolean;
 }
 
-export default function CaseStatus({ statuses }: { statuses: CaseStatus[] }) {
+export default function StatusesTable({ statuses }: { statuses: CaseStatus[] }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStatus, setEditingStatus] = useState<CaseStatus | null>(null);
 
@@ -92,10 +92,10 @@ export default function CaseStatus({ statuses }: { statuses: CaseStatus[] }) {
                 <div>
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        Case Statuses
+                        Ongoing Case States
                     </CardTitle>
                     <CardDescription>
-                        Manage sub-statuses for cases marked as "Ongoing" (e.g., Under Mediation, BPO Monitoring).
+                        Define specific sub-phases for cases actively marked as "Ongoing" (e.g., Under Mediation, Pending Court Order). Do not add final states like "Closed" or "Dismissed" here.
                     </CardDescription>
                 </div>
                 <Button onClick={openCreate} size="sm" className="bg-slate-900 text-white">
@@ -107,7 +107,7 @@ export default function CaseStatus({ statuses }: { statuses: CaseStatus[] }) {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Status Name</TableHead>
+                                <TableHead>Ongoing Phase Name</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Status</TableHead>
@@ -154,16 +154,16 @@ export default function CaseStatus({ statuses }: { statuses: CaseStatus[] }) {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editingStatus ? 'Edit Status' : 'Add New Case Status'}</DialogTitle>
+                        <DialogTitle>{editingStatus ? 'Edit Ongoing Phase' : 'Add New Ongoing Phase'}</DialogTitle>
                         <DialogDescription>
-                            Define a new track for ongoing cases.
+                            Define a new active tracking state for ongoing cases.
                         </DialogDescription>
                     </DialogHeader>
 
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Status Name</Label>
+                                <Label>Select Ongoing Status / Phase</Label>
                                 <Input
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}

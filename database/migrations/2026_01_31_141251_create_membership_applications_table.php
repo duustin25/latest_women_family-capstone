@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -15,14 +14,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             // Primary Indexing Fields
-            $table->string('fullname'); 
+            $table->string('fullname');
             $table->string('address');
             $table->string('status')->default('Pending'); // Pending, Approved, Disapproved
 
             // Dynamic JSON Storage
             $table->json('personal_data'); // DOB, Religion, Sectoral, Education, Skills
             $table->json('family_members'); // The dynamic table data
-            
+            $table->json('submission_data')->nullable(); // Submitted form answers
+
             // Approval Tracking
             $table->string('recommended_by')->nullable();
             $table->string('approved_by')->nullable();

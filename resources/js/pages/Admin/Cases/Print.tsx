@@ -62,7 +62,7 @@ export default function Print({ caseData, type }: { caseData: any, type: string 
                 <div className="flex justify-between items-end mb-8">
                     <div>
                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Case Status</p>
-                        <div className="text-lg font-black uppercase">{caseData.status}</div>
+                        <div className="text-lg font-black uppercase">{caseData.status?.name || caseData.status}</div>
                     </div>
                     <div className="text-right">
                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Control Number</p>
@@ -76,14 +76,14 @@ export default function Print({ caseData, type }: { caseData: any, type: string 
                     <SectionHeader title="I. Incident Overview" />
 
                     <DataField label="Date of Incident" value={caseData.incident_date ? formatDate(new Date(caseData.incident_date), 'MMMM dd, yyyy') : formatDate(new Date(caseData.created_at), 'MMMM dd, yyyy')} />
-                    <DataField label="Location" value={caseData.incident_location || caseData.location} />
+                    <DataField label="Location" value={caseData.incident_location} />
 
-                    <DataField label="Report Type" value={caseData.abuse_type || caseData.concern_type} fullWidth />
+                    <DataField label="Report Type" value={caseData.abuseType?.name || caseData.abuse_type || 'N/A'} fullWidth />
 
                     <SectionHeader title="II. Involved Parties" />
 
                     <DataField label="Victim Name" value={caseData.victim_name} />
-                    <DataField label="Complainant / Informant" value={caseData.complainant_name || caseData.informant_name || 'Same as Victim'} />
+                    <DataField label="Complainant / Informant" value={caseData.complainant_name || 'Same as Victim'} />
 
                     {caseData.victim_age && <DataField label="Victim Age" value={caseData.victim_age} />}
                     {caseData.victim_gender && <DataField label="Victim Gender" value={caseData.victim_gender} />}
@@ -101,7 +101,7 @@ export default function Print({ caseData, type }: { caseData: any, type: string 
                         <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2 block">Action Taken / Resolution</span>
                         <div className="border-b-2 border-slate-800 pb-1 min-h-[24px]">
                             <span className="text-sm font-bold uppercase text-slate-900 leading-none">
-                                {caseData.referral_to ? `Referred to: ${caseData.referral_to}` : 'Managed at Barangay Level'}
+                                {caseData.referralAgency?.name || caseData.referral_to ? `Referred to: ${caseData.referralAgency?.name || caseData.referral_to}` : 'Managed at Barangay Level'}
                             </span>
                         </div>
                     </div>

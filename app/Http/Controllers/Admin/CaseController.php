@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BcpcReport;
-use App\Models\VawcReport;
+use App\Models\CaseReport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Resources\CaseReportResource;
+use App\Http\Requests\Admin\StoreCaseRequest;
+use App\Services\CaseManagementService;
 
 class CaseController extends Controller
 {
@@ -15,20 +17,11 @@ class CaseController extends Controller
      */
     public function print($id, Request $request)
     {
-        $type = $request->query('type', 'VAWC');
-
-        $case = null;
-        if ($type === 'VAWC') {
-            $case = VawcReport::findOrFail($id);
-            $case->type = 'VAWC';
-        } else {
-            $case = BcpcReport::findOrFail($id);
-            $case->type = 'BCPC';
-        }
+        $case = CaseReport::with(['abuseType', 'status', 'referralAgency'])->findOrFail($id);
 
         return Inertia::render('Admin/Cases/Print', [
             'caseData' => $case,
-            'type' => $type
+            'type' => $case->type
         ]);
     }
 
@@ -37,54 +30,35 @@ class CaseController extends Controller
      */
     public function index(Request $request)
     {
-        $showArchived = $request->query('archived') === 'true';
+        $query = CaseReport::query();
 
-        // Helper to query with trashed if archived mode is on
-        $vawcQuery = $showArchived ? VawcReport::onlyTrashed() : VawcReport::query();
-        $bcpcQuery = $showArchived ? BcpcReport::onlyTrashed() : BcpcReport::query();
-
-        // Fetch all cases from both models
-        $vawcCases = $vawcQuery->get()->map(function ($case) {
-            return [
-                'id' => $case->id,
-                'case_number' => $case->case_number,
-                'name' => $case->victim_name ?? 'Anonymous',
-                'type' => 'VAWC',
-                'subType' => $case->abuse_type ?? 'N/A', // e.g. Physical, Sexual
-                'status' => $case->status,
-                'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
-                'time' => $case->created_at->format('h:i A'),
-                'referred_to' => $case->referral_to,
-                'created_at' => $case->created_at,
-                'deleted_at' => $case->deleted_at,
-            ];
-        });
-
-        $bcpcCases = $bcpcQuery->get()->map(function ($case) {
-            return [
-                'id' => $case->id,
-                'case_number' => $case->case_number,
-                'name' => $case->victim_name ?? $case->informant_name ?? 'Anonymous',
-                'type' => 'BCPC',
-                'subType' => $case->concern_type ?? 'N/A', // e.g. CICL, Abuse
-                'status' => $case->status,
-                'date' => $case->created_at->format('M d, Y'),
-                'time' => $case->created_at->format('h:i A'),
-                'referred_to' => $case->referral_to,
-                'created_at' => $case->created_at,
-                'deleted_at' => $case->deleted_at,
-            ];
-        });
-
-        // Merge and Sort by Date Descending
-        $allCases = $vawcCases->concat($bcpcCases)->sortByDesc('created_at')->values();
+        // Fetch all cases directly from unified model
+        $cases = $query->with(['abuseType', 'status'])->orderByDesc('created_at')->get();
 
         $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
 
         return Inertia::render('Admin/Cases/Index', [
-            'cases' => $allCases,
+            'cases' => CaseReportResource::collection($cases),
             'caseStatuses' => $caseStatuses,
-            'filters' => $request->only(['archived', 'search', 'type', 'status'])
+            'filters' => $request->only(['search', 'type', 'status'])
+        ]);
+    }
+
+    /**
+     * Display a listing of the archived (soft deleted) resource.
+     */
+    public function archive(Request $request)
+    {
+        $query = CaseReport::onlyTrashed();
+
+        $cases = $query->with(['abuseType', 'status'])->orderByDesc('deleted_at')->get();
+
+        $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
+
+        return Inertia::render('Admin/Cases/Archive', [
+            'cases' => CaseReportResource::collection($cases),
+            'caseStatuses' => $caseStatuses,
+            'filters' => $request->only(['search', 'type', 'status'])
         ]);
     }
 
@@ -95,7 +69,6 @@ class CaseController extends Controller
     {
         $type = $request->query('type', 'VAWC');
 
-        // Fetch dynamic abuse types for VAWC/BCPC
         $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->where(function ($query) use ($type) {
                 $query->where('category', $type)
@@ -111,37 +84,9 @@ class CaseController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreCaseRequest $request, CaseManagementService $service)
     {
-        $type = $request->input('type');
-
-        if ($type === 'VAWC') {
-            // Use the dedicated FormRequest for validation
-            // We resolve the request from the container, which triggers validation.
-            // Then we get the validated data.
-            $validated = app(\App\Http\Requests\StoreVawcRequest::class)->validated();
-
-            // Auto-generate Case Number
-            $validated['case_number'] = 'VAWC-' . date('Ymd') . '-' . rand(1000, 9999);
-            $validated['status'] = 'New';
-
-            // Sanitize abuse type
-            $validated['abuse_type'] = trim($validated['abuse_type']);
-
-            VawcReport::create($validated);
-
-        } elseif ($type === 'BCPC' || $type === 'CPP') {
-            // Use the dedicated FormRequest for validation
-            $validated = app(\App\Http\Requests\StoreBcpcRequest::class)->validated();
-
-            $validated['case_number'] = 'BCPC-' . date('Ymd') . '-' . rand(1000, 9999);
-            $validated['status'] = 'New';
-
-            BcpcReport::create($validated);
-        }
+        $service->createCase($request->validated(), $request->input('type'));
 
         return redirect()->route('admin.cases.index')->with('success', 'Case created successfully.');
     }
@@ -151,21 +96,11 @@ class CaseController extends Controller
      */
     public function edit($id, Request $request)
     {
-        $type = $request->query('type');
-
-        $case = null;
-        if ($type === 'VAWC') {
-            $case = VawcReport::findOrFail($id);
-            $case->type = 'VAWC';
-        } else {
-            // Assume BCPC if not VAWC or explicit
-            $case = BcpcReport::findOrFail($id);
-            $case->type = 'BCPC';
-        }
+        $case = CaseReport::with(['abuseType', 'status', 'referralAgency'])->findOrFail($id);
 
         $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->where(function ($query) use ($case) {
-                $query->where('category', $case->type) // Assumes case->type is VAWC/BCPC
+                $query->where('category', $case->type)
                     ->orWhere('category', 'Both');
             })->get();
 
@@ -192,105 +127,21 @@ class CaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, CaseManagementService $service)
     {
-        // "Smart Status" Adapter Logic
-        // UI sends a "process_step" (e.g., "BPO Issued", "Referred: PNP")
-        // We map this to DB status columns.
+        $case = CaseReport::findOrFail($id);
 
-        $type = $request->input('type', 'VAWC'); // Start with default or input
-        $uiStatus = $request->input('status'); // The long string from UI dropdown
-
-        $dbStatus = 'ongoing'; // Default fallback
-        $referralTo = null;
-
-        // Map UI Status to DB Status
-        if (str_starts_with($uiStatus, 'Referred: ')) {
-            $dbStatus = 'referred';
-            $referralTo = trim(substr($uiStatus, 10)); // Extract after "Referred: "
-        } elseif (str_starts_with($uiStatus, 'Ongoing: ')) {
-            // Remove the prefix to get the actual status name
-            $cleanStatus = trim(substr($uiStatus, 9)); // Extract after "Ongoing: "
-            // Check dynamic statuses first
-            $dynamicStatus = \App\Models\CaseStatus::where('name', $cleanStatus)->exists(); // Removed is_active check here to allow setting existing but disabled statuses back if needed, or strictly check active? Let's check exists first.
-
-            if ($dynamicStatus) {
-                $dbStatus = $cleanStatus;
-            } else {
-                $dbStatus = $cleanStatus; // Fallback to saving it as is if it looks like a custom ongoing status
-            }
-        } else {
-            // Check dynamic statuses first (legacy fallback if no prefix sent)
-            $dynamicStatus = \App\Models\CaseStatus::where('name', $uiStatus)->exists();
-
-            if ($dynamicStatus) {
-                $dbStatus = $uiStatus; // Save the specific status e.g. "BPO Monitoring"
-            } else {
-                switch ($uiStatus) {
-                    case 'Intake/New':
-                        $dbStatus = 'New';
-                        break;
-                    // case 'Under Mediation': // Keep legacy support
-                    // case 'Intervention/Diversion Program':
-                    // case 'BPO Issued':
-                    //$dbStatus = $uiStatus; // Save specific for these too now? Or map to ongoing? 
-                    // Let's save specific to enable specific tracking as requested
-                    // break;
-                    case 'Resolved':
-                        $dbStatus = 'Resolved';
-                        break;
-                    case 'Closed':
-                        $dbStatus = 'Closed';
-                        break;
-                    case 'Dismissed':
-                        $dbStatus = 'Dismissed';
-                        break;
-                    default:
-                        $dbStatus = 'ongoing';
-                }
-            }
-        }
-
-        $updateData = [
-            'status' => $dbStatus,
-        ];
-
-        if ($referralTo) {
-            $updateData['referral_to'] = $referralTo;
-            $updateData['referral_date'] = now();
-        }
-
-        if ($request->has('referral_notes')) {
-            $updateData['referral_notes'] = $request->input('referral_notes');
-        }
-
-        if ($type === 'VAWC') {
-            $case = VawcReport::findOrFail($id);
-            $case->update($updateData);
-        } else {
-            $case = BcpcReport::findOrFail($id);
-            $case->update($updateData);
-        }
+        $service->updateStatus($case, $request->input('status'), $request->input('referral_notes'));
 
         return redirect()->route('admin.cases.index')->with('success', 'Case status updated.');
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
-    /**
      * Remove the specified resource from storage (Soft Delete).
      */
     public function destroy($id, Request $request)
     {
-        $type = $request->query('type');
-
-        if ($type === 'VAWC') {
-            VawcReport::findOrFail($id)->delete();
-        } else {
-            BcpcReport::findOrFail($id)->delete();
-        }
-
+        CaseReport::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Case archived successfully.');
     }
 
@@ -299,14 +150,7 @@ class CaseController extends Controller
      */
     public function restore($id, Request $request)
     {
-        $type = $request->query('type');
-
-        if ($type === 'VAWC') {
-            VawcReport::withTrashed()->findOrFail($id)->restore();
-        } else {
-            BcpcReport::withTrashed()->findOrFail($id)->restore();
-        }
-
+        CaseReport::withTrashed()->findOrFail($id)->restore();
         return redirect()->back()->with('success', 'Case restored successfully.');
     }
 }

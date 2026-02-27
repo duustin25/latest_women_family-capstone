@@ -90,11 +90,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
-        $reports = \App\Models\VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
+        $reportsRaw = \App\Models\CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
+            ->where('type', 'VAWC')
             ->whereYear('incident_date', $currentYear)
-            ->whereNotNull('abuse_type')
-            ->groupBy('month', 'abuse_type')
-            ->get();
+            ->whereNotNull('abuse_type_id')
+            ->get()
+            ->groupBy(function ($date) {
+                return \Carbon\Carbon::parse($date->incident_date)->month;
+            })
+            ->map(function ($group) {
+                return $group->countBy('abuse_type_id');
+            });
+
+        $reports = collect();
+        foreach ($reportsRaw as $month => $counts) {
+            foreach ($counts as $abuseTypeId => $count) {
+                $reports->push((object) [
+                    'month' => $month,
+                    'abuse_type_id' => $abuseTypeId,
+                    'count' => $count
+                ]);
+            }
+        }
 
         $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         $formattedData = [];
@@ -107,7 +124,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 $key = strtolower($type->name);
                 $record = $reports->where('month', $monthNum)
                     ->first(function ($item) use ($type) {
-                        return strcasecmp($item->abuse_type, $type->name) === 0;
+                        return $item->abuse_type_id === $type->id;
                     });
                 $monthData[$key] = $record ? $record->count : 0;
             }
@@ -124,44 +141,72 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // --- GAD ANALYTICS ---
-        $gadMonthlyStats = \App\Models\GadActivity::selectRaw('
-                MONTH(date_scheduled) as month,
-                activity_type,
-                SUM(actual_expenditure) as total_cost
-            ')
+        $gadMonthlyStatsRaw = \App\Models\GadActivity::select('date_scheduled', 'activity_type', 'actual_expenditure')
             ->where('status', 'Completed')
             ->whereYear('date_scheduled', $currentYear)
-            ->groupBy('month', 'activity_type')
             ->get();
+
+        $gadMonthlyStats = $gadMonthlyStatsRaw->groupBy(function ($act) {
+            return \Carbon\Carbon::parse($act->date_scheduled)->month;
+        })
+            ->map(function ($group, $month) {
+                $sums = $group->groupBy('activity_type')->map(function ($typeGroup) {
+                    return $typeGroup->sum('actual_expenditure');
+                });
+                return (object) [
+                    'month' => $month,
+                    'totals' => $sums
+                ];
+            });
 
         $gadAnalyticsData = [];
         foreach ($months as $index => $monthName) {
             $monthNum = $index + 1;
             $data = ['month' => $monthName];
 
-            // Initialize types to 0
             $data['client_focused'] = 0;
             $data['org_focused'] = 0;
             $data['attribution'] = 0;
 
-            foreach ($gadMonthlyStats as $stat) {
-                if ($stat->month == $monthNum) {
-                    $key = match ($stat->activity_type) {
-                        'Client-Focused' => 'client_focused',
-                        'Org-Focused' => 'org_focused',
-                        'Attribution' => 'attribution',
-                        default => 'other'
-                    };
-                    $data[$key] = $stat->total_cost;
-                }
+            if ($gadMonthlyStats->has($monthNum)) {
+                $stat = $gadMonthlyStats->get($monthNum);
+                $data['client_focused'] = current($stat->totals->get('Client-Focused', [0])) ?? $stat->totals->get('Client-Focused', 0);
+                $data['org_focused'] = current($stat->totals->get('Org-Focused', [0])) ?? $stat->totals->get('Org-Focused', 0);
+                $data['attribution'] = current($stat->totals->get('Attribution', [0])) ?? $stat->totals->get('Attribution', 0);
             }
+
             $gadAnalyticsData[] = $data;
         }
+
+        // Dashboard Quick Stats
+        $stats = [
+            'totalCases' => \App\Models\CaseReport::count(),
+            'totalUsers' => \App\Models\User::count(),
+            'totalOrgs' => \App\Models\Organization::count()
+        ];
+
+        // Recent Case Reports table
+        $recentCases = \App\Models\CaseReport::with(['abuseType', 'status'])
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get()
+            ->map(function ($case) {
+                return [
+                    'id' => $case->id,
+                    'case_number' => $case->case_number,
+                    'type' => $case->type,
+                    'subType' => $case->abuseType ? $case->abuseType->name : 'N/A',
+                    'status' => $case->status ? $case->status->name : 'N/A',
+                    'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
+                ];
+            });
 
         return Inertia::render('dashboard', [
             'analyticsData' => $formattedData,
             'chartConfig' => $chartConfig,
-            'gadAnalyticsData' => $gadAnalyticsData
+            'gadAnalyticsData' => $gadAnalyticsData,
+            'systemStats' => $stats,
+            'recentCases' => $recentCases
         ]);
     })->name('dashboard');
 
@@ -175,6 +220,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');
         Route::get('cases/{id}/print', [CaseController::class, 'print'])->name('cases.print');
         Route::patch('cases/{id}/restore', [CaseController::class, 'restore'])->name('cases.restore');
+        Route::get('cases/archive', [CaseController::class, 'archive'])->name('cases.archive');
         Route::resource('cases', CaseController::class);
         // 'system-users'
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
@@ -204,17 +250,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/members', [MembersController::class, 'index'])
             ->name('members');
 
-        // Settings Module (Abuse Types & Partners)
-        Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
-        Route::post('/settings/case-abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.case-abuse-types.store');
-        Route::patch('/settings/case-abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.case-abuse-types.update');
-        Route::post('/settings/case-referral-agencies', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.case-referral-agencies.store');
-        Route::patch('/settings/case-referral-agencies/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.case-referral-agencies.update');
-        // Case Statuses Settings Routes
-        Route::post('/settings/case-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeCaseStatus'])->name('settings.case-statuses.store');
-        Route::patch('/settings/case-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCaseStatus'])->name('settings.case-statuses.update');
-
-
         // GAD Module
         Route::get('gad/dashboard', [\App\Http\Controllers\Admin\GadActivityController::class, 'dashboard'])->name('gad.dashboard');
         Route::get('gad/print', [\App\Http\Controllers\Admin\GadActivityController::class, 'print'])->name('gad.print');
@@ -222,6 +257,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     });
 
+});
+
+// STRICT ADMIN-ONLY ROUTES: System Taxonomy & Configurations
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'verified', 'role:admin']], function () {
+    Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/case-abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.case-abuse-types.store');
+    Route::patch('/settings/case-abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.case-abuse-types.update');
+    Route::post('/settings/case-referral-agencies', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.case-referral-agencies.store');
+    Route::patch('/settings/case-referral-agencies/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.case-referral-agencies.update');
+
+    // Case Statuses Settings Routes
+    Route::post('/settings/case-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeCaseStatus'])->name('settings.case-statuses.store');
+    Route::patch('/settings/case-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCaseStatus'])->name('settings.case-statuses.update');
 });
 
 

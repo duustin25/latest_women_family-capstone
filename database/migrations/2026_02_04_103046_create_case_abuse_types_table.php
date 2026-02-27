@@ -11,22 +11,15 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('abuse_types', function (Blueprint $table) {
+        Schema::create('case_abuse_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique(); // Physical, Sexual, etc.
+            $table->string('category')->default('Both'); // VAWC, BCPC, Both
             $table->string('color')->nullable(); // Hex code for chart (optional)
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
-
-        // Seed default types
-        DB::table('abuse_types')->insert([
-            ['name' => 'Physical', 'color' => '#FF0000', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Sexual', 'color' => '#0000FF', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Psychological', 'color' => '#00FF00', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Economic', 'color' => '#FFFF00', 'created_at' => now(), 'updated_at' => now()],
-        ]);
     }
 
     /**
@@ -34,6 +27,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('abuse_types');
+        Schema::dropIfExists('case_abuse_types');
     }
 };

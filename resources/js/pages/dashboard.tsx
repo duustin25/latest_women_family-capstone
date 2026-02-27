@@ -23,16 +23,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Dashboard({
     analyticsData,
     chartConfig,
-    gadAnalyticsData
+    gadAnalyticsData,
+    systemStats,
+    recentCases
 }: {
     analyticsData: any[],
     chartConfig: any[],
-    gadAnalyticsData: any[]
+    gadAnalyticsData: any[],
+    systemStats: { totalCases: number, totalUsers: number, totalOrgs: number },
+    recentCases: any[]
 }) {
     const stats = [
-        { label: 'Total Cases', value: '42', icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-        { label: 'Active Members', value: '156', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-        { label: 'Organizations', value: '5', icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+        { label: 'Total Cases', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
+        { label: 'System Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+        { label: 'Organizations', value: systemStats.totalOrgs, icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
     ];
 
     return (
@@ -70,9 +74,6 @@ export default function Dashboard({
                                     <stat.icon size={24} />
                                 </div>
                             </div>
-                            <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-400/10 w-fit px-2 py-1 rounded">
-                                <TrendingUp size={12} /> +12% from last month
-                            </div>
                         </div>
                     ))}
                 </div>
@@ -86,9 +87,9 @@ export default function Dashboard({
                             <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
                                 <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
                             </h3>
-                            <Button variant="ghost" className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
+                            <Button variant="ghost" onClick={() => window.location.href = '/admin/cases'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto min-h-[150px]">
                             <table className="w-full text-left">
                                 <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                                     <tr>
@@ -99,18 +100,24 @@ export default function Dashboard({
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                                    <tr className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
-                                        <td className="px-6 py-4">#VAWC-2026-001</td>
-                                        <td className="px-6 py-4 text-red-600 dark:text-red-400">VAWC / Physical Abuse</td>
-                                        <td className="px-6 py-4"><span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 rounded text-[9px]">On-going</span></td>
-                                        <td className="px-6 py-4 text-slate-400">Jan 28, 2026</td>
-                                    </tr>
-                                    <tr className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
-                                        <td className="px-6 py-4">#CPP-2026-014</td>
-                                        <td className="px-6 py-4 text-blue-600 dark:text-blue-400">BCPC / Neglect</td>
-                                        <td className="px-6 py-4"><span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500 rounded text-[9px]">Resolved</span></td>
-                                        <td className="px-6 py-4 text-slate-400">Jan 27, 2026</td>
-                                    </tr>
+                                    {recentCases.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No cases reported yet.</td>
+                                        </tr>
+                                    ) : recentCases.map(c => (
+                                        <tr key={c.id} className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
+                                            <td className="px-6 py-4">{c.case_number}</td>
+                                            <td className={`px-6 py-4 ${c.type === 'VAWC' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                                {c.type} / {c.subType}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 rounded text-[9px] ${c.status === 'Resolved' || c.status.includes('Closed') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500'}`}>
+                                                    {c.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-400">{c.date}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>

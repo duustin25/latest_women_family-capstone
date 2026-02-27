@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\VawcReport;
+use App\Models\CaseReport;
 use Carbon\Carbon;
 
 class AnalyticsController extends Controller
@@ -14,40 +14,93 @@ class AnalyticsController extends Controller
     {
         $currentYear = $request->input('year', Carbon::now()->year);
 
-        // 1. VAWC DATA
+        // Fetch Abuse Types mapped to VAWC vs BCPC
         $vawcTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
-        $vawcReports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
-            ->whereYear('incident_date', $currentYear)
-            ->whereNotNull('abuse_type')
-            ->where('status', '!=', 'Dismissed')
-            ->groupBy('month', 'abuse_type')
-            ->get();
-
-        $vawcData = $this->formatAnalyticsData($vawcReports, $vawcTypes);
-
-        // 2. BCPC DATA
         $bcpcTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['BCPC', 'Both'])
             ->get();
 
-        $bcpcReports = \App\Models\BcpcReport::selectRaw('MONTH(created_at) as month, concern_type, COUNT(*) as count')
-            ->whereYear('created_at', $currentYear)
-            ->whereNotNull('concern_type')
-            ->where('status', '!=', 'Dismissed')
-            ->groupBy('month', 'concern_type')
-            ->get();
+        $vawcReports = CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
+            ->where('type', 'VAWC')
+            ->whereYear('incident_date', $currentYear)
+            ->whereNotNull('abuse_type_id')
+            ->whereHas('status', function ($query) {
+                $query->where('name', '!=', 'Closed - Dismissed');
+            })
+            ->get()
+            ->groupBy(function ($date) {
+                return Carbon::parse($date->incident_date)->month;
+            })
+            ->map(function ($group) {
+                return $group->countBy('abuse_type_id');
+            });
 
-        // Map BCPC reports to match formatAnalyticsData expectation (concern_type -> abuse_type)
-        $bcpcReportsMapped = $bcpcReports->map(function ($item) {
-            $item->abuse_type = $item->concern_type;
+        // Remap to match what formatAnalyticsData expects: [{month: 1, abuse_type_id: 1, count: 5}, ...]
+        $vawcReportsFormatted = collect();
+        foreach ($vawcReports as $month => $counts) {
+            foreach ($counts as $abuseTypeId => $count) {
+                $vawcReportsFormatted->push((object) [
+                    'month' => $month,
+                    'abuse_type_id' => $abuseTypeId,
+                    'count' => $count
+                ]);
+            }
+        }
+
+        // Map `abuse_type_id` to `name` so it fits existing `formatAnalyticsData`
+        $vawcReportsMapped = $vawcReportsFormatted->map(function ($item) use ($vawcTypes) {
+            $typeModel = $vawcTypes->firstWhere('id', $item->abuse_type_id);
+            if ($typeModel) {
+                $item->abuse_type = $typeModel->name;
+            } else {
+                $item->abuse_type = 'Unknown';
+            }
+            return $item;
+        });
+
+        $vawcData = $this->formatAnalyticsData($vawcReportsMapped, $vawcTypes);
+
+        // 2. BCPC DATA
+        $bcpcReportsRaw = CaseReport::select('created_at', 'type', 'abuse_type_id', 'case_status_id')
+            ->where('type', 'BCPC')
+            ->whereYear('created_at', $currentYear)
+            ->whereNotNull('abuse_type_id')
+            ->whereHas('status', function ($query) {
+                $query->where('name', '!=', 'Closed - Dismissed');
+            })
+            ->get()
+            ->groupBy(function ($date) {
+                return Carbon::parse($date->created_at)->month;
+            })
+            ->map(function ($group) {
+                return $group->countBy('abuse_type_id');
+            });
+
+        $bcpcReports = collect();
+        foreach ($bcpcReportsRaw as $month => $counts) {
+            foreach ($counts as $abuseTypeId => $count) {
+                $bcpcReports->push((object) [
+                    'month' => $month,
+                    'abuse_type_id' => $abuseTypeId,
+                    'count' => $count
+                ]);
+            }
+        }
+
+        $bcpcReportsMapped = $bcpcReports->map(function ($item) use ($bcpcTypes) {
+            $typeModel = $bcpcTypes->firstWhere('id', $item->abuse_type_id);
+            if ($typeModel) {
+                $item->abuse_type = $typeModel->name;
+            } else {
+                $item->abuse_type = 'Unknown';
+            }
             return $item;
         });
 
         $bcpcData = $this->formatAnalyticsData($bcpcReportsMapped, $bcpcTypes);
-
 
         // Mock stats (Dynamic implementation would query DB)
         $stats = [
@@ -115,19 +168,47 @@ class AnalyticsController extends Controller
     {
         $year = $request->input('year', Carbon::now()->year);
 
-        // Similar data fetching logic as index
         $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
-        $reports = VawcReport::selectRaw('MONTH(incident_date) as month, abuse_type, COUNT(*) as count')
+        $reportsRaw = CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
+            ->where('type', 'VAWC')
             ->whereYear('incident_date', $year)
-            ->whereNotNull('abuse_type')
-            ->where('status', '!=', 'Dismissed')
-            ->groupBy('month', 'abuse_type')
-            ->get();
+            ->whereNotNull('abuse_type_id')
+            ->whereHas('status', function ($query) {
+                $query->where('name', '!=', 'Closed - Dismissed');
+            })
+            ->get()
+            ->groupBy(function ($date) {
+                return Carbon::parse($date->incident_date)->month;
+            })
+            ->map(function ($group) {
+                return $group->countBy('abuse_type_id');
+            });
 
-        $data = $this->formatAnalyticsData($reports, $abuseTypes);
+        $reports = collect();
+        foreach ($reportsRaw as $month => $counts) {
+            foreach ($counts as $abuseTypeId => $count) {
+                $reports->push((object) [
+                    'month' => $month,
+                    'abuse_type_id' => $abuseTypeId,
+                    'count' => $count
+                ]);
+            }
+        }
+
+        $reportsMapped = $reports->map(function ($item) use ($abuseTypes) {
+            $typeModel = $abuseTypes->firstWhere('id', $item->abuse_type_id);
+            if ($typeModel) {
+                $item->abuse_type = $typeModel->name;
+            } else {
+                $item->abuse_type = 'Unknown';
+            }
+            return $item;
+        });
+
+        $data = $this->formatAnalyticsData($reportsMapped, $abuseTypes);
 
         $chartConfig = $abuseTypes->map(function ($t) {
             return [

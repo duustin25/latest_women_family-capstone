@@ -5,17 +5,18 @@ import { useState } from 'react';
 import { cn } from "@/lib/utils";
 
 // Import Partials
-import CaseReferralSettings from './Partials/CaseReferralSettings';
+import AbuseTypesTable from './Partials/AbuseTypesTable';
+import ReferralAgenciesTable from './Partials/ReferralAgenciesTable';
+import StatusesTable from './Partials/StatusesTable';
 import AppearanceSettings from './Partials/AppearanceSettings';
-import CaseStatus from './Partials/CaseStatus';
 
 interface PageProps {
-    caseAbuseTypes: any[];
-    caseReferralAgencies: any[];
+    abuseTypes: any[];
+    referralPartners: any[];
     caseStatuses: any[];
 }
 
-export default function Index({ caseAbuseTypes, caseReferralAgencies, caseStatuses }: PageProps) {
+export default function Index({ abuseTypes, referralPartners, caseStatuses }: PageProps) {
     const [activeTab, setActiveTab] = useState('case_categories');
 
     const tabs = [
@@ -60,8 +61,9 @@ export default function Index({ caseAbuseTypes, caseReferralAgencies, caseStatus
                     <div className="mt-6 animate-in fade-in zoom-in-95 duration-300">
                         {activeTab === 'case_categories' && (
                             <div className="space-y-6">
-                                <CaseReferralSettings caseAbuseTypes={caseAbuseTypes} caseReferralAgencies={caseReferralAgencies} />
-                                <CaseStatus statuses={caseStatuses} />
+                                <AbuseTypesTable caseAbuseTypes={abuseTypes || []} />
+                                <StatusesTable statuses={caseStatuses || []} />
+                                <ReferralAgenciesTable caseReferralAgencies={referralPartners || []} />
                             </div>
                         )}
 

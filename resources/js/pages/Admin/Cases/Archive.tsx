@@ -22,21 +22,21 @@ interface CaseRecord {
     name: string;
     type: 'VAWC' | 'BCPC';
     subType: string;
-    status: any; // Dynamic sub-status
-    lifecycle_status: string; // Core status bucket
+    status: any;
+    lifecycle_status: string;
     date: string;
     time: string;
     referred_to?: string | null;
     status_obj?: any; // To hold the raw nested object if needed
 }
 
-export default function Index({ cases: initialCases, caseStatuses = [] }: { cases: { data: CaseRecord[] } | CaseRecord[], caseStatuses?: string[] }) {
+export default function Archive({ cases: initialCases, caseStatuses = [] }: { cases: { data: CaseRecord[] } | CaseRecord[], caseStatuses?: string[] }) {
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All'); // 'All', 'VAWC', 'BCPC'
     const [searchQuery, setSearchQuery] = useState('');
 
     // Handle Laravel API Resource wrapping (extracting from .data if it exists)
-    const cases = Array.isArray(initialCases) ? initialCases : (initialCases.data || []);
+    const cases = Array.isArray(initialCases) ? initialCases : (initialCases?.data || []);
 
     // Filter Logic
     const filteredCases = cases.filter(c => {
@@ -44,7 +44,6 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
         if (statusFilter === 'All') {
             matchStatus = true;
         } else {
-            // Directly compare the hybrid lifecycle_status field
             matchStatus = c.lifecycle_status === statusFilter;
         }
 
@@ -74,17 +73,6 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
         };
     };
 
-    // Helper to get initials
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map(n => n[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
-    };
-
-    // Calculate days active roughly
     const getDaysActive = (dateString: string) => {
         const start = new Date(dateString);
         const now = new Date();
@@ -92,18 +80,18 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
         return diff > 0 ? `${diff} days ago` : 'Today';
     };
 
-    // Handle Delete (Archive)
-    const handleDelete = (id: number, type: string) => {
-        if (confirm('Are you sure you want to archive this case?')) {
-            router.delete(`/admin/cases/${id}?type=${type}`);
+    // Handle Restore
+    const handleRestore = (id: number, type: string) => {
+        if (confirm('Are you sure you want to restore this case?')) {
+            router.patch(`/admin/cases/${id}/restore?type=${type}`);
         }
     };
 
     const broadOptions = ['New', 'Ongoing', 'Referred', 'Resolved', 'Closed', 'Dismissed'];
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Case Registry', href: '#' }]}>
-            <Head title="Case Registry" />
+        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Case Registry', href: '/admin/cases' }, { title: 'Archives', href: '#' }]}>
+            <Head title="Case Archives" />
 
             <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -113,49 +101,20 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                         <div>
                             <div className='flex items-center gap-3 mb-2'>
                                 <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tighter uppercase leading-none">
-                                    Case Registry
+                                    Case Archives
                                 </h2>
+                                <Badge variant="destructive" className="ml-2 uppercase tracking-widest text-[10px]">Trashed Records</Badge>
                             </div>
                             <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg ml-1">
-                                Secure management system for <span className="text-rose-600 font-bold">VAWC</span> and <span className="text-sky-600 font-bold">BCPC</span> cases.
+                                Secure management system for <span className="text-rose-600 font-bold">VAWC</span> and <span className="text-sky-600 font-bold">BCPC</span> soft-deleted cases.
                             </p>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <div className="text-right hidden md:block mr-4">
                                 <span className="block text-4xl font-black text-neutral-900 dark:text-white leading-none">{filteredCases.length}</span>
-                                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Total Active Cases</span>
+                                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Total Archived Cases</span>
                             </div>
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 border-transparent dark:border-neutral-700">
-                                        <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                                        <span className="font-bold uppercase tracking-wide text-xs">File New Case</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-60 p-2">
-                                    <div className="px-2 py-1.5 text-xs font-bold text-neutral-400 uppercase tracking-wider">Select Case Type</div>
-                                    <DropdownMenuItem onClick={() => router.get('/admin/cases/create?type=VAWC')} className="cursor-pointer py-3 rounded-md focus:bg-rose-50 focus:text-rose-700">
-                                        <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center mr-3">
-                                            <Siren className="h-4 w-4 text-rose-600" />
-                                        </div>
-                                        <div>
-                                            <span className="font-bold block">VAWC Case</span>
-                                            <span className="text-[10px] text-neutral-500">Women & Children Protection</span>
-                                        </div>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => router.get('/admin/cases/create?type=BCPC')} className="cursor-pointer py-3 rounded-md focus:bg-sky-50 focus:text-sky-700">
-                                        <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center mr-3">
-                                            <Baby className="h-4 w-4 text-sky-600" />
-                                        </div>
-                                        <div>
-                                            <span className="font-bold block">BCPC Case</span>
-                                            <span className="text-[10px] text-neutral-500">Child Rights & Welfare</span>
-                                        </div>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </div>
                     </div>
 
@@ -179,15 +138,15 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                                 ))}
                             </div>
 
-                            {/* ARCHIVE LINK */}
+                            {/* RETURN LINK */}
                             <div className="flex items-center gap-2 pl-4 border-l border-neutral-200 dark:border-neutral-800">
-                                <Link href="/admin/cases/archive">
+                                <Link href="/admin/cases">
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="text-[10px] font-black uppercase tracking-widest h-9 text-neutral-400 hover:text-neutral-600"
+                                        className="text-[10px] font-black uppercase tracking-widest h-9 text-neutral-700 hover:text-neutral-900"
                                     >
-                                        Archived Cases
+                                        Back to Active
                                     </Button>
                                 </Link>
                             </div>
@@ -269,9 +228,8 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                                         </tr>
                                     ) : (
                                         filteredCases.map((c) => {
-                                            const theme = getTheme(c.type);
                                             return (
-                                                <tr key={`${c.type}-${c.id}`} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                                <tr key={`${c.type}-${c.id}`} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors opacity-70 bg-neutral-50/50">
 
                                                     {/* CASE NO */}
                                                     <td className="p-5 pl-8 align-middle">
@@ -312,25 +270,14 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                                                     {/* ACTIONS */}
                                                     <td className="p-5 pr-8 align-middle text-right">
                                                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <>
-                                                                <Link href={`/admin/cases/${c.id}/edit?type=${c.type}`}>
-                                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
-                                                                        <Edit3 size={14} />
-                                                                    </Button>
-                                                                </Link>
-                                                                <DropdownMenu>
-                                                                    <DropdownMenuTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                                            <Trash2 size={14} />
-                                                                        </Button>
-                                                                    </DropdownMenuTrigger>
-                                                                    <DropdownMenuContent align="end">
-                                                                        <DropdownMenuItem className="text-red-600 font-bold focus:text-red-700 focus:bg-red-50 cursor-pointer" onClick={() => handleDelete(c.id, c.type)}>
-                                                                            Archive Record
-                                                                        </DropdownMenuItem>
-                                                                    </DropdownMenuContent>
-                                                                </DropdownMenu>
-                                                            </>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8 px-3 text-xs font-bold uppercase tracking-wider text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                                                                onClick={() => handleRestore(c.id, c.type)}
+                                                            >
+                                                                Restore
+                                                            </Button>
                                                         </div>
                                                     </td>
                                                 </tr>

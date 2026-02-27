@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\CaseReport;
 
 class PublicServicesController extends Controller
 {
@@ -33,7 +34,7 @@ class PublicServicesController extends Controller
 
     public function vawcReport()
     {
-        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)->get();
+        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)->whereIn('category', ['VAWC', 'Both'])->get();
         return Inertia::render('Public/VAWC/Report', [
             'abuseTypes' => $abuseTypes
         ]);
@@ -55,25 +56,51 @@ class PublicServicesController extends Controller
             'evidence' => 'nullable|file|mimes:jpg,jpeg,png,pdf,mp3,wav|max:10240', // 10MB limit
         ]);
 
-        $validated['case_number'] = 'VAWC-' . date('Ymd') . '-' . rand(1000, 9999);
-        $validated['status'] = 'New';
+        $reportData = [
+            'type' => 'VAWC',
+            'case_number' => 'VAWC-' . date('Ymd') . '-' . rand(1000, 9999),
+            'victim_name' => $validated['victim_name'],
+            'victim_age' => $validated['victim_age'],
+            'complainant_name' => $validated['complainant_name'],
+            'complainant_contact' => $validated['complainant_contact'],
+            'relation_to_victim' => $validated['relation_to_victim'],
+            'incident_date' => $validated['incident_date'],
+            'incident_location' => $validated['incident_location'],
+            'description' => $validated['description'],
+            'is_anonymous' => $validated['is_anonymous'] ?? false,
+        ];
+
+        // Map String abuse type to ID
+        if (!empty($validated['abuse_type'])) {
+            $abuseTypeModel = \App\Models\CaseAbuseType::where('name', trim($validated['abuse_type']))->first();
+            if ($abuseTypeModel) {
+                $reportData['abuse_type_id'] = $abuseTypeModel->id;
+            }
+        }
+
+        // Setup Initial Status
+        $initialStatus = \App\Models\CaseStatus::where('name', 'Pending Review')->first();
+        if ($initialStatus) {
+            $reportData['case_status_id'] = $initialStatus->id;
+        }
 
         // Handle File Upload
         if ($request->hasFile('evidence')) {
-            // Store in 'private' disk (storage/app/private/evidence) for security
-            // Or 'local' if you don't have private disk configured yet, but ensure it's not in public/
             $path = $request->file('evidence')->store('evidence', 'local');
-            $validated['evidence_path'] = $path;
+            $reportData['evidence_path'] = $path;
         }
 
-        \App\Models\VawcReport::create($validated);
+        CaseReport::create($reportData);
 
         return back()->with('success', 'Report submitted safely.');
     }
 
     public function bcpcReport()
     {
-        return Inertia::render('Public/BCPC/Report');
+        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)->whereIn('category', ['BCPC', 'Both'])->get();
+        return Inertia::render('Public/BCPC/Report', [
+            'abuseTypes' => $abuseTypes
+        ]);
     }
 
     public function storeBcpcReport(Request $request)
@@ -90,24 +117,47 @@ class PublicServicesController extends Controller
             'is_anonymous' => 'boolean',
         ]);
 
-        $validated['case_number'] = 'BCPC-' . date('Ymd') . '-' . rand(1000, 9999);
-        $validated['status'] = 'New';
+        $reportData = [
+            'type' => 'BCPC',
+            'case_number' => 'BCPC-' . date('Ymd') . '-' . rand(1000, 9999),
+            'victim_name' => $validated['victim_name'],
+            'victim_age' => $validated['victim_age'],
+            'victim_gender' => $validated['victim_gender'],
+            'complainant_name' => $validated['informant_name'],
+            'complainant_contact' => $validated['informant_contact'],
+            'incident_date' => now(), // Assume reported now if not explicitly passed
+            'incident_location' => $validated['location'],
+            'description' => $validated['description'],
+            'is_anonymous' => $validated['is_anonymous'] ?? false,
+        ];
 
-        \App\Models\BcpcReport::create($validated);
+        // Map String concern_type to ID
+        if (!empty($validated['concern_type'])) {
+            $abuseTypeModel = \App\Models\CaseAbuseType::where('name', trim($validated['concern_type']))->first();
+            if ($abuseTypeModel) {
+                $reportData['abuse_type_id'] = $abuseTypeModel->id;
+            }
+        }
+
+        // Setup Initial Status
+        $initialStatus = \App\Models\CaseStatus::where('name', 'Pending Review')->first();
+        if ($initialStatus) {
+            $reportData['case_status_id'] = $initialStatus->id;
+        }
+
+        CaseReport::create($reportData);
 
         return back()->with('success', 'Concern reported successfully.');
     }
 
     public function gad()
     {
-        // Fetch GAD Activities for public view (Ongoing or Completed, ordered by date)
         $activities = \App\Models\GadActivity::whereIn('status', ['Ongoing', 'Completed', 'Planned'])
             ->orderBy('date_scheduled', 'desc')
-            ->orderByRaw("FIELD(status, 'Ongoing', 'Completed', 'Planned')") // show ongoing first, then planned, then completed
-            ->take(6) // Limit to 6 for the public view
+            ->orderByRaw("FIELD(status, 'Ongoing', 'Completed', 'Planned')")
+            ->take(6)
             ->get();
 
-        // Transparency Stats
         $totalProjects = \App\Models\GadActivity::where('status', 'Completed')->count();
         $totalBudgetUtilized = \App\Models\GadActivity::where('status', 'Completed')->sum('actual_expenditure');
 
@@ -116,7 +166,7 @@ class PublicServicesController extends Controller
             'stats' => [
                 'projects' => $totalProjects,
                 'budget' => $totalBudgetUtilized,
-                'beneficiaries' => 0 // Placeholder as we don't track this yet
+                'beneficiaries' => 0
             ]
         ]);
     }
@@ -131,14 +181,11 @@ class PublicServicesController extends Controller
 
     public function storeMembershipApplication(Request $request, \App\Services\MembershipService $service)
     {
-        // Controller only handles HTTP request/response
-        // Service handles Validation + Logic + Database
-
         try {
             $service->submitApplication($request->all());
             return back()->with('success', 'Application received. Pending verification.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e; // Let Laravel handle validation errors
+            throw $e;
         } catch (\Exception $e) {
             return back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }

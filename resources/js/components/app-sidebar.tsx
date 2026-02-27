@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 import { Activity, Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -89,6 +89,16 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<any>().props;
+
+    // Filter Navigation based on Roles (Admin-only for Settings)
+    const filteredNavItems = mainNavItems.filter(item => {
+        if (item.title === 'Settings' && auth.user.role !== 'admin') {
+            return false;
+        }
+        return true;
+    });
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -104,7 +114,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={filteredNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

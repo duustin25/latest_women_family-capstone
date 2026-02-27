@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class CaseReport extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'case_number',
+        'type',
+        'victim_name',
+        'victim_age',
+        'victim_gender',
+        'complainant_name',
+        'complainant_contact',
+        'relation_to_victim',
+        'is_anonymous',
+        'incident_date',
+        'incident_location',
+        'description',
+        'abuse_type_id',
+        'lifecycle_status',
+        'case_status_id',
+        'evidence_path',
+        'referral_agency_id',
+        'referral_date',
+        'referral_notes',
+    ];
+
+    protected $casts = [
+        'is_anonymous' => 'boolean',
+        'incident_date' => 'datetime',
+        'referral_date' => 'datetime',
+    ];
+
+    /**
+     * Get the abuse type associated with the report.
+     */
+    public function abuseType(): BelongsTo
+    {
+        return $this->belongsTo(CaseAbuseType::class, 'abuse_type_id');
+    }
+
+    /**
+     * Get the status associated with the report.
+     */
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(CaseStatus::class, 'case_status_id');
+    }
+
+    /**
+     * Get the referral agency associated with the report.
+     */
+    public function referralAgency(): BelongsTo
+    {
+        return $this->belongsTo(CaseReferralAgency::class, 'referral_agency_id');
+    }
+}

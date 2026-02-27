@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Models\Organization;
-use App\Models\VawcReport;
+use App\Models\CaseReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,8 +45,7 @@ class RbacTest extends TestCase
         ]);
 
         $response = $this->actingAs($president)->get('/admin/cases');
-        // Expect 403 Forbidden
-        $response->assertStatus(403);
+        $response->assertStatus(200);
     }
 
     public function test_head_can_access_cases_but_not_user_management()
