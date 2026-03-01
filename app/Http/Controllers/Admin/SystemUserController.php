@@ -23,15 +23,21 @@ class SystemUserController extends Controller
         $query = User::with('organization')->latest();
 
         if ($request->filled('search')) {
-            $query->where('name', 'LIKE', "%{$request->search}%")
-                ->orWhere('email', 'LIKE', "%{$request->search}%");
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                    ->orWhere('email', 'LIKE', "%{$request->search}%");
+            });
+        }
+
+        if ($request->filled('role') && $request->role !== 'all') {
+            $query->where('role', $request->role);
         }
 
         $users = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/SystemUsers/Index', [
             'users' => $users,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search', 'role'])
         ]);
     }
 
@@ -55,7 +61,7 @@ class SystemUserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'role' => 'required|in:admin,head,president',
             // Only require organization_id if role is President
             'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
@@ -78,6 +84,7 @@ class SystemUserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $system_user->id,
+            'password' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'role' => 'required|in:admin,head,president',
             'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
         ]);
@@ -105,7 +112,44 @@ class SystemUserController extends Controller
         if ($system_user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete yourself.');
         }
+
+        // Prevent deleting the last Super Admin
+        if ($system_user->isAdmin() && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Cannot delete the last Super Admin.');
+        }
+
         $system_user->delete();
-        return back()->with('success', 'User deleted.');
+        return redirect()->route('admin.system-users.index')->with('success', 'User deactivated and moved to archives.');
+    }
+
+    public function archives(Request $request)
+    {
+        $query = User::onlyTrashed()->with('organization')->latest('deleted_at');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                    ->orWhere('email', 'LIKE', "%{$request->search}%");
+            });
+        }
+
+        if ($request->filled('role') && $request->role !== 'all') {
+            $query->where('role', $request->role);
+        }
+
+        $users = $query->paginate(10)->withQueryString();
+
+        return Inertia::render('Admin/SystemUsers/Archives', [
+            'users' => $users,
+            'filters' => $request->only(['search', 'role'])
+        ]);
+    }
+
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return redirect()->route('admin.system-users.archives')->with('success', 'User account restored successfully.');
     }
 }

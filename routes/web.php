@@ -223,6 +223,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('cases/archive', [CaseController::class, 'archive'])->name('cases.archive');
         Route::resource('cases', CaseController::class);
         // 'system-users'
+        Route::get('system-users/archives', [\App\Http\Controllers\Admin\SystemUserController::class, 'archives'])->name('system-users.archives');
+        Route::post('system-users/{id}/restore', [\App\Http\Controllers\Admin\SystemUserController::class, 'restore'])->name('system-users.restore');
         Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
 
         // 'officials'

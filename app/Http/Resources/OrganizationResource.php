@@ -14,7 +14,7 @@ class OrganizationResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'president_name' => $this->president_name,
+            'president_name' => $this->president ? $this->president->name : null,
             'color_theme' => $this->color_theme ?? 'bg-blue-700',
 
             // Image URL from your Model Accessor

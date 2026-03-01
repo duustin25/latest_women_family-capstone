@@ -15,7 +15,7 @@ class OrganizationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Organization::query()->latest();
+        $query = Organization::with('president')->latest();
 
         // RBAC: President Scope
         if ($user->isPresident()) {
@@ -26,7 +26,9 @@ class OrganizationController extends Controller
             $searchTerm = $request->input('search');
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('president_name', 'LIKE', "%{$searchTerm}%");
+                    ->orWhereHas('president', function ($q2) use ($searchTerm) {
+                        $q2->where('name', 'LIKE', "%{$searchTerm}%");
+                    });
             });
         }
 
@@ -46,11 +48,6 @@ class OrganizationController extends Controller
         }
 
         // Fetch potential presidents (users with role 'president')
-        // Or fetch all users if you want to promote someone from the list
-        // Let's fetch 'president' role users for now, or maybe all users to be flexible? 
-        // The prompt implies "Users are not showing", so likely ANY user could be picked to be president.
-        // Let's fetch all users for flexibility, or filter if the list is huge. 
-        // For a capstone/school project, fetching all is fine.
         $users = \App\Models\User::where('role', 'president')->orderBy('name')->get(['id', 'name', 'role']);
 
         return Inertia::render('Admin/Organizations/Create', [
@@ -72,16 +69,28 @@ class OrganizationController extends Controller
             'name.required' => 'The organization must have a formal name.',
             'description.required' => 'A brief mission description is mandatory for transparency.',
         ]);
+
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')->store('admin/organizations', 'public');
         }
 
         // --- THE FIX STARTS HERE ---
         // If 'requirements' is not in the request, we force it to be an empty array
-        // so the database actually clears the column.
         $validated['requirements'] = $request->input('requirements', []);
-        // --- THE FIX ENDS HERE ---
-        Organization::create($validated);
+
+        // Remove president_name from validated array since it's no longer in the DB
+        $presidentName = $validated['president_name'] ?? null;
+        unset($validated['president_name']);
+
+        $org = Organization::create($validated);
+
+        // Assign the user as president by matching names
+        if ($presidentName) {
+            $user = \App\Models\User::where('role', 'president')->where('name', $presidentName)->first();
+            if ($user) {
+                $user->update(['organization_id' => $org->id]);
+            }
+        }
 
         return redirect()->route('admin.organizations.index')->with('success', 'Organization Created!');
     }
@@ -89,6 +98,9 @@ class OrganizationController extends Controller
     public function edit(Organization $organization)
     {
         $users = \App\Models\User::where('role', 'president')->orderBy('name')->get(['id', 'name', 'role']);
+
+        // Load president so the Resource maps it properly
+        $organization->load('president');
 
         return Inertia::render('Admin/Organizations/Edit', [
             'organization' => new OrganizationResource($organization),
@@ -125,14 +137,33 @@ class OrganizationController extends Controller
             $validated['image_path'] = $request->file('image')->store('organizations', 'public');
         }
 
-        // Ensure form_schema is saved as JSON (Laravel casts handle this if passed as array)
+        // Ensure form_schema is saved as JSON
         if (!$request->has('form_schema')) {
-            $validated['form_schema'] = $organization->form_schema; // Keep existing if not sent
+            $validated['form_schema'] = $organization->form_schema;
         } else {
             $validated['form_schema'] = $request->input('form_schema');
         }
 
+        // Handle president mapping
+        $presidentName = $validated['president_name'] ?? null;
+        unset($validated['president_name']);
+
         $organization->update($validated);
+
+        // Unset old president if changed
+        $currentPresident = $organization->president;
+        if ($currentPresident && $currentPresident->name !== $presidentName) {
+            $currentPresident->update(['organization_id' => null]);
+        }
+
+        // Set new president
+        if ($presidentName) {
+            $newUser = \App\Models\User::where('role', 'president')->where('name', $presidentName)->first();
+            if ($newUser) {
+                $newUser->update(['organization_id' => $organization->id]);
+            }
+        }
+
         return redirect()->route('admin.organizations.edit', $organization->slug)
             ->with('success', 'Organization updated successfully.');
     }
@@ -146,6 +177,12 @@ class OrganizationController extends Controller
 
         if ($organization->image_path) {
             Storage::disk('public')->delete($organization->image_path);
+        }
+
+        // Unlink president before deleting
+        $president = $organization->president;
+        if ($president) {
+            $president->update(['organization_id' => null]);
         }
 
         $organization->delete();

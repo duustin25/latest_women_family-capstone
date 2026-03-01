@@ -24,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Register Observers for Audit Logging
+        \App\Models\CaseReport::observe(\App\Observers\AuditObserver::class);
+        \App\Models\User::observe(\App\Observers\AuditObserver::class);
+        \App\Models\Announcement::observe(\App\Observers\AuditObserver::class);
+        \App\Models\Organization::observe(\App\Observers\AuditObserver::class);
     }
 
     protected function configureDefaults(): void
@@ -34,7 +40,8 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
+        Password::defaults(
+            fn(): ?Password => app()->isProduction()
             ? Password::min(12)
                 ->mixedCase()
                 ->letters()

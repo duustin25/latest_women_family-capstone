@@ -1,14 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
-    MoreHorizontal, Pencil, Trash2, ShieldCheck, Mail,
-    LayoutDashboard, Plus, X, Search, User, Shield, Filter
+    LayoutDashboard, X, Search, User, Undo2, Filter, ShieldAlert
 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RoleBadge } from '@/components/Admin/RoleBadge';
@@ -18,6 +13,7 @@ interface SystemUser {
     name: string;
     email: string;
     role: string;
+    deleted_at: string;
     organization?: {
         name: string;
         color_theme: string;
@@ -39,9 +35,10 @@ interface PageProps {
     }
 }
 
-export default function Index({ users, filters }: PageProps) {
+export default function Archives({ users, filters }: PageProps) {
     const [searchQuery, setSearchQuery] = useState(filters?.search ?? '');
     const [roleFilter, setRoleFilter] = useState(filters?.role ?? 'all');
+    const [restoringId, setRestoringId] = useState<number | null>(null);
 
     const handleSearch = (term: string) => {
         setSearchQuery(term);
@@ -58,24 +55,28 @@ export default function Index({ users, filters }: PageProps) {
         if (search) query.search = search;
         if (role && role !== 'all') query.role = role;
 
-        router.get('/admin/system-users', query, { preserveState: true });
+        router.get('/admin/system-users/archives', query, { preserveState: true });
     }
 
     const handleClear = () => {
         setSearchQuery('');
         setRoleFilter('all');
-        router.get('/admin/system-users', {}, { preserveState: true });
+        router.get('/admin/system-users/archives', {}, { preserveState: true });
     };
 
-    const handleDelete = (user: SystemUser) => {
-        if (confirm(`Delete this user: ${user.name}? This action cannot be undone.`)) {
-            router.delete(`/admin/system-users/${user.id}`);
+    const handleRestore = (user: SystemUser) => {
+        if (confirm(`Restore access for user: ${user.name}?`)) {
+            setRestoringId(user.id);
+            router.post(`/admin/system-users/${user.id}/restore`, {}, {
+                onFinish: () => setRestoringId(null),
+                preserveScroll: true
+            });
         }
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'System Users', href: '#' }]}>
-            <Head title="System User Management" />
+        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'System Users', href: '/admin/system-users' }, { title: 'Archives', href: '#' }]}>
+            <Head title="System Users Archives" />
 
             <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -85,35 +86,27 @@ export default function Index({ users, filters }: PageProps) {
                         <div>
                             <div className='flex items-center gap-3 mb-2'>
                                 <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tighter uppercase leading-none">
-                                    System Users
+                                    Archived Users
                                 </h2>
                             </div>
                             <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg ml-1">
-                                Manage access control and permissions.
+                                Restore deactivated administrator and official accounts.
                             </p>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <div className="text-right hidden md:block mr-4">
-                                <span className="block text-4xl font-black text-neutral-900 dark:text-white leading-none">
+                                <span className="block text-4xl font-black text-rose-600 dark:text-rose-500 leading-none">
                                     {users.meta?.total || users.data.length}
                                 </span>
-                                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Active Accounts</span>
+                                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Archived Accounts</span>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <Link href="/admin/system-users/archives">
-                                    <Button variant="outline" className="h-12 px-6 rounded-full border-neutral-200 dark:border-neutral-800 dark:text-white text-neutral-900 shadow-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all font-bold uppercase tracking-wide text-xs">
-                                        View Archives
-                                    </Button>
-                                </Link>
-                                <Link href="/admin/system-users/create">
-                                    <Button className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 border-transparent dark:border-neutral-700">
-                                        <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                                        <span className="font-bold uppercase tracking-wide text-xs">New User</span>
-                                    </Button>
-                                </Link>
-                            </div>
+                            <Link href="/admin/system-users">
+                                <Button variant="outline" className="h-12 px-6 rounded-full border-neutral-200 dark:border-neutral-800 dark:text-white text-neutral-900 shadow-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all font-bold uppercase tracking-wide text-xs">
+                                    Back to Active Users
+                                </Button>
+                            </Link>
                         </div>
                     </div>
 
@@ -124,7 +117,7 @@ export default function Index({ users, filters }: PageProps) {
                             <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 w-full md:w-[320px]">
                                 <Search size={14} className="text-neutral-400" />
                                 <input
-                                    placeholder="SEARCH USERS..."
+                                    placeholder="SEARCH ARCHIVES..."
                                     className="bg-transparent border-none focus:ring-0 text-xs font-bold w-full uppercase placeholder:text-neutral-400 text-neutral-900 dark:text-white h-full"
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
@@ -158,7 +151,7 @@ export default function Index({ users, filters }: PageProps) {
                     </div>
 
                     {/* TABLE VIEW */}
-                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden opacity-90 grayscale-[0.2]">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -166,19 +159,20 @@ export default function Index({ users, filters }: PageProps) {
                                         <th className="p-5 pl-8">User Profile</th>
                                         <th className="p-5">Role</th>
                                         <th className="p-5">Organization</th>
+                                        <th className="p-5">Archived Date</th>
                                         <th className="p-5 text-right pr-8">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                                     {users.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="p-12 text-center">
+                                            <td colSpan={5} className="p-12 text-center">
                                                 <div className="flex flex-col items-center justify-center opacity-60">
                                                     <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
-                                                        <User size={20} />
+                                                        <ShieldAlert size={20} />
                                                     </div>
-                                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No users found</h3>
-                                                    <p className="text-xs text-neutral-500">Criteria matches no records.</p>
+                                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No archived users</h3>
+                                                    <p className="text-xs text-neutral-500">All accounts are currently active.</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -188,33 +182,33 @@ export default function Index({ users, filters }: PageProps) {
                                                 {/* PROFILE */}
                                                 <td className="p-5 pl-8 align-middle">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 font-bold border border-neutral-200 dark:border-neutral-700">
+                                                        <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-400 font-bold border border-neutral-200 dark:border-neutral-700">
                                                             <span className="text-xs">{user.name.charAt(0)}</span>
                                                         </div>
                                                         <div>
-                                                            <span className="text-sm font-bold text-neutral-900 dark:text-white block uppercase tracking-tight">
+                                                            <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400 line-through block uppercase tracking-tight">
                                                                 {user.name}
                                                             </span>
-                                                            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium flex items-center gap-1">
-                                                                <Mail size={10} /> {user.email}
+                                                            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium">
+                                                                {user.email}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 {/* ROLE */}
-                                                <td className="p-5 align-middle">
+                                                <td className="p-5 align-middle opacity-80">
                                                     <RoleBadge role={user.role} />
                                                 </td>
 
                                                 {/* ORGANIZATION */}
-                                                <td className="p-5 align-middle">
+                                                <td className="p-5 align-middle opacity-80">
                                                     {user.organization ? (
                                                         <div className="flex items-center gap-3">
                                                             <div
-                                                                className={`w-2.5 h-2.5 rounded-full shadow-sm ${user.organization.color_theme || 'bg-slate-300'}`}
+                                                                className={`w-2 h-2 rounded-full shadow-sm ${user.organization.color_theme || 'bg-slate-300'}`}
                                                             />
-                                                            <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-tight">
+                                                            <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-tight">
                                                                 {user.organization.name}
                                                             </span>
                                                         </div>
@@ -223,28 +217,24 @@ export default function Index({ users, filters }: PageProps) {
                                                     )}
                                                 </td>
 
+                                                {/* DATE DELETED */}
+                                                <td className="p-5 align-middle">
+                                                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md">
+                                                        {new Date(user.deleted_at).toLocaleDateString()}
+                                                    </span>
+                                                </td>
+
                                                 {/* ACTIONS */}
                                                 <td className="p-5 pr-8 align-middle text-right">
-                                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Link href={`/admin/system-users/${user.id}/edit${location.search}`}>
-                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
-                                                                <Pencil size={14} />
-                                                            </Button>
-                                                        </Link>
-
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                                    <Trash2 size={14} />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem className="text-red-600 font-bold focus:text-red-700 focus:bg-red-50 cursor-pointer" onClick={() => handleDelete(user)}>
-                                                                    Delete Account
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </div>
+                                                    <Button
+                                                        onClick={() => handleRestore(user)}
+                                                        disabled={restoringId === user.id}
+                                                        size="sm"
+                                                        className="h-8 px-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50 font-bold uppercase tracking-wider text-[10px] transition-all"
+                                                    >
+                                                        <Undo2 size={12} className="mr-1.5" />
+                                                        {restoringId === user.id ? 'Restoring...' : 'Restore'}
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))
@@ -255,7 +245,7 @@ export default function Index({ users, filters }: PageProps) {
                     </div>
 
                     {/* PAGINATION */}
-                    <div className="mt-6">
+                    <div className="mt-6 font-bold">
                         <div className="flex justify-center items-center gap-1 pt-2">
                             {(users.meta?.links || users.links)?.map((link: any, i: number) => (
                                 <Link

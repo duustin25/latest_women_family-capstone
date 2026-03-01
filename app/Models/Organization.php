@@ -17,7 +17,6 @@ class Organization extends Model
         'name',
         'slug',
         'description',
-        'president_name',
         'color_theme',
         'image_path',
         'requirements',
@@ -37,6 +36,22 @@ class Organization extends Model
     public function membershipApplications(): HasMany
     {
         return $this->hasMany(MembershipApplication::class);
+    }
+
+    /**
+     * RELATIONSHIP: Inverse connection to User (President)
+     */
+    public function president()
+    {
+        return $this->hasOne(User::class)->where('role', 'president');
+    }
+
+    /**
+     * ACCESSOR: Map president->name to president_name for backward compatibility.
+     */
+    public function getPresidentNameAttribute()
+    {
+        return $this->president ? $this->president->name : null;
     }
 
     /**

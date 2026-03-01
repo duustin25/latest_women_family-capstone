@@ -92,7 +92,8 @@ class CaseManagementService
         $updateData = [
             'lifecycle_status' => $lifecycleStatus,
             'case_status_id' => $dbStatusId,
-            'referral_agency_id' => $referralAgencyId
+            'referral_agency_id' => $referralAgencyId,
+            'handled_by_id' => \Illuminate\Support\Facades\Auth::id() // Accountability Fix
         ];
 
         // Explicitly clear or set the referral mapping to prevent phantom links

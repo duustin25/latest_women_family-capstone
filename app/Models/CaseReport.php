@@ -26,6 +26,7 @@ class CaseReport extends Model
         'description',
         'abuse_type_id',
         'lifecycle_status',
+        'handled_by_id',
         'case_status_id',
         'evidence_path',
         'referral_agency_id',
@@ -61,5 +62,21 @@ class CaseReport extends Model
     public function referralAgency(): BelongsTo
     {
         return $this->belongsTo(CaseReferralAgency::class, 'referral_agency_id');
+    }
+
+    /**
+     * Get the admin who handled the case.
+     */
+    public function handledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handled_by_id');
+    }
+
+    /**
+     * Get the audit logs for this case report.
+     */
+    public function audits()
+    {
+        return $this->morphMany(AuditLog::class, 'auditable');
     }
 }

@@ -15,17 +15,23 @@ interface WelcomeProps {
 export default function Welcome({ announcements, organizations }: WelcomeProps) {
     const [api, setApi] = React.useState<CarouselApi>()
 
+    // This makes the picture slider move automatically
     React.useEffect(() => {
+        // If the slider is not ready, do nothing
         if (!api) {
-            return
+            return;
         }
 
-        const interval = setInterval(() => {
-            api.scrollNext()
-        }, 4000)
+        // Create a timer that clicks "next" every 4 seconds (4000 milliseconds)
+        const timer = setInterval(() => {
+            api.scrollNext();
+        }, 4000);
 
-        return () => clearInterval(interval)
-    }, [api])
+        // When the user leaves the page, stop the timer so it doesn't run in the background
+        return () => {
+            clearInterval(timer);
+        };
+    }, [api]);
 
     const slides = [
         {
@@ -35,12 +41,12 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
         },
         {
             id: 2,
-            image: "https://scontent.fmnl8-1.fna.fbcdn.net/v/t39.30808-6/607709506_842926775212783_3490112507659096929_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_ohc=2f6YsnRNMegQ7kNvwGJuYP_&_nc_oc=Adkb6kksE5O-84p4o59n-n6HJAjYgAXs9pygkDCP9OHxTBtf1Cu7BtG1HHdVDI-azyM&_nc_zt=23&_nc_ht=scontent.fmnl8-1.fna&_nc_gid=37Hg15GOCkp8YTIMqOh52Q&oh=00_AfshglJlbBq-54u8XyxhOq7ZrZr_ZPrgiUJM5P-g9HrFzg&oe=698F1055",
+            image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=2070&auto=format&fit=crop",
             title: "Gender Equality",
         },
         {
             id: 3,
-            image: "https://scontent.fmnl8-2.fna.fbcdn.net/v/t39.30808-6/600303084_835754615929999_8846337304878480439_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=833d8c&_nc_ohc=6uaoq3btMx0Q7kNvwFmKA-2&_nc_oc=Adn7BPd7YywTZyBNU-t_V1jnEdik_ksmrk-tYv0hhA1ae5IRduMDuwgS3EkpS9FcRWg&_nc_zt=23&_nc_ht=scontent.fmnl8-2.fna&_nc_gid=D-eyO8D7RHD_UzGfxcbT2Q&oh=00_Afv0SQFmiOO_od66RxW3RbioT0VG9B1gIYKvCPl7J8TBzg&oe=698F2EFA",
+            image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
             title: "Child Protection",
         },
     ];

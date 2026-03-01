@@ -44,6 +44,9 @@ return new class extends Migration {
             $table->dateTime('referral_date')->nullable();
             $table->text('referral_notes')->nullable();
 
+            // Accountability
+            $table->foreignId('handled_by_id')->nullable()->constrained('users')->nullOnDelete();
+
             $table->timestamps();
             $table->softDeletes();
         });

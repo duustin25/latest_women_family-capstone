@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,14 +15,13 @@ return new class extends Migration
             $table->string('name'); // e.g., KALIPI
             $table->string('slug')->unique(); // e.g., kalipi-association
             $table->text('description'); // Short description
-            $table->string('president_name')->nullable();
             $table->string('color_theme')->default('bg-blue-700'); // For your UI coloring
             $table->string('image_path')->nullable(); // Banner image
             $table->json('requirements')->nullable(); // Array of requirements needed to apply
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      */

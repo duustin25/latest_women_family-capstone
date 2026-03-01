@@ -6,7 +6,7 @@ import {
     Calendar, User, CheckCircle2,
     ArrowRight, Siren, Baby, ShieldAlert,
     LayoutTemplate, Settings2, Clock,
-    AlertCircle, FileText
+    AlertCircle, FileText, X
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,13 +30,13 @@ interface CaseRecord {
     status_obj?: any; // To hold the raw nested object if needed
 }
 
-export default function Index({ cases: initialCases, caseStatuses = [] }: { cases: { data: CaseRecord[] } | CaseRecord[], caseStatuses?: string[] }) {
+export default function Index({ cases: initialCases, caseStatuses = [] }: { cases: any, caseStatuses?: string[] }) {
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All'); // 'All', 'VAWC', 'BCPC'
     const [searchQuery, setSearchQuery] = useState('');
 
     // Handle Laravel API Resource wrapping (extracting from .data if it exists)
-    const cases = Array.isArray(initialCases) ? initialCases : (initialCases.data || []);
+    const cases: CaseRecord[] = Array.isArray(initialCases) ? initialCases : (initialCases.data || []);
 
     // Filter Logic
     const filteredCases = cases.filter(c => {
@@ -56,6 +56,14 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
 
         return matchStatus && matchType && matchSearch;
     });
+
+    const handleClear = () => {
+        setSearchQuery('');
+        setStatusFilter('All');
+        setTypeFilter('All');
+        // Trigger re-render by doing a shallow load if this were server-side,
+        // but since this is client-side filtering currently, it will just re-render.
+    };
 
     const getTheme = (type: string) => {
         if (type === 'VAWC') return {
@@ -215,7 +223,7 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                             </Select>
 
                             {/* SEARCH BAR */}
-                            <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 flex-1 md:w-[280px]">
+                            <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 w-full md:w-[320px]">
                                 <Search size={14} className="text-neutral-400" />
                                 <input
                                     placeholder="SEARCH NAME OR CASE NO..."
@@ -224,6 +232,11 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     autoComplete="off"
                                 />
+                                {searchQuery && (
+                                    <button onClick={() => setSearchQuery('')} className="text-neutral-400 hover:text-red-500">
+                                        <X size={12} />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -260,7 +273,7 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                                             <td colSpan={6} className="p-12 text-center">
                                                 <div className="flex flex-col items-center justify-center opacity-60">
                                                     <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
-                                                        <Search size={20} />
+                                                        <LayoutTemplate size={20} />
                                                     </div>
                                                     <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No cases found</h3>
                                                     <p className="text-xs text-neutral-500">Try adjusting your filters or search query.</p>
@@ -341,6 +354,25 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                             </table>
                         </div>
                     </div>
+
+                    {/* PAGINATION */}
+                    {('links' in initialCases || ('meta' in initialCases && initialCases.meta?.links)) && (
+                        <div className="mt-6">
+                            <div className="flex justify-center items-center gap-1 pt-2">
+                                {(('meta' in initialCases ? initialCases.meta?.links : initialCases.links) || []).map((link: any, i: number) => (
+                                    <Link
+                                        key={i}
+                                        href={link.url || '#'}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                        className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${link.active
+                                            ? 'bg-neutral-900 text-white shadow-lg transform -translate-y-0.5'
+                                            : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                            } ${!link.url && 'opacity-40 cursor-not-allowed pointer-events-none'}`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                 </div>
             </div>

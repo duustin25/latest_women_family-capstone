@@ -6,7 +6,7 @@ import {
     Calendar, User, CheckCircle2,
     ArrowRight, Siren, Baby, ShieldAlert,
     LayoutTemplate, Settings2, Clock,
-    AlertCircle, FileText
+    AlertCircle, FileText, Undo2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -200,7 +200,7 @@ export default function Archive({ cases: initialCases, caseStatuses = [] }: { ca
 
 
                     {/* TABLE VIEW */}
-                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden opacity-90 grayscale-[0.2]">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -219,7 +219,7 @@ export default function Archive({ cases: initialCases, caseStatuses = [] }: { ca
                                             <td colSpan={6} className="p-12 text-center">
                                                 <div className="flex flex-col items-center justify-center opacity-60">
                                                     <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
-                                                        <Search size={20} />
+                                                        <ShieldAlert size={20} />
                                                     </div>
                                                     <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No cases found</h3>
                                                     <p className="text-xs text-neutral-500">Try adjusting your filters or search query.</p>
@@ -269,16 +269,14 @@ export default function Archive({ cases: initialCases, caseStatuses = [] }: { ca
 
                                                     {/* ACTIONS */}
                                                     <td className="p-5 pr-8 align-middle text-right">
-                                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="h-8 px-3 text-xs font-bold uppercase tracking-wider text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                                                                onClick={() => handleRestore(c.id, c.type)}
-                                                            >
-                                                                Restore
-                                                            </Button>
-                                                        </div>
+                                                        <Button
+                                                            onClick={() => handleRestore(c.id, c.type)}
+                                                            size="sm"
+                                                            className="h-8 px-4 rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50 font-bold uppercase tracking-wider text-[10px] transition-all"
+                                                        >
+                                                            <Undo2 size={12} className="mr-1.5" />
+                                                            Restore
+                                                        </Button>
                                                     </td>
                                                 </tr>
                                             );
