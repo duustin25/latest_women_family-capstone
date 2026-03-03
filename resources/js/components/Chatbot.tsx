@@ -113,7 +113,7 @@ export default function Chatbot({ className }: { className?: string }) {
         )}>
             {/* Premium Header */}
             <CardHeader className="relative overflow-hidden border-b border-indigo-500/20 bg-gradient-to-r from-[#6b21a8] via-[#7c3aed] to-[#6b21a8] p-4 shrink-0">
-                <div className="absolute inset-0 bg-[url('/img/grid.svg')] opacity-20" />
+                <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHBhdGggZD0iTTAgMGgyNHYyNEgwem0xIDFWMGgyMnYyekgxem0wIDIyVjJoMjJ2MjBoLTIyeiIgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjEiLz48L3N2Zz4=')] bg-[length:24px_24px]" />
                 <div className="relative flex items-center gap-3">
                     <div className="relative">
                         <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-pink-500 to-violet-500 opacity-75 blur animate-pulse" />

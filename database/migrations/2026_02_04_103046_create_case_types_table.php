@@ -11,11 +11,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('case_statuses', function (Blueprint $table) {
+        Schema::create('case_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "Under Mediation", "BPO Monitoring"
-            $table->string('type')->default('Both'); // VAWC, BCPC, Both
-            $table->string('description')->nullable();
+            $table->string('name')->unique(); // Physical, Sexual, etc.
+            $table->string('category')->default('Both'); // VAWC, BCPC, Both
+            $table->string('color')->nullable(); // Hex code for chart (optional)
+            $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('case_statuses');
+        Schema::dropIfExists('case_types');
     }
 };

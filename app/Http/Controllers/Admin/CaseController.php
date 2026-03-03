@@ -17,7 +17,7 @@ class CaseController extends Controller
      */
     public function print($id, Request $request)
     {
-        $case = CaseReport::with(['abuseType', 'status', 'referralAgency'])->findOrFail($id);
+        $case = CaseReport::with(['abuseType', 'status', 'referrals.agency'])->findOrFail($id);
 
         return Inertia::render('Admin/Cases/Print', [
             'caseData' => $case,
@@ -33,7 +33,7 @@ class CaseController extends Controller
         $query = CaseReport::query();
 
         // Fetch all cases directly from unified model
-        $cases = $query->with(['abuseType', 'status'])->orderByDesc('created_at')->get();
+        $cases = $query->with(['abuseType', 'status', 'referrals.agency'])->orderByDesc('created_at')->get();
 
         $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
 
@@ -51,7 +51,7 @@ class CaseController extends Controller
     {
         $query = CaseReport::onlyTrashed();
 
-        $cases = $query->with(['abuseType', 'status'])->orderByDesc('deleted_at')->get();
+        $cases = $query->with(['abuseType', 'status', 'referrals.agency'])->orderByDesc('deleted_at')->get();
 
         $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
 
@@ -96,7 +96,7 @@ class CaseController extends Controller
      */
     public function edit($id, Request $request)
     {
-        $case = CaseReport::with(['abuseType', 'status', 'referralAgency'])->findOrFail($id);
+        $case = CaseReport::with(['abuseType', 'status', 'referrals.agency'])->findOrFail($id);
 
         $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->where(function ($query) use ($case) {
@@ -131,7 +131,13 @@ class CaseController extends Controller
     {
         $case = CaseReport::findOrFail($id);
 
-        $service->updateStatus($case, $request->input('status'), $request->input('referral_notes'));
+        $service->updateStatus(
+            $case,
+            $request->input('status'),
+            $request->input('referral_notes'),
+            $request->input('referral_status'),
+            $request->input('agency_feedback')
+        );
 
         return redirect()->route('admin.cases.index')->with('success', 'Case status updated.');
     }

@@ -9,6 +9,8 @@ class CaseAbuseType extends Model
 {
     use HasFactory;
 
+    protected $table = 'case_types';
+
     protected $fillable = ['name', 'category', 'color', 'description', 'is_active'];
 
     protected $casts = [

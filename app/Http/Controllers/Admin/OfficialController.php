@@ -12,15 +12,23 @@ class OfficialController extends Controller
 {
     public function index()
     {
-        $officials = BarangayOfficial::orderBy('level')->orderBy('display_order')->get();
+        $officials = BarangayOfficial::with('user')
+            ->orderBy('level')
+            ->orderBy('display_order')
+            ->get();
+
+        $availableUsers = \App\Models\User::select('id', 'name')->get();
+
         return Inertia::render('Admin/Officials/Index', [
-            'officials' => $officials
+            'officials' => $officials,
+            'users' => $availableUsers
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'committee' => 'nullable|string|max:255',
@@ -29,10 +37,8 @@ class OfficialController extends Controller
         ]);
 
         // Enforce unique Head and Secretary
-        if (in_array($request->level, ['head', 'secretary'])) {
-            if (BarangayOfficial::where('level', $request->level)->exists()) {
-                return back()->withErrors(['level' => 'There can only be one official with the level: ' . ucfirst($request->level)]);
-            }
+        if ($request->user_id && BarangayOfficial::where('user_id', $request->user_id)->exist()) {
+            return back()->withErrors(['user_id' => 'This user is already assigned as an official.']);
         }
 
         if ($request->hasFile('image_path')) {
@@ -41,7 +47,6 @@ class OfficialController extends Controller
         }
 
         BarangayOfficial::create($validated);
-
         return back()->with('success', 'Official added successfully.');
     }
 
@@ -50,6 +55,7 @@ class OfficialController extends Controller
         $official = BarangayOfficial::findOrFail($id);
 
         $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'committee' => 'nullable|string|max:255',
@@ -59,10 +65,8 @@ class OfficialController extends Controller
         ]);
 
         // Enforce unique Head and Secretary (excluding self)
-        if (in_array($request->level, ['head', 'secretary'])) {
-            if (BarangayOfficial::where('level', $request->level)->where('id', '!=', $id)->exists()) {
-                return back()->withErrors(['level' => 'There can only be one official with the level: ' . ucfirst($request->level)]);
-            }
+        if ($request->user_id && BarangayOfficial::where('user_id', $request->user_id)->where('id', '!=', $id)->exists()) {
+            return back()->withErrors(['user_id' => 'This user is already assigned as an official.']);
         }
 
         if ($request->hasFile('image_path')) {

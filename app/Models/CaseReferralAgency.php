@@ -15,8 +15,8 @@ class CaseReferralAgency extends Model
         'is_active' => 'boolean',
     ];
 
-    public function caseReports()
+    public function caseReferrals()
     {
-        return $this->hasMany(CaseReport::class, 'referral_agency_id');
+        return $this->hasMany(CaseReferral::class, 'referral_agency_id');
     }
 }

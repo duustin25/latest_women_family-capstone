@@ -40,10 +40,14 @@ export default function Edit({ caseData, abuseTypes, referralPartners, caseStatu
 
     const currentStatusName = extractName(caseData.status, 'New');
 
+    const latestReferral = caseData.referrals && caseData.referrals.length > 0
+        ? [...caseData.referrals].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+        : null;
+
     // Reconstruct the correct UI prefix so the Select Dropdown can match the incoming DB state
     let initialStatusValue = currentStatusName;
-    if (caseData.referralAgency && caseData.referralAgency.name) {
-        initialStatusValue = `Referred: ${caseData.referralAgency.name}`;
+    if (latestReferral && latestReferral.agency && latestReferral.agency.name) {
+        initialStatusValue = `Referred: ${latestReferral.agency.name}`;
     } else if (
         !['New', 'Resolved', 'Closed', 'Dismissed'].includes(currentStatusName) &&
         !currentStatusName.toLowerCase().includes('referred')
@@ -57,10 +61,14 @@ export default function Edit({ caseData, abuseTypes, referralPartners, caseStatu
         type: string;
         status: string;
         referral_notes: string;
+        referral_status: string;
+        agency_feedback: string;
     }>({
         type: caseData.type,
         status: initialStatusValue,
-        referral_notes: caseData.referral_notes || '',
+        referral_notes: latestReferral && latestReferral.referral_notes ? latestReferral.referral_notes : '',
+        referral_status: latestReferral && latestReferral.status ? latestReferral.status : 'Pending',
+        agency_feedback: latestReferral && latestReferral.agency_feedback ? latestReferral.agency_feedback : '',
     });
 
     const isVawc = caseData.type === 'VAWC';
@@ -206,17 +214,24 @@ export default function Edit({ caseData, abuseTypes, referralPartners, caseStatu
                                 </div>
                             </div>
 
-                            {caseData.referral_to && (
-                                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg flex items-start gap-3">
-                                    <div className="p-2 bg-purple-100 rounded-full">
-                                        <Activity className="w-4 h-4 text-purple-600" />
+                            {latestReferral && latestReferral.agency && (
+                                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg flex flex-col gap-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 bg-purple-100 rounded-full">
+                                            <Activity className="w-4 h-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-black uppercase text-purple-700 mb-1">External Referral: {latestReferral.status}</h4>
+                                            <p className="text-sm text-purple-800">
+                                                Case referred to <b className="font-black">{latestReferral.agency.name}</b> on {new Date(latestReferral.referred_at || latestReferral.created_at).toLocaleDateString()}.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="text-xs font-black uppercase text-purple-700 mb-1">External Referral Active</h4>
-                                        <p className="text-sm text-purple-800">
-                                            Case referred to <b className="font-black">{caseData.referral_to}</b>. Check referral notes for more details.
-                                        </p>
-                                    </div>
+                                    {latestReferral.agency_feedback && (
+                                        <div className="mt-2 p-3 bg-white/60 rounded border border-purple-100 text-sm text-purple-900 italic">
+                                            <b>Agency Feedback:</b> {latestReferral.agency_feedback}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </CardContent>
@@ -265,6 +280,38 @@ export default function Edit({ caseData, abuseTypes, referralPartners, caseStatu
                                         className="min-h-[120px] resize-none text-sm p-3"
                                     />
                                 </div>
+
+                                {data.status.startsWith('Referred') && (
+                                    <>
+                                        <div className="space-y-2 border-t border-neutral-100 dark:border-neutral-800 pt-4">
+                                            <Label className="text-xs font-bold uppercase text-neutral-500">Referral Status</Label>
+                                            <Select
+                                                onValueChange={v => setData('referral_status', v)}
+                                                defaultValue={data.referral_status}
+                                            >
+                                                <SelectTrigger className="h-11 font-medium bg-neutral-50 dark:bg-neutral-900">
+                                                    <SelectValue placeholder="Status of Referral..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Pending">Pending</SelectItem>
+                                                    <SelectItem value="Accepted">Accepted by Agency</SelectItem>
+                                                    <SelectItem value="Declined">Declined / Cannot be done</SelectItem>
+                                                    <SelectItem value="Completed">Completed / Resolved</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-neutral-500">Agency Feedback</Label>
+                                            <Textarea
+                                                placeholder="Remarks or feedback from the receiving agency..."
+                                                value={data.agency_feedback || ''}
+                                                onChange={e => setData('agency_feedback', e.target.value)}
+                                                className="min-h-[80px] resize-none text-sm p-3 bg-neutral-50 dark:bg-neutral-900"
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 <Button
                                     className={`w-full ${buttonColor} text-white font-black uppercase tracking-widest h-12 rounded-lg shadow-lg hover:shadow-xl transition-all`}

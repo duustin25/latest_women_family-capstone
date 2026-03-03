@@ -70,7 +70,6 @@ export default function Index({ organizations = { data: [] } }: any) {
                         {/* Stats Bar */}
                         <div className="flex flex-wrap gap-8 mb-12 border-b border-slate-200 dark:border-neutral-800 pb-8">
                             <div className="flex items-center gap-4">
-                                <span className="text-4xl font-black text-slate-200 dark:text-neutral-800">01</span>
                                 <div>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Active</p>
                                     <p className="font-bold text-slate-900 dark:text-white">{organizations.data.length} Groups</p>
@@ -78,9 +77,7 @@ export default function Index({ organizations = { data: [] } }: any) {
                             </div>
                             <div className="w-px h-12 bg-slate-200 dark:bg-neutral-800 hidden md:block"></div>
                             <div className="flex items-center gap-4">
-                                <span className="text-4xl font-black text-slate-200 dark:text-neutral-800">02</span>
                                 <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Status</p>
                                     <p className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                         <CheckCircle2 size={14} /> Fully Accredited
                                     </p>

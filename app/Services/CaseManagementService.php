@@ -51,7 +51,7 @@ class CaseManagementService
     /**
      * Update the status and referral information of an existing case report.
      */
-    public function updateStatus(CaseReport $case, string $uiStatus, ?string $referralNotes = null): bool
+    public function updateStatus(CaseReport $case, string $uiStatus, ?string $referralNotes = null, ?string $referralStatus = null, ?string $agencyFeedback = null): bool
     {
         $dbStatusId = null;
         $referralAgencyId = null;
@@ -92,22 +92,41 @@ class CaseManagementService
         $updateData = [
             'lifecycle_status' => $lifecycleStatus,
             'case_status_id' => $dbStatusId,
-            'referral_agency_id' => $referralAgencyId,
             'handled_by_id' => \Illuminate\Support\Facades\Auth::id() // Accountability Fix
         ];
 
-        // Explicitly clear or set the referral mapping to prevent phantom links
         if ($referralAgencyId) {
-            // Only update referral date if it just transitioned to this referral
-            if (!$case->referral_agency_id || $case->referral_agency_id != $referralAgencyId) {
-                $updateData['referral_date'] = now();
-            }
-        } else {
-            $updateData['referral_date'] = null;
-        }
+            // Ensure a referral record exists for this agency on this case.
+            $existingReferral = \App\Models\CaseReferral::where('case_report_id', $case->id)
+                ->where('referral_agency_id', $referralAgencyId)
+                ->first();
 
-        if ($referralNotes !== null) {
-            $updateData['referral_notes'] = $referralNotes;
+            if (!$existingReferral) {
+                \App\Models\CaseReferral::create([
+                    'case_report_id' => $case->id,
+                    'referral_agency_id' => $referralAgencyId,
+                    'referred_at' => now(),
+                    'referral_notes' => $referralNotes,
+                    'handled_by_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'status' => $referralStatus ?? 'Pending',
+                    'agency_feedback' => $agencyFeedback,
+                ]);
+            } else {
+                $referralUpdate = [];
+                if ($referralNotes !== null) {
+                    $referralUpdate['referral_notes'] = $referralNotes;
+                }
+                if ($referralStatus !== null) {
+                    $referralUpdate['status'] = $referralStatus;
+                }
+                if ($agencyFeedback !== null) {
+                    $referralUpdate['agency_feedback'] = $agencyFeedback;
+                }
+
+                if (!empty($referralUpdate)) {
+                    $existingReferral->update($referralUpdate);
+                }
+            }
         }
 
         return $case->update($updateData);

@@ -28,16 +28,11 @@ class CaseReport extends Model
         'lifecycle_status',
         'handled_by_id',
         'case_status_id',
-        'evidence_path',
-        'referral_agency_id',
-        'referral_date',
-        'referral_notes',
     ];
 
     protected $casts = [
         'is_anonymous' => 'boolean',
         'incident_date' => 'datetime',
-        'referral_date' => 'datetime',
     ];
 
     /**
@@ -57,11 +52,11 @@ class CaseReport extends Model
     }
 
     /**
-     * Get the referral agency associated with the report.
+     * Get the referrals associated with the report.
      */
-    public function referralAgency(): BelongsTo
+    public function referrals()
     {
-        return $this->belongsTo(CaseReferralAgency::class, 'referral_agency_id');
+        return $this->hasMany(CaseReferral::class, 'case_report_id');
     }
 
     /**

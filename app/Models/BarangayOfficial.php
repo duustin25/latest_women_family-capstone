@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BarangayOfficial extends Model
 {
 
     protected $fillable = [
+        'user_id',
         'name',
         'position',
         'committee',
@@ -21,4 +23,14 @@ class BarangayOfficial extends Model
         'is_active' => 'boolean',
         'display_order' => 'integer',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function getOfficialNameAttribute()
+    {
+        return $this->user ? $this->user->name : $this->name;
+    }
 }

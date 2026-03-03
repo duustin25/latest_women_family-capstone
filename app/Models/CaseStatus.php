@@ -9,6 +9,8 @@ class CaseStatus extends Model
 {
     use HasFactory;
 
+    protected $table = 'case_status';
+
     protected $fillable = ['name', 'type', 'description', 'is_active'];
 
     protected $casts = [

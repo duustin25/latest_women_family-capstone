@@ -12,7 +12,10 @@ return new class extends Migration {
     {
         Schema::create('barangay_officials', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('user_id')
+                ->nullable() // Nullable because not all staff might need a login
+                ->constrained('users')
+                ->onDelete('set null');
             $table->string('position');
             $table->string('committee')->nullable();
             $table->string('image_path')->nullable();

@@ -9,6 +9,10 @@ export default function Print({ caseData, type }: { caseData: any, type: string 
         // window.print();
     }, []);
 
+    const latestReferral = caseData.referrals && caseData.referrals.length > 0
+        ? [...caseData.referrals].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+        : null;
+
     const DataField = ({ label, value, fullWidth = false }: { label: string, value: string | number | null, fullWidth?: boolean }) => (
         <div className={`flex flex-col ${fullWidth ? 'col-span-full' : ''}`}>
             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">{label}</span>
@@ -101,7 +105,7 @@ export default function Print({ caseData, type }: { caseData: any, type: string 
                         <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2 block">Action Taken / Resolution</span>
                         <div className="border-b-2 border-slate-800 pb-1 min-h-[24px]">
                             <span className="text-sm font-bold uppercase text-slate-900 leading-none">
-                                {caseData.referralAgency?.name || caseData.referral_to ? `Referred to: ${caseData.referralAgency?.name || caseData.referral_to}` : 'Managed at Barangay Level'}
+                                {latestReferral?.agency?.name || caseData.referral_to ? `Referred to: ${latestReferral?.agency?.name || caseData.referral_to}` : 'Managed at Barangay Level'}
                             </span>
                         </div>
                     </div>

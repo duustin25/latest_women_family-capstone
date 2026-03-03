@@ -33,16 +33,13 @@ return new class extends Migration {
                 ->default('New');
 
             // Categorization and Status (Foreign Keys to Configuration Tables)
-            $table->foreignId('abuse_type_id')->nullable()->constrained('case_abuse_types')->nullOnDelete();
-            $table->foreignId('case_status_id')->nullable()->constrained('case_statuses')->nullOnDelete();
+            $table->foreignId('abuse_type_id')->nullable()->constrained('case_types')->nullOnDelete();
+            $table->foreignId('case_status_id')->nullable()->constrained('case_status')->nullOnDelete();
 
             // Evidence
             $table->string('evidence_path')->nullable(); // For uploaded files
 
-            // Referral Columns
-            $table->foreignId('referral_agency_id')->nullable()->constrained('case_referral_agencies')->nullOnDelete();
-            $table->dateTime('referral_date')->nullable();
-            $table->text('referral_notes')->nullable();
+
 
             // Accountability
             $table->foreignId('handled_by_id')->nullable()->constrained('users')->nullOnDelete();
