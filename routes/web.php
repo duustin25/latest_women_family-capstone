@@ -140,43 +140,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         });
 
-        // --- GAD ANALYTICS ---
-        $gadMonthlyStatsRaw = \App\Models\GadActivity::select('date_scheduled', 'activity_type', 'actual_expenditure')
-            ->where('status', 'Completed')
-            ->whereYear('date_scheduled', $currentYear)
-            ->get();
-
-        $gadMonthlyStats = $gadMonthlyStatsRaw->groupBy(function ($act) {
-            return \Carbon\Carbon::parse($act->date_scheduled)->month;
-        })
-            ->map(function ($group, $month) {
-                $sums = $group->groupBy('activity_type')->map(function ($typeGroup) {
-                    return $typeGroup->sum('actual_expenditure');
-                });
-                return (object) [
-                    'month' => $month,
-                    'totals' => $sums
-                ];
-            });
-
-        $gadAnalyticsData = [];
-        foreach ($months as $index => $monthName) {
-            $monthNum = $index + 1;
-            $data = ['month' => $monthName];
-
-            $data['client_focused'] = 0;
-            $data['org_focused'] = 0;
-            $data['attribution'] = 0;
-
-            if ($gadMonthlyStats->has($monthNum)) {
-                $stat = $gadMonthlyStats->get($monthNum);
-                $data['client_focused'] = current($stat->totals->get('Client-Focused', [0])) ?? $stat->totals->get('Client-Focused', 0);
-                $data['org_focused'] = current($stat->totals->get('Org-Focused', [0])) ?? $stat->totals->get('Org-Focused', 0);
-                $data['attribution'] = current($stat->totals->get('Attribution', [0])) ?? $stat->totals->get('Attribution', 0);
-            }
-
-            $gadAnalyticsData[] = $data;
-        }
+        // --- GAD ANALYTICS REMOVED ---
 
         // Dashboard Quick Stats
         $stats = [
@@ -204,7 +168,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard', [
             'analyticsData' => $formattedData,
             'chartConfig' => $chartConfig,
-            'gadAnalyticsData' => $gadAnalyticsData,
             'systemStats' => $stats,
             'recentCases' => $recentCases
         ]);
@@ -252,10 +215,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/members', [MembersController::class, 'index'])
             ->name('members');
 
-        // GAD Module
-        Route::get('gad/dashboard', [\App\Http\Controllers\Admin\GadActivityController::class, 'dashboard'])->name('gad.dashboard');
-        Route::get('gad/print', [\App\Http\Controllers\Admin\GadActivityController::class, 'print'])->name('gad.print');
-        Route::resource('gad/activities', \App\Http\Controllers\Admin\GadActivityController::class, ['names' => 'gad.activities']);
+        // GAD Events Module
+        Route::resource('gad/events', \App\Http\Controllers\Admin\GadEventController::class, ['names' => 'gad.events']);
 
     });
 

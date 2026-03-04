@@ -2,19 +2,26 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
-import { Plus, Edit3, Trash2, User, Image as ImageIcon, Search, Shield, Briefcase, Award } from 'lucide-react';
+import { Plus, Edit3, Trash2, User, Image as ImageIcon, Search, Shield, Briefcase } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-interface Official {
+interface User {
     id: number;
     name: string;
+}
+
+interface Official {
+    id: number;
+    user_id?: number;
+    user?: User;
+
     position: string;
     committee?: string;
     image_path?: string;
@@ -22,34 +29,35 @@ interface Official {
     is_active: boolean;
 }
 
-export default function Index({ officials }: { officials: Official[] }) {
+export default function Index({ officials, users }: { officials: Official[], users: User[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     const form = useForm({
-        name: '',
+        user_id: '' as string | number,
+
         position: '',
         committee: '',
         level: 'staff',
         image_path: null as File | null,
-        _method: 'POST' // Required for file uploads in updates
+        _method: 'POST'
     });
 
-    // Client-side filtering
-    const filteredOfficials = officials.filter(official =>
-        official.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        official.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (official.committee && official.committee.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filteredOfficials = officials.filter(off => {
+        const displayName = off.user ? off.user.name : 'Vacant Position';
+        return displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            off.position.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     const openCreate = () => {
         setIsEditing(false);
         setEditingId(null);
         form.reset();
         form.setData({
-            name: '',
+            user_id: '',
+
             position: '',
             committee: '',
             level: 'staff',
@@ -63,7 +71,8 @@ export default function Index({ officials }: { officials: Official[] }) {
         setIsEditing(true);
         setEditingId(official.id);
         form.setData({
-            name: official.name,
+            user_id: official.user_id || '',
+
             position: official.position,
             committee: official.committee || '',
             level: official.level as any,
@@ -79,13 +88,13 @@ export default function Index({ officials }: { officials: Official[] }) {
         if (isEditing && editingId) {
             router.post(route('admin.officials.update', editingId), {
                 ...form.data,
-                image_path: form.data.image_path // Force sending file
+                image_path: form.data.image_path
             }, {
                 onSuccess: () => setIsModalOpen(false),
                 onError: (errors) => {
                     Object.values(errors).flat().forEach((err: any) => toast.error(err));
                 },
-                forceFormData: true // Important for file upload with PATCH spoofing
+                forceFormData: true
             });
         } else {
             form.post(route('admin.officials.store'), {
@@ -114,7 +123,7 @@ export default function Index({ officials }: { officials: Official[] }) {
             <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
 
-                    {/* HERO SECTION */}
+                    {/* ... (HERO SECTION AND CONTROL BAR REMAIN THE SAME) ... */}
                     <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
                         <div>
                             <div className='flex items-center gap-3 mb-2'>
@@ -142,10 +151,8 @@ export default function Index({ officials }: { officials: Official[] }) {
                         </div>
                     </div>
 
-                    {/* CONTROL BAR */}
                     <div className="sticky top-4 z-30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md p-2 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
                         <div className="flex items-center gap-2 w-full md:w-auto flex-1">
-                            {/* SEARCH BAR */}
                             <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 w-full md:max-w-[320px]">
                                 <Search size={14} className="text-neutral-400" />
                                 <input
@@ -187,12 +194,11 @@ export default function Index({ officials }: { officials: Official[] }) {
                                     ) : (
                                         filteredOfficials.map((official) => (
                                             <tr key={official.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                                                {/* DETAILS */}
                                                 <td className="p-5 pl-8 align-middle">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 shrink-0 border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                                                             {official.image_path ? (
-                                                                <img src={official.image_path} alt={official.name} className="w-full h-full object-cover" />
+                                                                <img src={official.image_path} alt="Official" className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-neutral-300">
                                                                     <User size={20} />
@@ -201,7 +207,7 @@ export default function Index({ officials }: { officials: Official[] }) {
                                                         </div>
                                                         <div>
                                                             <span className="text-sm font-bold text-neutral-900 dark:text-white block uppercase tracking-tight">
-                                                                {official.name}
+                                                                {official.user ? official.user.name : 'Vacant Position'}
                                                             </span>
                                                             <div className="flex items-center gap-1 mt-1">
                                                                 <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 lowercase first-letter:uppercase ${official.level === 'head' ? 'bg-purple-50 text-purple-600 border-purple-200' :
@@ -215,7 +221,6 @@ export default function Index({ officials }: { officials: Official[] }) {
                                                     </div>
                                                 </td>
 
-                                                {/* POSITION */}
                                                 <td className="p-5 align-middle">
                                                     <div className="flex items-center gap-2">
                                                         <Shield size={12} className="text-neutral-400" />
@@ -225,7 +230,6 @@ export default function Index({ officials }: { officials: Official[] }) {
                                                     </div>
                                                 </td>
 
-                                                {/* COMMITTEE */}
                                                 <td className="p-5 align-middle">
                                                     {official.committee ? (
                                                         <div className="flex items-center gap-2">
@@ -239,7 +243,6 @@ export default function Index({ officials }: { officials: Official[] }) {
                                                     )}
                                                 </td>
 
-                                                {/* ACTIONS */}
                                                 <td className="p-5 pr-8 align-middle text-right">
                                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button variant="ghost" size="sm" onClick={() => openEdit(official)} className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
@@ -278,30 +281,48 @@ export default function Index({ officials }: { officials: Official[] }) {
                                 </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={submit} className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label>Full Name</Label>
-                                    <Input
-                                        value={form.data.name}
-                                        onChange={e => form.setData('name', e.target.value)}
-                                        placeholder="e.g. Juan De La Cruz"
-                                        required
-                                    />
-                                    {form.errors.name && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.name}</p>
+
+                                {/* USER SELECTION */}
+                                <div className="space-y-2 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
+                                    <Label className="text-[10px] uppercase tracking-widest font-black text-purple-600">Link to System Account</Label>
+                                    <Select
+                                        value={form.data.user_id?.toString()}
+                                        onValueChange={v => form.setData('user_id', v)}
+                                    >
+                                        <SelectTrigger className="bg-white dark:bg-black uppercase text-xs font-bold">
+                                            <SelectValue placeholder="SELECT REGISTERED USER" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">SELECT REGISTERED USER</SelectItem>
+                                            {users.map(user => (
+                                                <SelectItem key={user.id} value={user.id.toString()}>
+                                                    {user.name.toUpperCase()}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-[9px] text-neutral-400">All organizational staff must be linked to a registered account.</p>
+                                    {form.errors.user_id && (
+                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.user_id}</p>
                                     )}
                                 </div>
 
+
+
+                                {/* NEW: HIERARCHY LEVEL SELECTOR */}
                                 <div className="space-y-2">
                                     <Label>Hierarchy Level</Label>
                                     <Select
                                         value={form.data.level}
                                         onValueChange={v => form.setData('level', v as any)}
                                     >
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Level" />
+                                        </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="head">Barangay Head (Top)</SelectItem>
-                                            <SelectItem value="secretary">Secretary (Middle)</SelectItem>
-                                            <SelectItem value="staff">Staff / Officer (Bottom)</SelectItem>
+                                            <SelectItem value="head">Head Committee (Only 1 allowed)</SelectItem>
+                                            <SelectItem value="secretary">Secretary (Only 1 allowed)</SelectItem>
+                                            <SelectItem value="staff">Office Staff (Multiple allowed)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {form.errors.level && (
@@ -353,7 +374,7 @@ export default function Index({ officials }: { officials: Official[] }) {
 
                                 <DialogFooter>
                                     <Button type="submit" disabled={form.processing} className="w-full bg-purple-600 hover:bg-purple-700">
-                                        {isEditing ? 'Update Official' : 'Save Official'}
+                                        {isEditing ? 'Update Official' : 'Confirm & Save'}
                                     </Button>
                                 </DialogFooter>
                             </form>

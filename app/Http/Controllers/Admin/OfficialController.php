@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BarangayOfficial;
+use App\Models\OrganizationalMember;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -12,7 +13,7 @@ class OfficialController extends Controller
 {
     public function index()
     {
-        $officials = BarangayOfficial::with('user')
+        $officials = OrganizationalMember::with('user')
             ->orderBy('level')
             ->orderBy('display_order')
             ->get();
@@ -27,60 +28,75 @@ class OfficialController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'name' => 'required|string|max:255',
+        // 🚀 THE FIX: Intercept "0" or "none" from React and force it to be strictly null
+        if ($request->user_id === '0' || $request->user_id === 'none') {
+            $request->merge(['user_id' => null]);
+        }
+
+        $rules = [
+            'user_id' => 'required|exists:users,id|unique:organizational_members,user_id',
             'position' => 'required|string|max:255',
             'committee' => 'nullable|string|max:255',
             'level' => 'required|in:head,secretary,staff',
-            'image_path' => 'nullable|image|max:10240|dimensions:ratio=1/1', // 10MB
-        ]);
+            'image_path' => 'nullable|image|max:10240|dimensions:ratio=1/1',
+        ];
 
-        // Enforce unique Head and Secretary
-        if ($request->user_id && BarangayOfficial::where('user_id', $request->user_id)->exist()) {
-            return back()->withErrors(['user_id' => 'This user is already assigned as an official.']);
+        $validated = $request->validate($rules);
+
+        // ENFORCE RULE: Only 1 Head, Only 1 Secretary
+        if (in_array($request->level, ['head', 'secretary'])) {
+            if (OrganizationalMember::where('level', $request->level)->exists()) {
+                return back()->withErrors(['level' => 'A ' . ucfirst($request->level) . ' is already assigned. Please reassign the current one to Staff first.']);
+            }
         }
+
+
 
         if ($request->hasFile('image_path')) {
             $path = $request->file('image_path')->store('officials', 'public');
             $validated['image_path'] = '/storage/' . $path;
         }
 
-        BarangayOfficial::create($validated);
+        OrganizationalMember::create($validated);
         return back()->with('success', 'Official added successfully.');
     }
 
     public function update(Request $request, $id)
     {
-        $official = BarangayOfficial::findOrFail($id);
+        $official = OrganizationalMember::findOrFail($id);
 
-        $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'name' => 'required|string|max:255',
+        $rules = [
+            'user_id' => [
+                'required',
+                'exists:users,id',
+                Rule::unique('organizational_members', 'user_id')->ignore($id)
+            ],
             'position' => 'required|string|max:255',
             'committee' => 'nullable|string|max:255',
             'level' => 'required|in:head,secretary,staff',
             'image_path' => 'nullable|image|max:10240|dimensions:ratio=1/1',
             'is_active' => 'boolean'
-        ]);
+        ];
 
-        // Enforce unique Head and Secretary (excluding self)
-        if ($request->user_id && BarangayOfficial::where('user_id', $request->user_id)->where('id', '!=', $id)->exists()) {
-            return back()->withErrors(['user_id' => 'This user is already assigned as an official.']);
+        $validated = $request->validate($rules);
+
+        // ENFORCE RULE: Only 1 Head, Only 1 Secretary (Excluding self)
+        if (in_array($request->level, ['head', 'secretary'])) {
+            if (OrganizationalMember::where('level', $request->level)->where('id', '!=', $id)->exists()) {
+                return back()->withErrors(['level' => 'A ' . ucfirst($request->level) . ' is already assigned.']);
+            }
         }
 
+
+
         if ($request->hasFile('image_path')) {
-            // Delete old image if exists
             if ($official->image_path) {
-                // Remove '/storage/' prefix to get relative path
                 $relativePath = str_replace('/storage/', '', $official->image_path);
                 Storage::disk('public')->delete($relativePath);
             }
-
             $path = $request->file('image_path')->store('officials', 'public');
             $validated['image_path'] = '/storage/' . $path;
         } else {
-            // Remove image_path from validated if null/empty so it doesn't overwrite existing
             unset($validated['image_path']);
         }
 
@@ -91,7 +107,7 @@ class OfficialController extends Controller
 
     public function destroy($id)
     {
-        $official = BarangayOfficial::findOrFail($id);
+        $official = OrganizationalMember::findOrFail($id);
 
         if ($official->image_path) {
             $relativePath = str_replace('/storage/', '', $official->image_path);

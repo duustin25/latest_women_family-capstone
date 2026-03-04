@@ -23,13 +23,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Dashboard({
     analyticsData,
     chartConfig,
-    gadAnalyticsData,
     systemStats,
     recentCases
 }: {
     analyticsData: any[],
     chartConfig: any[],
-    gadAnalyticsData: any[],
     systemStats: { totalCases: number, totalUsers: number, totalOrgs: number },
     recentCases: any[]
 }) {
@@ -161,24 +159,6 @@ export default function Dashboard({
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>GAD Expenditure Analytics</CardTitle>
-                                <CardDescription>
-                                    Monthly utilization breakdown by activity type.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="pl-5">
-                                <AnalyticsChart
-                                    data={gadAnalyticsData}
-                                    config={[
-                                        { key: 'client_focused', label: 'Client-Focused', color: '#10b981' }, // Emerald-500
-                                        { key: 'org_focused', label: 'Organization-Focused', color: '#3b82f6' }, // Blue-500
-                                        { key: 'attribution', label: 'Attribution', color: '#f59e0b' }, // Amber-500
-                                    ]}
-                                />
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
             </div>

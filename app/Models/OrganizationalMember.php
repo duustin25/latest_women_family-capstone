@@ -5,12 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BarangayOfficial extends Model
+class OrganizationalMember extends Model
 {
-
     protected $fillable = [
         'user_id',
-        'name',
         'position',
         'committee',
         'image_path',

@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class GadEvent extends Model
+{
+    protected $fillable = [
+        'title',
+        'description',
+        'event_date',
+        'event_time',
+        'location',
+        'image_path',
+    ];
+
+    protected $casts = [
+        'event_date' => 'datetime',
+    ];
+}

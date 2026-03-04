@@ -1,15 +1,22 @@
 import { Head } from '@inertiajs/react';
 import PublicLayout from '@/layouts/PublicLayout';
-import { Landmark, UserCheck, Heart, ShieldAlert, Users } from "lucide-react";
+import { ShieldCheck, User as UserIcon, Building2, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface Official {
+// Match the User interface
+interface User {
     id: number;
     name: string;
+}
+
+// Match the Official interface with the new relational structure
+interface Official {
+    id: number;
+    user_id?: number;
+    user?: User; // Dynamically resolved Name
     position: string;
     committee?: string;
-    image_path: string;
-    contact?: string;
-    email?: string;
+    image_path?: string;
 }
 
 interface Props {
@@ -19,171 +26,156 @@ interface Props {
 }
 
 export default function Index({ head, secretary, staff }: Props) {
-    const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME || 'Barangay 183 Villamor';
-    const defaultImage = "https://ui-avatars.com/api/?background=random&color=fff&name=";
+    const brgyName = import.meta.env.VITE_APP_BARANGAY_NAME;
+    const defaultImage = "https://ui-avatars.com/api/?background=random&color=333&name=";
 
-    const presidents = [
-        { org: "KALIPI", name: "ELENA REYES", icon: <UserCheck size={18} /> },
-        { org: "SOLO PARENTS", name: "MARIA DELA CRUZ", icon: <Heart size={18} /> },
-        { org: "VCO", name: "JUANITO SAMPLE", icon: <ShieldAlert size={18} /> },
-        { org: "ERPAT", name: "RAMIL RODRIGUEZ", icon: <Users size={18} /> },
-    ];
+    const OfficialCard = ({
+        member,
+        isHead = false,
+        isSecretary = false
+    }: {
+        member: Official,
+        isHead?: boolean,
+        isSecretary?: boolean
+    }) => {
+        // Resolve dynamic naming structure based on prior refactoring
+        const displayName = member.user ? member.user.name : 'Vacant Position';
+        const imgSrc = member.image_path || defaultImage + encodeURIComponent(displayName);
 
-    const OfficialCard = ({ image_path, name, position, committee, className = "", isHead = false }: any) => {
-        const imgSrc = image_path || defaultImage + encodeURIComponent(name);
+        // Styling based on level
+        const borderColor = isHead ? 'border-purple-600' : isSecretary ? 'border-blue-600' : 'border-slate-200 dark:border-neutral-800';
+        const badgeColor = isHead ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+            : isSecretary ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
 
         return (
-            <div className={`relative group z-10 flex flex-col items-center ${className}`}>
-                {/* FIXED BACKGROUND LOGO */}
-                <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
-                    <img
-                        src="/Logo/barangay183LOGO.png"
-                        alt="Barangay 183 Logo"
-                        className="w-[500px] opacity-5"
-                    />
-                </div>
-                <div className={`
-                    relative w-64 bg-white rounded-2xl shadow-lg border transition-all duration-300
-                    flex flex-col items-center p-6 text-center
-                    ${isHead ? 'border-yellow-400 shadow-yellow-900/10 scale-105' : 'border-slate-100 hover:border-purple-200 hover:-translate-y-1 hover:shadow-xl'}
-                `}>
-
-                    {/* Role Badge */}
-                    <div className={`
-                        absolute -top-3 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm
-                        ${isHead ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-900 text-white'}
-                    `}>
-                        {position}
+            <Card className={`bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-shadow dark:border-neutral-800 ${borderColor} border-t-4`}>
+                <CardContent className="p-6 flex flex-col items-center text-center">
+                    {/* Avatar Container */}
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-100 dark:border-neutral-800 shadow-sm mb-4 bg-slate-50 dark:bg-neutral-950 flex items-center justify-center shrink-0">
+                        {member.image_path ? (
+                            <img src={imgSrc} alt={displayName} className="w-full h-full object-cover" />
+                        ) : (
+                            <UserIcon className="w-10 h-10 text-slate-300 dark:text-neutral-700" />
+                        )}
                     </div>
 
-                    {/* Avatar */}
-                    <div className="w-20 h-20 rounded-full p-1 bg-white border border-slate-100 shadow-inner mb-4 mt-2 overflow-hidden">
-                        <img src={imgSrc} alt={name} className="w-full h-full object-cover rounded-full" />
-                    </div>
-
-                    <h3 className="font-black text-slate-900 text-sm uppercase leading-tight mb-1 group-hover:text-purple-700 transition-colors">
-                        {name}
+                    {/* Name */}
+                    <h3 className="font-black text-slate-900 dark:text-white text-base md:text-lg uppercase leading-tight mb-1">
+                        {displayName}
                     </h3>
 
-                    {committee && (
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wide mb-4 line-clamp-2">
-                            {committee}
+                    {/* Position */}
+                    {member.position && (
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">
+                            {member.position}
                         </p>
                     )}
 
+                    {/* Hierarchy Level Badge */}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${badgeColor}`}>
+                        {isHead ? 'Committee Head' : isSecretary ? 'Secretary' : 'Staff Member'}
+                    </span>
 
-                </div>
-            </div>
+                    {/* Optional Committee Info */}
+                    {member.committee && (
+                        <div className="flex items-center gap-1.5 mt-4 pt-4 border-t border-slate-100 dark:border-neutral-800 w-full justify-center">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                {member.committee}
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         );
     };
 
     return (
         <PublicLayout>
-            <Head title={`Officials - ${brgyName}`} />
+            <Head title={`Organizational Chart - ${brgyName}`} />
 
-            <div className="bg-slate-50 min-h-screen pb-32 font-sans selection:bg-purple-200">
+            <div className="min-h-screen bg-white dark:bg-neutral-950 font-sans text-slate-800 dark:text-slate-200 transition-colors pb-24">
 
-                {/* --- HEADER --- */}
-                <div className="bg-white border-b border-slate-100 py-16 text-center relative overflow-hidden">
-                    <div className="relative z-10 container mx-auto px-4">
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter mb-2">
-                            Organizational <span className="text-purple-600">Chart</span>
+                {/* --- HERO SECTION (Matches VAWC / GAD Design) --- */}
+                <section className="bg-slate-900 border-b-8 border-purple-600 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/40 to-transparent z-0"></div>
+                    <div className="container mx-auto px-6 py-20 relative z-10 flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-purple-950/50 rounded-full flex items-center justify-center mb-6 border border-purple-500/20 backdrop-blur-sm">
+                            <ShieldCheck className="w-8 h-8 text-purple-400" />
+                        </div>
+                        <h2 className="text-purple-400 font-black uppercase tracking-[0.3em] text-sm mb-4">
+                            The Leadership Board
+                        </h2>
+                        <h1 className="text-4xl md:text-5xl font-black text-white uppercase leading-tight mb-4 tracking-tighter">
+                            Organizational <span className="text-purple-500">Chart</span>
                         </h1>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                            {brgyName} • Official Hierarchy
+                        <p className="text-sm md:text-base text-slate-300 font-medium max-w-2xl leading-relaxed">
+                            A clear and structured view of the dedicated individuals serving the Women & Family Office of {brgyName}.
                         </p>
                     </div>
-                </div>
+                </section>
 
-                {/* --- TREE CONTAINER --- */}
-                <div className="container mx-auto px-4 mt-16 overflow-x-auto">
-                    {/* Add min-width to ensure the tree doesn't break on small screens, allowing horizontal scroll */}
-                    <div className="min-w-[768px] flex flex-col items-center pb-20">
+                <div className="container mx-auto px-6 py-16 space-y-16">
 
-                        {/* LEVEL 1: HEAD */}
-                        <div className="flex flex-col items-center relative z-30">
-                            {head ? (
-                                <OfficialCard {...head} isHead={true} />
-                            ) : (
-                                <div className="p-8 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs font-black uppercase">Vacant Position</div>
-                            )}
-                            {/* Vertical Line from Head */}
-                            <div className="w-0.5 h-16 bg-slate-300"></div>
+                    {/* EXECUTIVE LEVEL (Head & Secretary) */}
+                    <div className="space-y-12 max-w-4xl mx-auto">
+
+                        {/* 1. Head Container */}
+                        <div className="flex flex-col items-center">
+                            <div className="w-full md:w-[28rem]">
+                                {head ? (
+                                    <OfficialCard member={head} isHead />
+                                ) : (
+                                    <div className="p-8 border-2 border-dashed border-slate-200 dark:border-neutral-800 rounded-xl text-center">
+                                        <p className="text-slate-400 dark:text-slate-500 text-xs font-black uppercase tracking-widest">Position Vacant</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* LEVEL 2: SECRETARY */}
-                        <div className="flex flex-col items-center relative z-20">
-                            {secretary ? (
-                                <OfficialCard {...secretary} />
-                            ) : (
-                                <div className="p-8 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs font-black uppercase">Vacant Position</div>
-                            )}
-                            {/* Vertical Line from Secretary */}
-                            <div className="w-0.5 h-16 bg-slate-300"></div>
-                        </div>
-
-                        {/* LEVEL 3: STAFF BRANCHING */}
-                        <div className="w-full max-w-6xl flex flex-col items-center relative z-10">
-
-                            {/* Horizontal Connector Line */}
-                            {staff.length > 0 && (
-                                <div className="relative w-full h-0.5 bg-slate-300 mb-12">
-                                    {/* Center Vertical Connect coming from above */}
-                                    <div className="absolute left-1/2 -top-4  h-4 w-0.5 bg-slate-300 -translate-x-1/2"></div>
-
-                                    {/* Left End Vertical Drop */}
-                                    <div className="absolute left-[10%] top-0 h-12 w-0.5 bg-slate-300 translate-y-0.5"></div>
-                                    {/* Right End Vertical Drop */}
-                                    <div className="absolute right-[10%] top-0 h-12 w-0.5 bg-slate-300 translate-y-0.5"></div>
-
-                                    {/* Center Group Vertical Drop (for multiple rows if needed, simplified here to distribute) */}
-                                </div>
-                            )}
-
-                            {/* Staff Cards Grid - Positioned to align with line drops */}
-                            <div className="grid grid-cols-3 gap-x-12 gap-y-16 w-full">
-                                {staff.length > 0 ? staff.map((member, index) => {
-                                    // Logic to determine connector line position based on index if strictly visual logic needed
-                                    // For a simplified flexible grid that looks like a tree:
-                                    return (
-                                        <div key={member.id} className="flex flex-col items-center relative">
-                                            {/* Connector from Horizontal Line above */}
-                                            {/* We simulate specific connectors. For a pure CSS tree, we'd need exact width calcs. 
-                                                Here we act as if the horizontal line covers them. 
-                                                A simple robust way is: Center connector for middle items, Left/Right for edges.
-                                            */}
-                                            <div className="absolute -top-[49px] h-[49px] w-0.5 bg-slate-300"></div>
-
-                                            {/* Dot at junction */}
-                                            <div className="absolute -top-[4px] w-2 h-2 bg-slate-200 rounded-full border border-slate-300 z-10"></div>
-
-                                            <OfficialCard {...member} />
-                                        </div>
-                                    );
-                                }) : (
-                                    <div className="col-span-3 text-center py-10">
-                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest italic">No staff members assigned.</p>
+                        {/* 2. Secretary Container */}
+                        <div className="flex flex-col items-center">
+                            <div className="w-full md:w-[24rem]">
+                                {secretary ? (
+                                    <OfficialCard member={secretary} isSecretary />
+                                ) : (
+                                    <div className="p-8 border-2 border-dashed border-slate-200 dark:border-neutral-800 rounded-xl text-center">
+                                        <p className="text-slate-400 dark:text-slate-500 text-xs font-black uppercase tracking-widest">Position Vacant</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                     </div>
-                </div>
 
-                {/* --- LEGEND / PARTNERS --- */}
-                <div className="container mx-auto px-4 max-w-4xl mt-12 border-t border-slate-200 pt-12">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-8 opacity-60 hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-4 text-xs font-black text-slate-400 uppercase tracking-widest">
-                            <span className="w-3 h-3 bg-yellow-400 rounded-full"></span> Executive
-                            <span className="w-3 h-3 bg-slate-900 rounded-full"></span> Admin / Staff
-                        </div>
-                        <div className="text-[10px] font-black uppercase text-slate-300">
-                            Official Organizational Chart • Updated 2026
-                        </div>
+                    {/* LINE SEPARATOR */}
+                    <div className="flex items-center justify-center py-4">
+                        <div className="h-px bg-slate-200 dark:bg-neutral-800 w-full max-w-4xl"></div>
                     </div>
-                </div>
 
+                    {/* STAFF MEMBERS GRID */}
+                    <div>
+                        <div className="text-center mb-10">
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Office Staff & Members</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">The supporting personnel driving community initiatives.</p>
+                        </div>
+
+                        {staff.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+                                {staff.map((member) => (
+                                    <OfficialCard key={member.id} member={member} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-16 border border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 rounded-xl text-center max-w-3xl mx-auto">
+                                <Users className="w-12 h-12 text-slate-300 dark:text-neutral-700 mx-auto mb-4" />
+                                <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">No staff members assigned currently.</p>
+                            </div>
+                        )}
+                    </div>
+
+                </div>
             </div>
         </PublicLayout>
     );

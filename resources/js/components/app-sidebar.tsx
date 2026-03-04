@@ -54,7 +54,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'GAD',
-        href: '/admin/gad/dashboard',
+        href: '/admin/gad/events',
         icon: Activity,
     },
     {

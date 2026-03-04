@@ -22,10 +22,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. Add Gerald to the Public-Facing Officials Chart
-        // We explicitly keep this separate from the Users table because the public chart 
+        // We link this to the Users table because the public chart 
         // represents the "Office Structure", while Users represent "System Logins".
-        \App\Models\BarangayOfficial::create([
-            'name' => 'Hon. Gerald Sobrevega',
+        \App\Models\OrganizationalMember::create([
+            'user_id' => $admin->id,
             'position' => 'Head Committee',
             'committee' => 'Office of the Women and Family',
             'level' => 'head',

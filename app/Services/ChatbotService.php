@@ -104,7 +104,7 @@ class ChatbotService
 
     private function fetchOfficials(): array
     {
-        $officials = \App\Models\BarangayOfficial::orderBy('id')->get(); // Adjust ordering as needed
+        $officials = \App\Models\OrganizationalMember::orderBy('id')->get(); // Adjust ordering as needed
 
         if ($officials->isEmpty()) {
             return ['response' => "The list of officials is currently unavailable."];
@@ -113,7 +113,7 @@ class ChatbotService
         $response = "Here are our Barangay Officials:\n\n";
         foreach ($officials as $official) {
             // Adjust fields based on your Official model (e.g., name, position)
-            $response .= "{$official->name} - {$official->position}\n";
+            $response .= "{$official->official_name} - {$official->position}\n";
         }
 
         return ['response' => $response];

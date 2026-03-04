@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('barangay_officials', function (Blueprint $table) {
+        Schema::create('organizational_members', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
                 ->nullable() // Nullable because not all staff might need a login
@@ -31,6 +31,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('barangay_officials');
+        Schema::dropIfExists('organizational_members');
     }
 };
