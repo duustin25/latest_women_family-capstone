@@ -104,7 +104,7 @@ class CaseController extends Controller
                     ->orWhere('category', 'Both');
             })->get();
 
-        $referralPartners = \App\Models\CaseReferralAgency::where('is_active', true)
+        $referralPartners = \App\Models\Agency::where('is_active', true)
             ->where(function ($query) use ($case) {
                 $query->where('category', $case->type)
                     ->orWhere('category', 'Both');

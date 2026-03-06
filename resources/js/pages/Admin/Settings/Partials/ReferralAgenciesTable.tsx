@@ -12,7 +12,7 @@ import { useForm, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-export interface CaseReferralAgency {
+export interface Agency {
     id: number;
     name: string;
     category: string;
@@ -20,7 +20,7 @@ export interface CaseReferralAgency {
     is_active: boolean;
 }
 
-export default function ReferralAgenciesTable({ caseReferralAgencies }: { caseReferralAgencies: CaseReferralAgency[] }) {
+export default function ReferralAgenciesTable({ caseReferralAgencies }: { caseReferralAgencies: Agency[] }) {
     const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
     const [isEditingPartner, setIsEditingPartner] = useState(false);
     const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null);
@@ -38,7 +38,7 @@ export default function ReferralAgenciesTable({ caseReferralAgencies }: { caseRe
         setIsPartnerModalOpen(true);
     };
 
-    const openEditPartner = (item: CaseReferralAgency) => {
+    const openEditPartner = (item: Agency) => {
         setIsEditingPartner(true);
         setEditingPartnerId(item.id);
         partnerForm.setData({

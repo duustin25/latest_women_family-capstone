@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CaseReferralAgency extends Model
+class Agency extends Model
 {
     use HasFactory;
+
+    protected $table = 'agencies';
 
     protected $fillable = ['name', 'category', 'contact_info', 'is_active'];
 

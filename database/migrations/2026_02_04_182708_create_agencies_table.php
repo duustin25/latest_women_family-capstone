@@ -11,7 +11,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('case_referral_agencies', function (Blueprint $table) {
+        Schema::create('agencies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('category')->default('Both'); // VAWC, BCPC, Both
@@ -23,6 +23,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('case_referral_agencies');
+        Schema::dropIfExists('agencies');
     }
 };

@@ -11,7 +11,7 @@ class CaseReferral extends Model
 
     protected $fillable = [
         'case_report_id',
-        'referral_agency_id',
+        'agency_id',
         'referred_at',
         'referral_notes',
         'status',
@@ -30,7 +30,7 @@ class CaseReferral extends Model
 
     public function agency(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(CaseReferralAgency::class, 'referral_agency_id');
+        return $this->belongsTo(Agency::class, 'agency_id');
     }
 
     public function handledBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo

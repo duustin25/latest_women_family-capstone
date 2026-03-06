@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('case_referrals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('case_report_id')->constrained('case_reports')->cascadeOnDelete();
-            $table->foreignId('referral_agency_id')->constrained('case_referral_agencies')->cascadeOnDelete();
+            $table->foreignId('agency_id')->constrained('agencies')->cascadeOnDelete();
             $table->dateTime('referred_at');
             $table->text('referral_notes')->nullable();
             $table->enum('status', ['Pending', 'Accepted', 'Declined', 'Completed'])->default('Pending');

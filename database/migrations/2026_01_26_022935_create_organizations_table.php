@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('color_theme')->default('bg-blue-700'); // For your UI coloring
             $table->string('image_path')->nullable(); // Banner image
             $table->json('requirements')->nullable(); // Array of requirements needed to apply
+            $table->json('form_schema')->nullable();
             $table->timestamps();
         });
     }

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\CaseReport;
 use App\Models\CaseAbuseType;
 use App\Models\CaseStatus;
-use App\Models\CaseReferralAgency;
+use App\Models\Agency;
 
 class CaseManagementService
 {
@@ -62,7 +62,7 @@ class CaseManagementService
 
             // Find Agency
             $agencyName = trim(substr($uiStatus, 10));
-            $agency = CaseReferralAgency::where('name', $agencyName)->first();
+            $agency = Agency::where('name', $agencyName)->first();
             if ($agency) {
                 $referralAgencyId = $agency->id;
             }
@@ -98,13 +98,13 @@ class CaseManagementService
         if ($referralAgencyId) {
             // Ensure a referral record exists for this agency on this case.
             $existingReferral = \App\Models\CaseReferral::where('case_report_id', $case->id)
-                ->where('referral_agency_id', $referralAgencyId)
+                ->where('agency_id', $referralAgencyId)
                 ->first();
 
             if (!$existingReferral) {
                 \App\Models\CaseReferral::create([
                     'case_report_id' => $case->id,
-                    'referral_agency_id' => $referralAgencyId,
+                    'agency_id' => $referralAgencyId,
                     'referred_at' => now(),
                     'referral_notes' => $referralNotes,
                     'handled_by_id' => \Illuminate\Support\Facades\Auth::id(),

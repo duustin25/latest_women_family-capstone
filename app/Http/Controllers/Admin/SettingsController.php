@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CaseAbuseType;
-use App\Models\CaseReferralAgency;
+use App\Models\Agency;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,7 +13,7 @@ class SettingsController extends Controller
     public function index()
     {
         $abuseTypes = CaseAbuseType::orderBy('category')->orderBy('name')->get();
-        $referralPartners = CaseReferralAgency::orderBy('category')->orderBy('name')->get();
+        $referralPartners = Agency::orderBy('category')->orderBy('name')->get();
         $caseStatuses = \App\Models\CaseStatus::orderBy('name')->get();
 
         return Inertia::render('Admin/Settings/Index', [
@@ -62,14 +62,14 @@ class SettingsController extends Controller
             'contact_info' => 'nullable|string',
         ]);
 
-        CaseReferralAgency::create($validated);
+        Agency::create($validated);
 
         return back()->with('success', 'Partner added successfully.');
     }
 
     public function updateReferralPartner(Request $request, $id)
     {
-        $partner = CaseReferralAgency::findOrFail($id);
+        $partner = Agency::findOrFail($id);
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string',
