@@ -8,12 +8,12 @@ export default function ReviewData({ application, organization }: { application:
     const record = application.data;
     const { processing } = useForm();
 
-    let submissionData = typeof record.submission_data === 'string'
-        ? JSON.parse(record.submission_data)
-        : record.submission_data || {};
+    let formData = typeof record.form_data === 'string'
+        ? JSON.parse(record.form_data)
+        : record.form_data || {};
 
-    if (!submissionData.fullname && record.fullname) submissionData.fullname = record.fullname;
-    if (!submissionData.address && record.address) submissionData.address = record.address;
+    if (!formData.fullname && record.fullname) formData.fullname = record.fullname;
+    if (!formData.address && record.address) formData.address = record.address;
 
     const handleAction = (status: 'Approved' | 'Disapproved') => {
         if (confirm(`Set status to ${status}?`)) {
@@ -118,10 +118,6 @@ export default function ReviewData({ application, organization }: { application:
                                 <div className="p-2">
                                     <DataRow label="Full Name" value={record.fullname} />
                                     <DataRow label="Address" value={record.address} />
-                                    <DataRow label="Sex" value={record.personal_data?.sex} />
-                                    <DataRow label="Birthdate" value={record.personal_data?.birthdate} />
-                                    <DataRow label="Civil Status" value={record.personal_data?.civil_status} />
-                                    <DataRow label="Contact" value={record.personal_data?.contact_number} />
                                 </div>
                             </div>
                         </div>
@@ -129,8 +125,8 @@ export default function ReviewData({ application, organization }: { application:
                         {/* RIGHT COLUMN: Dynamic Data & Tables */}
                         <div className="lg:col-span-2 space-y-6">
 
-                            {/* Dynamic Requirements (Submission Data) */}
-                            {Object.keys(submissionData).length > 2 && (
+                            {/* Dynamic Requirements (Form Data) */}
+                            {Object.keys(formData).length > 2 && (
                                 <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                                     <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex justify-between items-center">
                                         <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
@@ -138,7 +134,7 @@ export default function ReviewData({ application, organization }: { application:
                                         </h2>
                                     </div>
                                     <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-                                        {Object.entries(submissionData).map(([key, value]: [string, any]) => {
+                                        {Object.entries(formData).map(([key, value]: [string, any]) => {
                                             if (key === 'fullname' || key === 'address') return null; // Skip redundant
 
                                             // Helper to get true label from schema
@@ -166,59 +162,7 @@ export default function ReviewData({ application, organization }: { application:
                                 </div>
                             )}
 
-                            {/* Extra JSON Data (Personal/Family if not in submission_data) */}
-                            {(record.personal_data?.monthly_income || record.personal_data?.occupation) && (
-                                <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-                                    <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
-                                        <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
-                                            <DollarSign size={14} className="mr-2" /> Economic Background
-                                        </h2>
-                                    </div>
-                                    <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-                                        <DataRow label="Monthly Income" value={record.personal_data?.monthly_income} />
-                                        <DataRow label="Occupation" value={record.personal_data?.occupation} />
-                                        <DataRow label="Education" value={record.personal_data?.education} />
-                                        <DataRow label="Company/Employer" value={record.personal_data?.company?.name} />
-                                        <DataRow label="Company Address" value={record.personal_data?.company?.address} />
-                                    </div>
-                                </div>
-                            )}
 
-                            {/* Family / Dependants Table */}
-                            {record.family_data && Array.isArray(record.family_data) && record.family_data.length > 0 && (
-                                <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-                                    <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex justify-between items-center">
-                                        <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
-                                            <Users size={14} className="mr-2" /> Family & Dependents
-                                        </h2>
-                                        <Badge variant="secondary" className="font-bold">{record.family_data.length} Members</Badge>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left text-sm">
-                                            <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
-                                                <tr>
-                                                    <th className="p-3 pl-4 text-[10px] font-black uppercase tracking-widest text-neutral-500">Name</th>
-                                                    <th className="p-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">Relation</th>
-                                                    <th className="p-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">Age</th>
-                                                    <th className="p-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">Occupation/School</th>
-                                                    <th className="p-3 pr-4 text-[10px] font-black uppercase tracking-widest text-neutral-500 text-right">Income</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                                                {record.family_data.map((member: any, i: number) => (
-                                                    <tr key={i} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors">
-                                                        <td className="p-3 pl-4 font-bold text-neutral-900 dark:text-neutral-100 uppercase">{member.name || member.fullname}</td>
-                                                        <td className="p-3 text-neutral-600 dark:text-neutral-400 font-medium uppercase">{member.relation}</td>
-                                                        <td className="p-3 text-neutral-600 dark:text-neutral-400 font-bold">{member.age}</td>
-                                                        <td className="p-3 text-neutral-600 dark:text-neutral-400 uppercase">{member.occupation || member.education}</td>
-                                                        <td className="p-3 pr-4 text-neutral-600 dark:text-neutral-400 text-right font-medium">{member.income || '-'}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>

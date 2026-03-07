@@ -83,8 +83,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
             case 'date':
                 const isInline = field.layout !== 'block' && theme === 'paper'; // Default to inline for paper
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} ${isInline ? 'flex items-end gap-2' : 'space-y-4'}`}>
-                        <Label htmlFor={field.id} className={`${theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'} ${isInline ? 'shrink-0 mb-1' : ''}`}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} ${isInline ? 'flex items-end gap-2' : 'space-y-4'}`}>
+                        <Label htmlFor={field.id} className={`${theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'} ${isInline ? 'shrink-0 mb-1' : ''}`}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                             {isInline && ":"}
                         </Label>
@@ -97,7 +97,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                                 required={field.required}
                                 value={data[field.id] || ''}
                                 onChange={(e) => setData(field.id, e.target.value)}
-                                className={`${theme === 'modern' ? 'font-normal text-base border-0 border-b border-neutral-300 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-neutral-900 px-0 bg-transparent transition-colors py-2 h-auto w-full md:w-1/2' : 'font-bold text-sm border-0 border-b border-black rounded-none shadow-none focus-visible:ring-0 px-0 bg-transparent'} ${isInline ? 'flex-1' : ''}`}
+                                className={`${theme === 'modern' ? 'font-normal text-base border-0 border-b border-neutral-300 dark:border-neutral-700 dark:text-white rounded-none shadow-none focus-visible:ring-0 focus-visible:border-neutral-900 dark:focus-visible:border-neutral-100 px-0 bg-transparent transition-colors py-2 h-auto w-full md:w-1/2' : 'font-bold text-sm border-0 border-b border-black rounded-none shadow-none focus-visible:ring-0 px-0 bg-transparent'} ${isInline ? 'flex-1' : ''}`}
                                 placeholder={field.type === 'date' ? '' : `Your answer`}
                             />
                         )}
@@ -107,8 +107,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
 
             case 'textarea':
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4`}>
-                        <Label htmlFor={field.id} className={theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4`}>
+                        <Label htmlFor={field.id} className={theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                         </Label>
                         {mode === 'view' ? (
@@ -119,7 +119,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                                 required={field.required}
                                 value={data[field.id] || ''}
                                 onChange={(e) => setData(field.id, e.target.value)}
-                                className={theme === 'modern' ? 'min-h-[100px] font-normal text-base border-0 border-b border-neutral-300 rounded-none shadow-none focus-visible:ring-0 focus-visible:border-neutral-900 px-0 bg-transparent transition-colors py-2 resize-y' : 'min-h-[80px] font-medium text-sm border-black rounded-none bg-transparent'}
+                                className={theme === 'modern' ? 'min-h-[100px] font-normal text-base border-0 border-b border-neutral-300 dark:border-neutral-700 dark:text-white rounded-none shadow-none focus-visible:ring-0 focus-visible:border-neutral-900 dark:focus-visible:border-neutral-100 px-0 bg-transparent transition-colors py-2 resize-y' : 'min-h-[80px] font-medium text-sm border-black rounded-none bg-transparent'}
                                 placeholder={`Your answer`}
                             />
                         )}
@@ -130,8 +130,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
             case 'select':
                 const isSelectInline = field.layout !== 'block' && theme === 'paper'; // Default to inline
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md space-y-4' : `${widthClass} ${isSelectInline ? 'flex items-end gap-2' : 'space-y-2'}`}`}>
-                        <Label htmlFor={field.id} className={`${theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'} ${isSelectInline ? 'shrink-0 mb-1' : ''}`}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md space-y-4' : `${widthClass} ${isSelectInline ? 'flex items-end gap-2' : 'space-y-2'}`}`}>
+                        <Label htmlFor={field.id} className={`${theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'} ${isSelectInline ? 'shrink-0 mb-1' : ''}`}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                             {isSelectInline && ":"}
                         </Label>
@@ -140,7 +140,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                         ) : (
                             <div className={theme === 'modern' ? 'w-full md:w-1/2' : ''}>
                                 <Select value={data[field.id]} onValueChange={(val: string) => setData(field.id, val)} required={field.required}>
-                                    <SelectTrigger className={`${theme === 'modern' ? 'font-normal text-base border-0 border-b border-neutral-300 rounded-none shadow-none focus:ring-0 focus:border-neutral-900 px-0 bg-transparent transition-colors py-2 h-auto' : 'font-bold text-sm border-0 border-b border-black rounded-none shadow-none focus:ring-0 px-0 bg-transparent h-auto py-1'} ${isSelectInline ? 'flex-1' : ''}`}>
+                                    <SelectTrigger className={`${theme === 'modern' ? 'font-normal text-base border-0 border-b border-neutral-300 dark:border-neutral-700 dark:text-white rounded-none shadow-none focus:ring-0 focus:border-neutral-900 dark:focus:border-neutral-100 px-0 bg-transparent transition-colors py-2 h-auto' : 'font-bold text-sm border-0 border-b border-black rounded-none shadow-none focus:ring-0 px-0 bg-transparent h-auto py-1'} ${isSelectInline ? 'flex-1' : ''}`}>
                                         <SelectValue placeholder="Choose" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -157,8 +157,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
 
             case 'radio':
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4`}>
-                        <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4`}>
+                        <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                         </Label>
                         <RadioGroup value={data[field.id]} onValueChange={(val: string) => mode === 'edit' && setData(field.id, val)} required={field.required} disabled={mode === 'view'}>
@@ -166,7 +166,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                                 {field.options?.map((opt: string, idx: number) => (
                                     <div className={`flex items-center space-x-3 ${theme === 'modern' ? 'p-1' : ''}`} key={idx}>
                                         <RadioGroupItem value={opt} id={`${field.id}-${idx}`} className={`${theme === 'modern' ? 'border-neutral-400 text-blue-600 w-5 h-5' : 'border-black text-black'}`} />
-                                        <Label htmlFor={`${field.id}-${idx}`} className={theme === 'modern' ? 'text-sm font-normal text-neutral-800 cursor-pointer' : 'text-sm font-medium'}>{opt}</Label>
+                                        <Label htmlFor={`${field.id}-${idx}`} className={theme === 'modern' ? 'text-sm font-normal text-neutral-800 dark:text-neutral-200 cursor-pointer' : 'text-sm font-medium'}>{opt}</Label>
                                     </div>
                                 ))}
                             </div>
@@ -177,7 +177,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
 
             case 'checkbox': // Single checkbox (boolean)
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4`}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4`}>
                         <div className={`flex items-start space-x-3 ${theme === 'modern' ? 'mt-2' : 'mt-6'}`}>
                             <Checkbox
                                 id={field.id}
@@ -197,8 +197,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
 
             case 'file':
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4`}>
-                        <Label htmlFor={field.id} className={theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4`}>
+                        <Label htmlFor={field.id} className={theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                         </Label>
                         {mode === 'view' ? (
@@ -227,8 +227,8 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
 
             case 'checkbox_group': // Multiple checkboxes (array of strings)
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4`}>
-                        <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4`}>
+                        <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
                             {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                         </Label>
                         <div className={`flex ${theme === 'modern' ? 'flex-col gap-3' : `flex-wrap gap-4 border rounded-none p-4 border-black/10 ${field.layout === 'block' ? 'flex-col' : ''}`}`}>
@@ -250,7 +250,7 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                                             className={theme === 'modern' ? 'mt-0.5 border-neutral-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 w-5 h-5 rounded' : 'border-black data-[state=checked]:bg-black data-[state=checked]:text-white'}
                                             disabled={mode === 'view'}
                                         />
-                                        <Label htmlFor={`${field.id}-${idx}`} className={`${theme === 'modern' ? 'text-sm font-normal text-neutral-800 cursor-pointer pt-1' : 'text-sm font-medium leading-none cursor-pointer pt-0.5'}`}>
+                                        <Label htmlFor={`${field.id}-${idx}`} className={`${theme === 'modern' ? 'text-sm font-normal text-neutral-800 dark:text-neutral-200 cursor-pointer pt-1' : 'text-sm font-medium leading-none cursor-pointer pt-0.5'}`}>
                                             {opt}
                                         </Label>
                                     </div>
@@ -265,9 +265,9 @@ export default function DynamicFields({ schema, data, setData, errors, mode = 'e
                 // Repeater logic: renders a list of items, each using the schema defined in field.schema
                 const items = Array.isArray(data[field.id]) ? data[field.id] : [];
                 return (
-                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white p-6 rounded-xl shadow-sm border border-neutral-200/60 transition-all hover:shadow-md' : widthClass} space-y-4 pt-4`}>
+                    <div key={field.id} className={`${theme === 'modern' ? 'w-full bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-neutral-200/60 dark:border-neutral-800 transition-all hover:shadow-md' : widthClass} space-y-4 pt-4`}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-                            <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
+                            <Label className={theme === 'modern' ? 'text-base font-medium text-neutral-900 dark:text-neutral-100 block' : 'text-[10pt] font-bold uppercase text-black dark:text-neutral-400'}>
                                 {field.label} {field.required && mode === 'edit' && <span className="text-red-500">*</span>}
                             </Label>
                             {mode === 'edit' && (

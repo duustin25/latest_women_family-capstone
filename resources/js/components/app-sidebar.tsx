@@ -91,11 +91,32 @@ const footerNavItems: NavItem[] = [
 export function AppSidebar() {
     const { auth } = usePage<any>().props;
 
-    // Filter Navigation based on Roles (Admin-only for Settings)
+    // Filter Navigation based on Roles
     const filteredNavItems = mainNavItems.filter(item => {
-        if (item.title === 'Settings' && auth.user.role !== 'admin') {
+        const role = auth.user.role;
+
+        // Settings and Audit Logs are strictly Admin ONLY
+        if ((item.title === 'Settings' || item.title === 'Audit Logs') && role !== 'admin') {
             return false;
         }
+
+        // Cases and Users represent highly sensitive/admin-level data.
+        // Block them from Presidents
+        if (role === 'president') {
+            const hiddenFromPresident = ['Cases', 'Users', 'Officials', 'Data Analytics', 'Audit Logs', 'Settings'];
+            if (hiddenFromPresident.includes(item.title)) {
+                return false;
+            }
+        }
+
+        // Head Committee visibility
+        if (role === 'head') {
+            const hiddenFromHead = ['Users', 'Settings', 'Audit Logs'];
+            if (hiddenFromHead.includes(item.title)) {
+                return false;
+            }
+        }
+
         return true;
     });
 

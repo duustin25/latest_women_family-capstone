@@ -25,15 +25,8 @@ class MembershipApplicationResource extends JsonResource
             'address' => $this->address,
             'status' => $this->status,
 
-            // Dynamic Form Submission
-            'submission_data' => $this->submission_data ?? [],
-
-            // Section I: Personal Data (JSON)
-            // We return the raw array so React can map through it
-            'personal_data' => $this->personal_data ?? [],
-
-            // Section II: Family Members (JSON Table)
-            'family_data' => $this->family_data ?? [],
+            // Dynamic Form Submission (New Unified Mapping)
+            'form_data' => $this->form_data ?? [],
 
             // Approval Info
             'recommended_by' => $this->recommended_by,

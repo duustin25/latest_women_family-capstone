@@ -9,25 +9,25 @@ export default function DynamicForm({ organization }: { organization: any }) {
     const { data, setData, post, processing, errors } = useForm({
         fullname: '',
         address: '',
-        submission_data: {} as Record<string, any>,
+        form_data: {} as Record<string, any>,
     });
 
     const handleInputChange = (fieldId: string, value: any) => {
-        setData('submission_data', {
-            ...data.submission_data,
+        setData('form_data', {
+            ...data.form_data,
             [fieldId]: value
         });
     };
 
-    // Sync core fields from submission_data to top-level state
+    // Sync core fields from form_data to top-level state
     useEffect(() => {
-        if (data.submission_data.fullname) {
-            setData('fullname', data.submission_data.fullname);
+        if (data.form_data.fullname) {
+            setData('fullname', data.form_data.fullname);
         }
-        if (data.submission_data.address) {
-            setData('address', data.submission_data.address);
+        if (data.form_data.address) {
+            setData('address', data.form_data.address);
         }
-    }, [data.submission_data.fullname, data.submission_data.address]);
+    }, [data.form_data.fullname, data.form_data.address]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,7 +72,7 @@ export default function DynamicForm({ organization }: { organization: any }) {
                         {organization.form_schema && organization.form_schema.length > 0 ? (
                             <DynamicFields
                                 schema={organization.form_schema}
-                                data={data.submission_data}
+                                data={data.form_data}
                                 setData={handleInputChange}
                                 errors={errors}
                                 theme="modern"

@@ -64,6 +64,7 @@ class OrganizationController extends Controller
             'color_theme' => 'required|string', // e.g., 'bg-blue-600'
             'image' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array', // Captured as an array for the JSON column
+            'print_settings' => 'nullable|array',
         ], [
             // Custom student-friendly messages for the prof to see
             'name.required' => 'The organization must have a formal name.',
@@ -128,6 +129,7 @@ class OrganizationController extends Controller
             'image' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array',
             'form_schema' => 'nullable|array',
+            'print_settings' => 'nullable|array',
         ]);
 
         if ($request->hasFile('image')) {
@@ -216,11 +218,11 @@ class OrganizationController extends Controller
         if (in_array($sortColumn, $coreColumns)) {
             $query->orderBy($sortColumn, $sortDirectionSafe);
         } else {
-            // Assume it is a dynamic JSON field inside `submission_data`
+            // Assume it is a dynamic JSON field inside `form_data`
             // Sanitize column name to alphanumerics/underscores to prevent SQL injection issues
             $safeColumn = preg_replace('/[^a-zA-Z0-9_]/', '', $sortColumn);
             if ($safeColumn) {
-                $query->orderBy("submission_data->{$safeColumn}", $sortDirectionSafe);
+                $query->orderBy("form_data->{$safeColumn}", $sortDirectionSafe);
             } else {
                 $query->latest('actioned_at');
             }

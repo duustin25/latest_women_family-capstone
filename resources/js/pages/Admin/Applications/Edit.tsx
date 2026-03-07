@@ -1,207 +1,190 @@
 import { Head, useForm, Link } from '@inertiajs/react';
-import { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, CheckCircle2, Info, Building2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Info, Users, Briefcase } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import DynamicFields from '@/components/DynamicFields';
 
 export default function Edit({ application, organization }: { application: any, organization: any }) {
 
-    // Parse submission_data
-    let initialSubmissionData = typeof application.submission_data === 'string'
-        ? JSON.parse(application.submission_data)
-        : application.submission_data || {};
+    // Unwrap Resource objects natively
+    const record = application.data || application;
+    const org = organization.data || organization;
 
-    // Helper to ensure core fields exist (Runtime Injection for Admin View)
-    const ensureCoreFields = (schema: any[]) => {
-        const coreFields = [
-            { id: 'fullname', type: 'text', label: 'Full Name', required: true, width: 'w-full', layout: 'block', is_core: true },
-            { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true },
-        ];
-
-        const existingIds = new Set(schema.map(f => f.id));
-        const missingCore = coreFields.filter(f => !existingIds.has(f.id));
-
-        // If we have missing core fields, prepend them. 
-        const updatedSchema = schema.map(f => {
-            if (f.id === 'fullname' || f.id === 'address') {
-                return { ...f, is_core: true, required: true };
-            }
-            return f;
-        });
-
-        return [...missingCore, ...updatedSchema];
-    };
-
-    const finalSchema = ensureCoreFields(organization.form_schema || []);
+    // Parse form_data correctly directly from the record
+    let initialFormData = typeof record.form_data === 'string'
+        ? JSON.parse(record.form_data)
+        : record.form_data || {};
 
     const { data, setData, put, processing, errors } = useForm({
-        fullname: application.fullname || '',
-        address: application.address || '',
-        submission_data: initialSubmissionData,
+        fullname: record.fullname || '',
+        address: record.address || '',
+        form_data: initialFormData,
     });
 
-    const handleInputChange = (newData: any) => {
-        setData('submission_data', newData);
+    const handleDynamicInputChange = (fieldId: string, value: any) => {
+        setData('form_data', {
+            ...data.form_data,
+            [fieldId]: value
+        });
     };
-
-    // Sync core fields from submission_data to top-level state
-    useEffect(() => {
-        if (data.submission_data.fullname) {
-            setData('fullname', data.submission_data.fullname);
-        }
-        if (data.submission_data.address) {
-            setData('address', data.submission_data.address);
-        }
-    }, [data.submission_data.fullname, data.submission_data.address]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/admin/applications/${application.id}`);
+        put(`/admin/applications/${record.id}`);
     };
 
     return (
         <AppLayout breadcrumbs={[
-            { title: 'Applications', href: '/admin/applications' },
-            { title: `Edit ${application.case_number || 'Application'}`, href: '#' }
+            { title: 'Queue', href: '/admin/applications' },
+            { title: 'Edit Records', href: '#' }
         ]}>
-            <Head title={`Edit Application - ${application.fullname}`} />
+            <Head title={`Edit Application - ${record.fullname}`} />
 
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 lg:p-12">
+            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-8 px-4 transition-colors">
+                <div className="max-w-6xl mx-auto">
 
-                {/* --- TOP ADMIN BAR --- */}
-                <div className="max-w-[8.5in] mx-auto mb-6 flex items-center justify-between">
-                    <Link
-                        href={`/admin/applications/${application.id}`}
-                        className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Back to Review
-                    </Link>
-
-                    {/* Organization Tag */}
-                    <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${organization.color_theme?.replace('bg-', 'border-') || 'border-blue-500'} bg-white dark:bg-slate-900 shadow-sm`}>
-                        <Building2 className={`w-4 h-4 ${organization.color_theme?.replace('bg-', 'text-') || 'text-blue-600'}`} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{organization.name}</span>
-                    </div>
-                </div>
-
-                {/* --- PAPER CONTAINER --- */}
-                <div
-                    className="bg-white mx-auto shadow-2xl overflow-hidden text-black relative"
-                    style={{ maxWidth: '8.5in', minHeight: '11in', padding: '0.5in', fontFamily: 'Arial, sans-serif' }}
-                >
-                    <form onSubmit={handleSubmit} className="space-y-8">
-
-                        {/* --- OFFICIAL HEADER --- */}
-                        <div className="grid grid-cols-[1.5in_1fr_1.5in] items-center gap-4 text-center border-b-2 border-black pb-4 mb-8">
-                            {/* Left Logo */}
-                            <div className="flex justify-center">
-                                <img
-                                    src="/Logo/barangay183LOGO.png"
-                                    className="h-24 w-24 object-contain"
-                                    alt="Barangay Logo"
-                                />
-                            </div>
-
-                            {/* Center Text */}
-                            <div className="flex flex-col items-center justify-center">
-                                <p className="text-[10pt] leading-tight">Republic of the Philippines</p>
-                                <h1 className="text-[12pt] font-bold uppercase leading-tight mt-1">
-                                    {import.meta.env.VITE_BARANGAY_NAME || "BARANGAY 183 VILLAMOR"}
-                                </h1>
-                                <p className="text-[10pt] leading-tight mt-1">
-                                    {import.meta.env.VITE_BARANGAY_ADDRESS || "Zone 20 District 1 Pasay City, Metro Manila"}
-                                </p>
-                                <p className="text-[10pt] leading-tight text-gray-800">
-                                    {import.meta.env.VITE_BARANGAY_LANDLINE || "Telephone No. (02) 853-0907 / (02) 835-1953"}
-                                </p>
-                            </div>
-
-                            {/* Right Logo */}
-                            <div className="flex justify-center">
-                                <img
-                                    src="/Logo/women&family_logo.png"
-                                    className="h-24 w-24 object-contain"
-                                    alt="WFP Logo"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Application Title */}
-                        <div className="text-center mb-10">
-                            <h2 className="text-[14pt] font-bold uppercase underline tracking-wide">APPLICATION - EDIT MODE</h2>
-                            <h3 className="text-[12pt] mt-1 font-bold">{organization.name}</h3>
-                            {/* Alert for Accountability */}
-                            <p className="text-[9pt] text-red-600 uppercase font-bold mt-2 bg-red-50 inline-block px-2">
-                                Audit Warning: Changes will be logged.
-                            </p>
-                        </div>
-
-
-                        {/* DYNAMIC FIELDS (Using same layout as Public Form) */}
-                        <section>
-                            {finalSchema && finalSchema.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-6">
-                                    <DynamicFields
-                                        schema={finalSchema}
-                                        data={data.submission_data}
-                                        setData={handleInputChange}
-                                        errors={errors}
-                                    />
+                    <form onSubmit={handleSubmit}>
+                        {/* TOP ACTION BAR */}
+                        <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-neutral-900 p-4 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 mb-6 gap-4">
+                            <div className="flex items-center gap-4">
+                                <Link href={`/admin/applications/${record.id}`} className="flex items-center justify-center w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 text-neutral-500 transition-colors">
+                                    <ArrowLeft size={16} />
+                                </Link>
+                                <div>
+                                    <h1 className="text-xl font-black uppercase tracking-tight text-neutral-900 dark:text-white leading-none">
+                                        {record.fullname}
+                                    </h1>
+                                    <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-1">
+                                        {org.name} Application - EDIT MODE
+                                    </p>
                                 </div>
-                            ) : (
-                                <p className="italic text-gray-400 text-sm">No additional questions required.</p>
-                            )}
-                        </section>
+                            </div>
 
-                        {/* Admin Footer Controls */}
-                        <div className="pt-12 mt-12 border-t-2 border-dashed border-gray-300 flex justify-end gap-3 no-print">
-                            <Link
-                                href={`/admin/applications/${application.id}`}
-                                className="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-colors"
-                            >
-                                Cancel
-                            </Link>
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="bg-slate-900 hover:bg-black text-white px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-xl transition-all"
-                            >
-                                {processing ? 'Saving Changes...' : 'Save Updates'}
-                            </Button>
+                            <div className="flex items-center gap-2 justify-end text-right">
+                                {/* Action Footer Built-in to Header to save space */}
+                                <div className="hidden sm:flex items-center gap-3">
+                                    <Link
+                                        href={`/admin/applications/${record.id}`}
+                                        className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                                    >
+                                        Cancel
+                                    </Link>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white h-9 rounded-md text-[10px] font-black uppercase tracking-widest shadow-md transition-all border border-blue-500"
+                                    >
+                                        <CheckCircle2 size={16} className="mr-2" />
+                                        Save Updates
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
 
+                        {/* MAIN CONTENT GRID */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            {/* LEFT COLUMN: Overview Info & Core Data */}
+                            <div className="lg:col-span-1 space-y-6">
+
+                                {/* Summary Card */}
+                                <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-6 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 dark:bg-amber-500/10 rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
+                                    <h2 className="text-xs font-black uppercase tracking-widest text-amber-600 mb-4 flex items-center">
+                                        <Info size={14} className="mr-2" /> Editor Information
+                                    </h2>
+
+                                    <div className="space-y-4">
+                                        <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-medium">
+                                            Edits made here directly update the official organizational records. All modifications are logged by the system.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Core Applicant Data */}
+                                <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+                                    <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex items-center justify-between">
+                                        <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
+                                            <Users size={14} className="mr-2" /> Core Applicant Data
+                                        </h2>
+                                    </div>
+                                    <div className="p-5 space-y-5">
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Full Name <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                value={data.fullname}
+                                                onChange={e => setData('fullname', e.target.value)}
+                                                required
+                                                className="bg-neutral-50 dark:bg-neutral-950 font-bold border-neutral-200 dark:border-neutral-800 shadow-none focus-visible:ring-blue-500"
+                                            />
+                                            {errors.fullname && <p className="text-red-500 text-xs mt-1">{errors.fullname}</p>}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Address <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                value={data.address}
+                                                onChange={e => setData('address', e.target.value)}
+                                                required
+                                                className="bg-neutral-50 dark:bg-neutral-950 font-medium border-neutral-200 dark:border-neutral-800 shadow-none focus-visible:ring-blue-500"
+                                            />
+                                            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* RIGHT COLUMN: Edit Form Questionnaires */}
+                            <div className="lg:col-span-2 space-y-6">
+
+                                <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+                                    <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex items-center">
+                                        <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
+                                            <Briefcase size={14} className="mr-2" /> Form Questionnaires & Specifics
+                                        </h2>
+                                    </div>
+
+                                    {/* Form Fields Body */}
+                                    <div className="p-4 sm:p-6 bg-slate-50 dark:bg-neutral-950/50">
+                                        {org.form_schema && org.form_schema.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-6">
+                                                <DynamicFields
+                                                    schema={org.form_schema}
+                                                    data={data.form_data}
+                                                    setData={handleDynamicInputChange}
+                                                    errors={errors}
+                                                    theme="modern"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p className="italic text-neutral-400 text-sm py-4">No additional organizational questions recorded.</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Mobile bottom bar action */}
+                                <div className="sm:hidden flex justify-end gap-3 mt-6">
+                                    <Link
+                                        href={`/admin/applications/${record.id}`}
+                                        className="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest text-neutral-500 border border-neutral-200 bg-white"
+                                    >
+                                        Cancel
+                                    </Link>
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-blue-600 text-white px-8 h-12 rounded-lg text-xs font-black uppercase tracking-widest shadow-md border border-blue-500"
+                                    >
+                                        Save <CheckCircle2 size={16} className="ml-2" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
-
-            {/* Override Styles for DynamicFields */}
-            <style>{`
-                 /* Target inputs inside the form to look like underlines */
-                 .bg-white input:not([type="checkbox"]):not([type="file"]), 
-                 .bg-white textarea,
-                 .bg-white select {
-                      background-color: transparent !important;
-                      border-radius: 0 !important;
-                      border: 1px solid transparent !important;
-                      border-bottom: 1px solid black !important;
-                      padding-left: 0 !important;
-                      box-shadow: none !important;
-                 }
-                 .bg-white input:focus, 
-                 .bg-white textarea:focus,
-                 .bg-white select:focus {
-                     border-bottom: 2px solid black !important;
-                     outline: none !important;
-                 }
-                 .bg-white label {
-                     text-transform: uppercase;
-                     font-size: 10pt;
-                     color: black !important;
-                 }
-            `}</style>
         </AppLayout>
     );
 }

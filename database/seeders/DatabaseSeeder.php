@@ -77,7 +77,10 @@ class DatabaseSeeder extends Seeder
         $statusOngoing = \App\Models\CaseStatus::firstOrCreate(['name' => 'Under Investigation', 'type' => 'Both', 'is_active' => true]);
         $statusResolved = \App\Models\CaseStatus::firstOrCreate(['name' => 'Case Closed/Resolved', 'type' => 'Both', 'is_active' => true]);
 
-        $abuseType = \App\Models\CaseAbuseType::firstOrCreate(['name' => 'Physical Abuse', 'category' => 'VAWC', 'is_active' => true]);
+        $abuseType = \App\Models\CaseAbuseType::firstOrCreate(['name' => 'Physical', 'category' => 'VAWC', 'is_active' => true]);
+        $abuseType = \App\Models\CaseAbuseType::firstOrCreate(['name' => 'Sexual', 'category' => 'VAWC', 'is_active' => true]);
+        $abuseType = \App\Models\CaseAbuseType::firstOrCreate(['name' => 'Psychological', 'category' => 'VAWC', 'is_active' => true]);
+        $abuseType = \App\Models\CaseAbuseType::firstOrCreate(['name' => 'Economic', 'category' => 'VAWC', 'is_active' => true]);
 
         $cases = [
             ['vic' => 'Juana M.', 'comp' => 'Pedro M.', 'type' => 'VAWC', 'desc' => 'Neighbor reported loud shouting and physical altercation.', 'status' => 'New', 'status_id' => $statusNew->id],
@@ -108,6 +111,27 @@ class DatabaseSeeder extends Seeder
                 'abuse_type_id' => $abuseType->id,
                 'handled_by_id' => $c['status'] !== 'New' ? $admin->id : null,
             ]);
+        }
+
+        // 6. Create 1 Mock Application per Organization so the Member Directory is never empty
+        foreach ($orgs as $index => $orgData) {
+            $org = \App\Models\Organization::where('name', $orgData['name'])->first();
+            if ($org) {
+                \App\Models\MembershipApplication::create([
+                    'organization_id' => $org->id,
+                    'fullname' => 'Sample Applicant ' . ($index + 1),
+                    'address' => '123 Test Street, Brgy 183',
+                    'form_data' => [
+                        'contact_number' => '0912345678' . $index,
+                        'email' => 'applicant' . $index . '@example.com',
+                        'occupation' => 'Employee',
+                        'monthly_income' => '10,000 - 20,000',
+                    ],
+                    'status' => 'Approved',
+                    'approved_by' => 'System Seeder',
+                    'actioned_at' => now(),
+                ]);
+            }
         }
     }
 }

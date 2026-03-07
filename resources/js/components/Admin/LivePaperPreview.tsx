@@ -7,10 +7,19 @@ interface LivePaperPreviewProps {
         name: string;
         president_name: string;
         form_schema: any[];
+        print_settings?: any;
     };
 }
 
 export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
+    const printSettings = data.print_settings || {
+        form_title: 'APPLICATION',
+        alignment: 'center',
+        include_barangay_header: true,
+        left_logo_url: '/Logo/barangay183LOGO.png',
+        right_logo_url: '/Logo/women&family_logo.png',
+    };
+
     return (
         <div className="xl:w-[8.0in] xl:shrink-0 sticky top-8 hidden xl:block">
             <div className="bg-neutral-800 text-white p-3 rounded-t-lg flex justify-between items-center shadow-lg">
@@ -30,34 +39,51 @@ export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
                 className="bg-white text-black shadow-2xl min-h-[11in] relative origin-top-left transform scale-[0.85] w-[calc(100%/0.85)] md:transform-none md:w-auto xl:transform xl:scale-[0.85] xl:w-[calc(100%/0.85)]"
                 style={{ maxWidth: '9.5in', padding: '1in', fontFamily: 'Arial, sans-serif' }}
             >
-                {/* --- OFFICIAL HEADER (Same as Print.tsx) --- */}
-                <header className="mb-8 relative pb-4">
-                    <div className="grid grid-cols-[1.5in_1fr_1.5in] items-center gap-4 text-center">
+                {/* --- OFFICIAL HEADER --- */}
+                <header className={`mb-8 relative pb-4 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                    <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr] md:grid-cols-[1.5in_1fr]' : 'grid-cols-[1.5in_1fr_1.5in]'} items-center gap-4`}>
                         {/* Left Logo */}
-                        <div className="flex justify-center">
-                            <img src="/Logo/barangay183LOGO.png" className="h-24 w-24 object-contain" alt="Barangay Logo" />
-                        </div>
+                        {(printSettings.alignment === 'center' || printSettings.left_logo_url) && (
+                            <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
+                                {printSettings.left_logo_url && (
+                                    <img src={printSettings.left_logo_url} className="h-24 w-24 object-contain" alt="Left Logo" />
+                                )}
+                            </div>
+                        )}
+
                         {/* Center Text */}
-                        <div className="flex flex-col items-center justify-center">
-                            <p className="text-[10pt] leading-tight">Republic of the Philippines</p>
-                            <h1 className="text-[12pt] font-bold uppercase leading-tight mt-1">
-                                {import.meta.env.VITE_BARANGAY_NAME || "BARANGAY 183 VILLAMOR"}
-                            </h1>
-                            <p className="text-[10pt] leading-tight mt-1">
-                                {import.meta.env.VITE_BARANGAY_ADDRESS || "Zone 20 District 1 Pasay City, Metro Manila"}
-                            </p>
-                            <p className="text-[10pt] leading-tight text-gray-800">
-                                {import.meta.env.VITE_BARANGAY_LANDLINE || "Telephone No. (02) 853-0907 / (02) 835-1953"}
-                            </p>
+                        <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start justify-center' : 'items-center justify-center'}`}>
+                            {printSettings.include_barangay_header !== false && (
+                                <>
+                                    <p className="text-[10pt] leading-tight">Republic of the Philippines</p>
+                                    <h1 className="text-[12pt] font-bold uppercase leading-tight mt-1">
+                                        {import.meta.env.VITE_BARANGAY_NAME || "BARANGAY 183 VILLAMOR"}
+                                    </h1>
+                                    <p className="text-[10pt] leading-tight mt-1">
+                                        {import.meta.env.VITE_BARANGAY_ADDRESS || "Zone 20 District 1 Pasay City, Metro Manila"}
+                                    </p>
+                                    <p className="text-[10pt] leading-tight text-gray-800">
+                                        {import.meta.env.VITE_BARANGAY_LANDLINE || "Telephone No. (02) 853-0907 / (02) 835-1953"}
+                                    </p>
+                                </>
+                            )}
                         </div>
+
                         {/* Right Logo */}
-                        <div className="flex justify-center">
-                            <img src="/Logo/women&family_logo.png" className="h-24 w-24 object-contain" alt="WFP Logo" />
-                        </div>
+                        {printSettings.alignment === 'center' && (
+                            <div className="flex justify-center">
+                                {printSettings.right_logo_url && (
+                                    <img src={printSettings.right_logo_url} className="h-24 w-24 object-contain" alt="Right Logo" />
+                                )}
+                            </div>
+                        )}
                     </div>
+
                     {/* Application Title */}
-                    <div className="mt-6 text-center">
-                        <h2 className="text-[14pt] font-bold uppercase underline tracking-wide">APPLICATION</h2>
+                    <div className={`mt-6 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                        <h2 className={`text-[14pt] font-bold uppercase tracking-wide ${printSettings.alignment === 'center' ? 'underline' : ''}`}>
+                            {printSettings.form_title || 'APPLICATION'}
+                        </h2>
                         <h3 className="text-[12pt] mt-1 font-bold">{data.name?.toUpperCase() || 'ORGANIZATION NAME'}</h3>
                     </div>
                 </header>

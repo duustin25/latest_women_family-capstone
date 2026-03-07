@@ -18,10 +18,8 @@ return new class extends Migration {
             $table->string('address');
             $table->string('status')->default('Pending'); // Pending, Approved, Disapproved
 
-            // Dynamic JSON Storage
-            $table->json('personal_data'); // DOB, Religion, Sectoral, Education, Skills
-            $table->json('family_members'); // The dynamic table data
-            $table->json('submission_data')->nullable(); // Submitted form answers
+            // Dynamic JSON Storage (Form Builder Data)
+            $table->json('form_data')->nullable(); // Consolidates all dynamic form inputs including tables
 
             // Approval Tracking
             $table->string('recommended_by')->nullable();

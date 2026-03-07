@@ -127,27 +127,66 @@ class AnalyticsController extends Controller
         });
 
 
-        // GAD Analytics Data
-        $gadActivities = \App\Models\GadActivity::whereYear('date_scheduled', $currentYear)->get();
+        // --- NEW: Organization Membership Growth ---
+        // We get membership approved this year and group by month
+        $membershipsRaw = \App\Models\MembershipApplication::select('created_at', 'status', 'organization_id')
+            ->where('status', 'Approved')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy(function ($date) {
+                return Carbon::parse($date->created_at)->month;
+            })
+            ->map(function ($group) {
+                return $group->count();
+            });
 
-        $gadStats = [
-            'total_utilized' => $gadActivities->where('status', 'Completed')->sum('actual_expenditure'),
-            'total_activities' => $gadActivities->count(),
-            'completed_count' => $gadActivities->where('status', 'Completed')->count(),
-            'monthly_spending' => []
+        // --- NEW: Case Resolution Rates ---
+        // Get all cases and group by their current active status name 
+        // Note: Joining with case_statuses to get the name
+        $caseResolutionsRaw = CaseReport::select('case_status_id')
+            ->with('status')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy(function ($case) {
+                return $case->status ? $case->status->name : 'Unknown';
+            })
+            ->map(function ($group) {
+                return $group->count();
+            });
+
+        $membershipStats = [
+            'total_this_year' => \App\Models\MembershipApplication::where('status', 'Approved')->whereYear('created_at', $currentYear)->count(),
+            'total_all_time' => \App\Models\MembershipApplication::where('status', 'Approved')->count(),
+            'monthly_growth' => []
         ];
 
-        // Format Monthly Spending for Chart
+        // Format Monthly Growth for Chart
         $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         foreach ($months as $index => $monthName) {
             $monthNum = $index + 1;
-            $spending = $gadActivities->filter(function ($act) use ($monthNum) {
-                return Carbon::parse($act->date_scheduled)->month === $monthNum;
-            })->sum('actual_expenditure');
 
-            $gadStats['monthly_spending'][] = [
+            $membershipStats['monthly_growth'][] = [
                 'month' => $monthName,
-                'amount' => $spending
+                'count' => $membershipsRaw->get($monthNum, 0)
+            ];
+        }
+
+        // Format Case Resolutions for Pie/Doughnut Chart
+        $caseResolutionStats = [];
+        // Define colors for common statuses
+        $statusColors = [
+            'Pending' => '#fbbf24',       // amber-400
+            'Ongoing' => '#3b82f6',       // blue-500
+            'Resolved' => '#10b981',      // emerald-500
+            'Closed - Dismissed' => '#ef4444', // red-500
+            'Unknown' => '#94a3b8'        // slate-400
+        ];
+
+        foreach ($caseResolutionsRaw as $statusName => $count) {
+            $caseResolutionStats[] = [
+                'name' => $statusName,
+                'value' => $count,
+                'fill' => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF)) // random hex if not mapped
             ];
         }
 
@@ -160,7 +199,8 @@ class AnalyticsController extends Controller
             'chartConfig' => $vawcChartConfig,
             'vawcChartConfig' => $vawcChartConfig,
             'bcpcChartConfig' => $bcpcChartConfig,
-            'gadStats' => $gadStats
+            'membershipStats' => $membershipStats,
+            'caseResolutionStats' => $caseResolutionStats
         ]);
     }
 

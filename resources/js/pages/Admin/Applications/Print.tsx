@@ -11,18 +11,27 @@ export default function Print({ application, organization }: PrintProps) {
     const record = application.data;
     const org = organization.data;
 
-    // Parse submission_data
-    let submissionData = typeof record.submission_data === 'string'
-        ? JSON.parse(record.submission_data)
-        : record.submission_data || {};
+    // Parse form_data
+    let formData = typeof record.form_data === 'string'
+        ? JSON.parse(record.form_data)
+        : record.form_data || {};
 
     // BACKWARD COMPATIBILITY: Inject legacy fields if missing in dynamic data
-    if (!submissionData.fullname && record.fullname) {
-        submissionData.fullname = record.fullname;
+    if (!formData.fullname && record.fullname) {
+        formData.fullname = record.fullname;
     }
-    if (!submissionData.address && record.address) {
-        submissionData.address = record.address;
+    if (!formData.address && record.address) {
+        formData.address = record.address;
     }
+
+    // Print settings
+    const printSettings = org.print_settings || {
+        form_title: 'APPLICATION',
+        alignment: 'center',
+        include_barangay_header: true,
+        left_logo_url: '/Logo/barangay183LOGO.png',
+        right_logo_url: '/Logo/women&family_logo.png',
+    };
 
     // Auto-trigger print dialog on mount
     useEffect(() => {
@@ -37,46 +46,51 @@ export default function Print({ application, organization }: PrintProps) {
             <Head title={`Print Application - ${record.fullname}`} />
 
             {/* --- OFFICIAL HEADER --- */}
-            <header className="mb-8 relative">
-                {/* Grid Layout for Header: Logo - Text - Logo */}
-                <div className="grid grid-cols-[1.5in_1fr_1.5in] items-center gap-4 text-center">
+            <header className={`mb-8 relative pb-4 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr] md:grid-cols-[1.5in_1fr]' : 'grid-cols-[1.5in_1fr_1.5in]'} items-center gap-4`}>
                     {/* Left Logo */}
-                    <div className="flex justify-center">
-                        <img
-                            src="/Logo/barangay183LOGO.png"
-                            className="h-28 w-28 object-contain"
-                            alt="Barangay Logo"
-                        />
-                    </div>
+                    {(printSettings.alignment === 'center' || printSettings.left_logo_url) && (
+                        <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
+                            {printSettings.left_logo_url && (
+                                <img src={printSettings.left_logo_url} className="h-28 w-28 object-contain" alt="Left Logo" />
+                            )}
+                        </div>
+                    )}
 
                     {/* Center Text */}
-                    <div className="flex flex-col items-center justify-center">
-                        <p className="text-[12pt] leading-tight">Republic of the Philippines</p>
-                        <h1 className="text-[14pt] font-bold uppercase leading-tight mt-1">
-                            {import.meta.env.VITE_BARANGAY_NAME}
-                        </h1>
-                        <p className="text-[11pt] leading-tight mt-1">
-                            {import.meta.env.VITE_BARANGAY_ADDRESS}
-                        </p>
-                        <p className="text-[11pt] leading-tight text-gray-800">
-                            {import.meta.env.VITE_BARANGAY_LANDLINE}
-                        </p>
+                    <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start justify-center' : 'items-center justify-center'}`}>
+                        {printSettings.include_barangay_header !== false && (
+                            <>
+                                <p className="text-[12pt] leading-tight">Republic of the Philippines</p>
+                                <h1 className="text-[14pt] font-bold uppercase leading-tight mt-1">
+                                    {import.meta.env.VITE_BARANGAY_NAME}
+                                </h1>
+                                <p className="text-[11pt] leading-tight mt-1">
+                                    {import.meta.env.VITE_BARANGAY_ADDRESS}
+                                </p>
+                                <p className="text-[11pt] leading-tight text-gray-800">
+                                    {import.meta.env.VITE_BARANGAY_LANDLINE}
+                                </p>
+                            </>
+                        )}
                     </div>
 
                     {/* Right Logo */}
-                    <div className="flex justify-center">
-                        <img
-                            src="/Logo/women&family_logo.png"
-                            className="h-28 w-28 object-contain"
-                            alt="WFP Logo"
-                        />
-                    </div>
+                    {printSettings.alignment === 'center' && (
+                        <div className="flex justify-center">
+                            {printSettings.right_logo_url && (
+                                <img src={printSettings.right_logo_url} className="h-28 w-28 object-contain" alt="Right Logo" />
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Application Title */}
-                <div className="mt-8 text-center">
-                    <h2 className="text-[14pt] font-bold uppercase underline tracking-wide">APPLICATION</h2>
-                    <h3 className="text-[12pt] mt-1">{org.name}</h3>
+                <div className={`mt-8 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                    <h2 className={`text-[14pt] font-bold uppercase tracking-wide ${printSettings.alignment === 'center' ? 'underline' : ''}`}>
+                        {printSettings.form_title || 'APPLICATION'}
+                    </h2>
+                    <h3 className="text-[12pt] mt-1 font-bold">{org.name}</h3>
                 </div>
             </header>
 
@@ -84,7 +98,7 @@ export default function Print({ application, organization }: PrintProps) {
             <section className="mb-6 px-2">
                 <DynamicFields
                     schema={org.form_schema || []}
-                    data={submissionData}
+                    data={formData}
                     setData={() => { }} // Read-only for print
                     mode="view"
                 />

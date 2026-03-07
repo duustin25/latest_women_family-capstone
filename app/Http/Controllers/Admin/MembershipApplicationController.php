@@ -27,9 +27,9 @@ class MembershipApplicationController extends Controller
         // Fetch distinct monthly_income values from personal_data JSON for the filter dropdown
         // Uses MySQL JSON extraction syntax. If using SQLite/Postgres, syntax might vary slightly, 
         // but '->>' is standard in Laravel for JSON extraction in where/select.
-        $incomes = MembershipApplication::selectRaw("JSON_UNQUOTE(JSON_EXTRACT(personal_data, '$.monthly_income')) as income")
-            ->whereNotNull('personal_data->monthly_income')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(personal_data, '$.monthly_income')) != ''")
+        $incomes = MembershipApplication::selectRaw("JSON_UNQUOTE(JSON_EXTRACT(form_data, '$.monthly_income')) as income")
+            ->whereNotNull('form_data->monthly_income')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(form_data, '$.monthly_income')) != ''")
             ->distinct()
             ->pluck('income')
             ->filter()
@@ -130,9 +130,7 @@ class MembershipApplicationController extends Controller
             'fullname' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             // We allow updating the JSON blobs directly if needed, or specific fields
-            'personal_data' => 'nullable|array',
-            'family_data' => 'nullable|array',
-            // 'submission_data' => 'nullable|array', // Usually fixed requirements
+            'form_data' => 'nullable|array',
         ]);
 
         // 2. Update the record

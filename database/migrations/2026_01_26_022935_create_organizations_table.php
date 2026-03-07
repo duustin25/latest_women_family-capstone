@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('image_path')->nullable(); // Banner image
             $table->json('requirements')->nullable(); // Array of requirements needed to apply
             $table->json('form_schema')->nullable();
+            $table->json('print_settings')->nullable(); // Print layout configuration
             $table->timestamps();
         });
     }

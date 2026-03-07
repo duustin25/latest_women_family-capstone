@@ -20,13 +20,15 @@ class Organization extends Model
         'color_theme',
         'image_path',
         'requirements',
-        'form_schema'
+        'form_schema',
+        'print_settings'
     ];
 
     // Cast requirements as array automatically
     protected $casts = [
         'requirements' => 'array',
         'form_schema' => 'array',
+        'print_settings' => 'array',
     ];
 
 

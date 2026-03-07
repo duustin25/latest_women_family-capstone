@@ -6,10 +6,11 @@ import { useState } from 'react';
 import LivePaperPreview from "@/components/Admin/LivePaperPreview";
 import OrganizationSettings from "@/components/Admin/OrganizationSettings";
 import FormBuilder from "@/components/Admin/FormBuilder";
+import PrintSettingsBuilder from "@/components/Admin/PrintSettingsBuilder";
 
 export default function Edit({ organization, users }: { organization: any, users?: any[] }) {
     const record = organization?.data ?? organization;
-    const [activeTab, setActiveTab] = useState<'settings' | 'builder'>('settings');
+    const [activeTab, setActiveTab] = useState<'settings' | 'builder' | 'print'>('settings');
 
     // Helper to ensure core fields exist
     const ensureCoreFields = (schema: any[]) => {
@@ -42,6 +43,13 @@ export default function Edit({ organization, users }: { organization: any, users
         image: null as File | null,
         requirements: record?.requirements || [],
         form_schema: ensureCoreFields(record?.form_schema || []),
+        print_settings: record?.print_settings || {
+            form_title: 'APPLICATION',
+            alignment: 'center',
+            include_barangay_header: true,
+            left_logo_url: '/Logo/barangay183LOGO.png',
+            right_logo_url: '/Logo/women&family_logo.png',
+        },
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -100,13 +108,22 @@ export default function Edit({ organization, users }: { organization: any, users
                                 >
                                     <LayoutTemplate size={14} /> Form Builder
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('print')}
+                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'print' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                >
+                                    <Settings size={14} /> Print Settings
+                                </button>
                             </div>
 
                             <div className="bg-transparent min-h-[500px]">
                                 {activeTab === 'settings' ? (
                                     <OrganizationSettings data={data} setData={setData} record={record} users={users} />
-                                ) : (
+                                ) : activeTab === 'builder' ? (
                                     <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
+                                ) : (
+                                    <PrintSettingsBuilder data={data} setData={setData} />
                                 )}
                             </div>
 

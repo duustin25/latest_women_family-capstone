@@ -15,6 +15,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -55,10 +56,11 @@ interface PageProps {
     currentYear: number;
     vawcChartConfig: ChartConfig[];
     bcpcChartConfig: ChartConfig[];
-    gadStats: GadStats;
+    membershipStats: any;
+    caseResolutionStats: any[];
 }
 
-export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, gadStats }: PageProps) {
+export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, membershipStats, caseResolutionStats }: PageProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [chartMode, setChartMode] = useState<'VAWC' | 'BCPC'>('VAWC');
 
@@ -266,52 +268,95 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                     </CardContent>
                 </Card>
 
-                {/* GAD Analytics Section */}
-                <div className="pt-8 border-t">
-                    <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2 mb-6">
-                        <Activity className="w-6 h-6 text-purple-600" />
-                        GAD Analytics
-                    </h2>
+                {/* NEW Analytics Section */}
+                <div className="pt-8 border-t grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <Card className="border-l-4 border-l-purple-500">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Total Utilized (YTD)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">₱{gadStats?.total_utilized?.toLocaleString() || '0.00'}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Funds spent on completed activities
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{gadStats?.total_activities || 0}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {gadStats?.completed_count || 0} completed
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Spending Trend</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[40px] flex items-end gap-1">
-                                    {gadStats?.monthly_spending?.map((m: any, i: number) => (
-                                        <div key={i} className="flex-1 bg-purple-200 hover:bg-purple-300 rounded-t" style={{ height: `${Math.min((m.amount / (gadStats.total_utilized || 1)) * 100, 100)}%` }} title={`${m.month}: ₱${m.amount}`}></div>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-2">
-                                    Monthly expenditure distribution
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    {/* Organization Membership Growth */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Org Membership Growth</CardTitle>
+                            <CardDescription>
+                                Active citizen participation over time ({membershipStats?.total_this_year} new this year)
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pl-0 pb-6 pr-6 pt-4 h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={membershipStats?.monthly_growth || []}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                    <XAxis
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#64748b' }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#64748b' }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                        labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="count"
+                                        name="New Members"
+                                        stroke="#2563eb"
+                                        strokeWidth={3}
+                                        dot={{ r: 4, strokeWidth: 2 }}
+                                        activeDot={{ r: 6 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    {/* Case Status Resolution */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="uppercase tracking-widest text-sm font-black text-emerald-500">Case Resolution Rates</CardTitle>
+                            <CardDescription>Breakdown of current VAWC/BCPC case statuses</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[200px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={caseResolutionStats}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={40}
+                                            outerRadius={80}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                            label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            labelLine={false}
+                                        >
+                                            {caseResolutionStats.map((entry: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            formatter={(value) => [`${value} Cases`, 'Total']}
+                                            contentStyle={{ borderRadius: '8px', border: 'none', background: '#333', color: '#fff' }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 mt-4">
+                                {caseResolutionStats.map((stat: any, i: number) => (
+                                    <div key={i} className="flex items-center gap-2" title={`${stat.value} total cases`}>
+                                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: stat.fill }}></div>
+                                        <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 truncate">{stat.name} ({stat.value})</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
                 </div>
 
             </div>

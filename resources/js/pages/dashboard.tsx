@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AnalyticsChart from '@/components/Admin/AnalyticsChart';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard().url },
@@ -24,12 +25,16 @@ export default function Dashboard({
     analyticsData,
     chartConfig,
     systemStats,
-    recentCases
+    recentCases,
+    membershipStats,
+    caseResolutionStats
 }: {
     analyticsData: any[],
     chartConfig: any[],
     systemStats: { totalCases: number, totalUsers: number, totalOrgs: number },
-    recentCases: any[]
+    recentCases: any[],
+    membershipStats: any,
+    caseResolutionStats: any[]
 }) {
     const stats = [
         { label: 'Total Cases', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
@@ -121,41 +126,103 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* Quick Tasks */}
-                    <div className="border dark:border rounded-xl shadow-sm p-6">
-                        <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-6 text-slate-900 dark:text-white">
-                            <Clock className="w-4 h-4 text-orange-500" /> Quick Tasks
+                    {/* Quick Tasks -> Replaced by: Case Status Resolution (Pie Chart) */}
+                    <div className="border rounded-xl shadow-sm p-6 bg-white dark:bg-slate-900">
+                        <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-2 text-slate-900 dark:text-white">
+                            <Activity className="w-4 h-4 text-emerald-500" /> Case Resolution Rates
                         </h3>
-                        <div className="space-y-3">
-                            <div className="p-4 rounded-lg flex items-center gap-4 cursor-pointer border">
-                                <FileText className="text-slate-400" />
-                                <div className="flex-1">
-                                    <p className="text-[11px] font-black uppercase text-slate-900 dark:text-white">Monthly Report</p>
-                                    <p className="text-[10px] text-slate-400 uppercase font-bold">Due in 2 days</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-4">Breakdown of current VAWC/BCPC cases</p>
+
+                        <div className="h-[200px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={caseResolutionStats}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={40}
+                                        outerRadius={80}
+                                        paddingAngle={2}
+                                        dataKey="value"
+                                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        labelLine={false}
+                                    >
+                                        {caseResolutionStats.map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(value) => [`${value} Cases`, 'Total']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', background: '#333', color: '#fff' }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+                            {caseResolutionStats.map((stat: any, i: number) => (
+                                <div key={i} className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stat.fill }}></div>
+                                    <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400">{stat.name} ({stat.value})</span>
                                 </div>
-                            </div>
-                            <div className="p-4 rounded-lg flex items-center gap-4 cursor-pointer border">
-                                <Users className="text-slate-400" />
-                                <div className="flex-1">
-                                    <p className="text-[11px] font-black uppercase text-slate-900 dark:text-white">Member Verifications</p>
-                                    <p className="text-[10px] text-slate-400 uppercase font-bold">12 Applications</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
 
 
                     {/* 4. Comparison Chart Section (Integrated from Analytics) */}
                     <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+
                         <Card>
                             <CardHeader>
-                                <CardTitle>Rates of Women Abuse (Yearly Overview)</CardTitle>
+                                <CardTitle className="uppercase tracking-widest text-sm font-black text-[#ce1126]">Rates of Women Abuse</CardTitle>
                                 <CardDescription>
                                     Incidence rates categorized by abuse type.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pl-5">
                                 <AnalyticsChart data={analyticsData} config={chartConfig} />
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Org Membership Growth</CardTitle>
+                                <CardDescription>
+                                    Active citizen participation over time ({membershipStats?.total_this_year} new this year)
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pl-0 pb-6 pr-6 pt-4 h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={membershipStats?.monthly_growth || []}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                        <XAxis
+                                            dataKey="month"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fill: '#64748b' }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fill: '#64748b' }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                            labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="count"
+                                            name="New Members"
+                                            stroke="#2563eb"
+                                            strokeWidth={3}
+                                            dot={{ r: 4, strokeWidth: 2 }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
                             </CardContent>
                         </Card>
 

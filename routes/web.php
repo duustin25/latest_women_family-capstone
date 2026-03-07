@@ -140,8 +140,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         });
 
-        // --- GAD ANALYTICS REMOVED ---
-
         // Dashboard Quick Stats
         $stats = [
             'totalCases' => \App\Models\CaseReport::count(),
@@ -165,11 +163,69 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ];
             });
 
+        // --- NEW: Organization Membership Growth ---
+        $membershipsRaw = \App\Models\MembershipApplication::select('created_at', 'status', 'organization_id')
+            ->where('status', 'Approved')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy(function ($date) {
+                return \Carbon\Carbon::parse($date->created_at)->month;
+            })
+            ->map(function ($group) {
+                return $group->count();
+            });
+
+        // --- NEW: Case Resolution Rates ---
+        $caseResolutionsRaw = \App\Models\CaseReport::select('case_status_id')
+            ->with('status')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy(function ($case) {
+                return $case->status ? $case->status->name : 'Unknown';
+            })
+            ->map(function ($group) {
+                return count($group);
+            });
+
+        $membershipStats = [
+            'total_this_year' => \App\Models\MembershipApplication::where('status', 'Approved')->whereYear('created_at', $currentYear)->count(),
+            'total_all_time' => \App\Models\MembershipApplication::where('status', 'Approved')->count(),
+            'monthly_growth' => []
+        ];
+
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            $membershipStats['monthly_growth'][] = [
+                'month' => $monthName,
+                'count' => $membershipsRaw->get($monthNum, 0)
+            ];
+        }
+
+        $caseResolutionStats = [];
+        $statusColors = [
+            'Pending' => '#fbbf24',
+            'Ongoing' => '#3b82f6',
+            'Resolved' => '#10b981',
+            'Closed - Dismissed' => '#ef4444',
+            'Unknown' => '#94a3b8'
+        ];
+
+        foreach ($caseResolutionsRaw as $statusName => $count) {
+            $caseResolutionStats[] = [
+                'name' => $statusName,
+                'value' => $count,
+                'fill' => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF))
+            ];
+        }
+
+
         return Inertia::render('dashboard', [
             'analyticsData' => $formattedData,
             'chartConfig' => $chartConfig,
             'systemStats' => $stats,
-            'recentCases' => $recentCases
+            'recentCases' => $recentCases,
+            'membershipStats' => $membershipStats,
+            'caseResolutionStats' => $caseResolutionStats
         ]);
     })->name('dashboard');
 

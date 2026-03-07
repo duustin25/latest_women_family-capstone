@@ -13,10 +13,7 @@ interface Member {
     address: string;
     status: string;
     actioned_at: string;
-    submission_data?: any;
-    personal_data?: {
-        contact_number?: string;
-    };
+    form_data?: any;
 }
 
 interface Organization {
@@ -56,11 +53,11 @@ export default function Members({ organization, members, filters }: PageProps) {
     const dynamicColumns = useMemo(() => {
         const keys = new Set<string>();
         membersData.forEach((member: any) => {
-            let submissionData = typeof member.submission_data === 'string'
-                ? JSON.parse(member.submission_data)
-                : member.submission_data || {};
+            let formData = typeof member.form_data === 'string'
+                ? JSON.parse(member.form_data)
+                : member.form_data || {};
 
-            Object.keys(submissionData).forEach(key => {
+            Object.keys(formData).forEach(key => {
                 // exclude already rendered static or core columns
                 if (key !== 'fullname' && key !== 'address') {
                     keys.add(key);
@@ -209,7 +206,7 @@ export default function Members({ organization, members, filters }: PageProps) {
                                                     <span className="truncate block opacity-80">{member.address || '—'}</span>
                                                 </td>
                                                 {dynamicColumns.map(col => {
-                                                    let subData = typeof member.submission_data === 'string' ? JSON.parse(member.submission_data) : (member.submission_data || {});
+                                                    let subData = typeof member.form_data === 'string' ? JSON.parse(member.form_data) : (member.form_data || {});
                                                     let val = subData[col];
                                                     let displayVal = Array.isArray(val) ? val.join(', ') : (typeof val === 'object' && val !== null ? JSON.stringify(val) : val);
                                                     return (

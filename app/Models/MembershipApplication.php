@@ -11,18 +11,15 @@ class MembershipApplication extends Model
         'organization_id',
         'fullname',
         'address',
-        'personal_data',
-        'family_data',
-        'submission_data',
+        'form_data',
         'status',
+        'recommended_by',
         'approved_by',
         'actioned_at'
     ];
 
     protected $casts = [
-        'personal_data' => 'array',
-        'family_data' => 'array',
-        'submission_data' => 'array',
+        'form_data' => 'array',
         'actioned_at' => 'datetime',
     ];
 
