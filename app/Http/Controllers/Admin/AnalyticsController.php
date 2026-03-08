@@ -27,9 +27,6 @@ class AnalyticsController extends Controller
             ->where('type', 'VAWC')
             ->whereYear('incident_date', $currentYear)
             ->whereNotNull('abuse_type_id')
-            ->whereHas('status', function ($query) {
-                $query->where('name', '!=', 'Closed - Dismissed');
-            })
             ->get()
             ->groupBy(function ($date) {
                 return Carbon::parse($date->incident_date)->month;
@@ -68,9 +65,6 @@ class AnalyticsController extends Controller
             ->where('type', 'BCPC')
             ->whereYear('created_at', $currentYear)
             ->whereNotNull('abuse_type_id')
-            ->whereHas('status', function ($query) {
-                $query->where('name', '!=', 'Closed - Dismissed');
-            })
             ->get()
             ->groupBy(function ($date) {
                 return Carbon::parse($date->created_at)->month;
@@ -102,11 +96,17 @@ class AnalyticsController extends Controller
 
         $bcpcData = $this->formatAnalyticsData($bcpcReportsMapped, $bcpcTypes);
 
-        // Mock stats (Dynamic implementation would query DB)
+        // 3. SUMMARY RIBBON STATS (Top Row)
+        $totalVawc = CaseReport::where('type', 'VAWC')->whereYear('created_at', $currentYear)->count();
+        $totalBcpc = CaseReport::where('type', 'BCPC')->whereYear('created_at', $currentYear)->count();
+        $activeReferrals = \App\Models\CaseReferral::whereIn('status', ['Pending', 'Accepted'])->whereYear('created_at', $currentYear)->count();
+        $growth = '+0%'; // Stub or calculate actual percentage vs last month
+
         $stats = [
-            'january' => ['vawc' => 12, 'cpp' => 8],
-            'february' => ['vawc' => 18, 'cpp' => 6],
-            'growth' => '+20.4%'
+            'totalVawc' => $totalVawc,
+            'totalBcpc' => $totalBcpc,
+            'activeReferrals' => $activeReferrals,
+            'growth' => $growth
         ];
 
         // Pass types meta for Chart colors
@@ -141,18 +141,104 @@ class AnalyticsController extends Controller
             });
 
         // --- NEW: Case Resolution Rates ---
-        // Get all cases and group by their current active status name 
-        // Note: Joining with case_statuses to get the name
-        $caseResolutionsRaw = CaseReport::select('case_status_id')
-            ->with('status')
+        // Get all cases and group by their current active lifecycle status
+        $caseResolutionsRaw = CaseReport::select('lifecycle_status')
             ->whereYear('created_at', $currentYear)
             ->get()
             ->groupBy(function ($case) {
-                return $case->status ? $case->status->name : 'Unknown';
+                return $case->lifecycle_status ?: 'Unknown';
             })
             ->map(function ($group) {
-                return $group->count();
+                return count($group);
             });
+
+        // --- NEW: Demographic Analytics ---
+
+        // 1. Age Demographics
+        $casesWithAge = CaseReport::select('victim_age')
+            ->whereNotNull('victim_age')
+            ->whereYear('created_at', $currentYear)
+            ->get();
+
+        $ageCategories = [
+            '0-12 yrs (Child)' => 0,
+            '13-17 yrs (Teen)' => 0,
+            '18-35 yrs (Young Adult)' => 0,
+            '36-50 yrs (Adult)' => 0,
+            '51+ yrs (Senior)' => 0,
+            'Unknown' => 0
+        ];
+
+        foreach ($casesWithAge as $case) {
+            $age = (int) $case->victim_age;
+            if ($age <= 12)
+                $ageCategories['0-12 yrs (Child)']++;
+            elseif ($age <= 17)
+                $ageCategories['13-17 yrs (Teen)']++;
+            elseif ($age <= 35)
+                $ageCategories['18-35 yrs (Young Adult)']++;
+            elseif ($age <= 50)
+                $ageCategories['36-50 yrs (Adult)']++;
+            else
+                $ageCategories['51+ yrs (Senior)']++;
+        }
+
+        $ageDemographics = [];
+        foreach ($ageCategories as $range => $count) {
+            $ageDemographics[] = [
+                'name' => $range,
+                'count' => $count
+            ];
+        }
+
+        // 2. Incident Location (Zone/Purok) Heatmap
+        $locationRaw = CaseReport::select('incident_location')
+            ->whereNotNull('incident_location')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy('incident_location')
+            ->map(function ($group) {
+                return count($group);
+            })
+            ->sortByDesc(function ($count) {
+                return $count;
+            })
+            ->take(8); // Top 8 locations
+
+        $locationDemographics = [];
+        foreach ($locationRaw as $location => $count) {
+            // Trim long locations for chart aesthetics
+            $shortLoc = strlen($location) > 20 ? substr($location, 0, 20) . '...' : $location;
+            $locationDemographics[] = [
+                'name' => $shortLoc,
+                'count' => $count,
+                'fullName' => $location
+            ];
+        }
+
+        // 3. Top Referral Agencies
+        $referralsRaw = \App\Models\CaseReferral::with('agency')
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy('agency_id')
+            ->map(function ($group) {
+                return count($group);
+            });
+
+        $agencyStats = [];
+        $agencyColors = ['#f43f5e', '#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#64748b'];
+        $ci = 0;
+        foreach ($referralsRaw as $agencyId => $count) {
+            $agency = \App\Models\Agency::find($agencyId);
+            if ($agency) {
+                $agencyStats[] = [
+                    'name' => $agency->name,
+                    'value' => $count,
+                    'fill' => $agencyColors[$ci % count($agencyColors)]
+                ];
+                $ci++;
+            }
+        }
 
         $membershipStats = [
             'total_this_year' => \App\Models\MembershipApplication::where('status', 'Approved')->whereYear('created_at', $currentYear)->count(),
@@ -175,11 +261,13 @@ class AnalyticsController extends Controller
         $caseResolutionStats = [];
         // Define colors for common statuses
         $statusColors = [
-            'Pending' => '#fbbf24',       // amber-400
-            'Ongoing' => '#3b82f6',       // blue-500
-            'Resolved' => '#10b981',      // emerald-500
-            'Closed - Dismissed' => '#ef4444', // red-500
-            'Unknown' => '#94a3b8'        // slate-400
+            'New' => '#f43f5e',
+            'Ongoing' => '#3b82f6',
+            'Referred' => '#a855f7',
+            'Resolved' => '#10b981',
+            'Closed' => '#64748b',
+            'Dismissed' => '#ef4444',
+            'Unknown' => '#94a3b8'
         ];
 
         foreach ($caseResolutionsRaw as $statusName => $count) {
@@ -200,7 +288,10 @@ class AnalyticsController extends Controller
             'vawcChartConfig' => $vawcChartConfig,
             'bcpcChartConfig' => $bcpcChartConfig,
             'membershipStats' => $membershipStats,
-            'caseResolutionStats' => $caseResolutionStats
+            'caseResolutionStats' => $caseResolutionStats,
+            'ageDemographics' => $ageDemographics,
+            'locationDemographics' => $locationDemographics,
+            'agencyStats' => $agencyStats
         ]);
     }
 
@@ -216,9 +307,6 @@ class AnalyticsController extends Controller
             ->where('type', 'VAWC')
             ->whereYear('incident_date', $year)
             ->whereNotNull('abuse_type_id')
-            ->whereHas('status', function ($query) {
-                $query->where('name', '!=', 'Closed - Dismissed');
-            })
             ->get()
             ->groupBy(function ($date) {
                 return Carbon::parse($date->incident_date)->month;

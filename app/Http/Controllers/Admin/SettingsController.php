@@ -26,7 +26,7 @@ class SettingsController extends Controller
     public function storeAbuseType(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:case_abuse_types,name',
+            'name' => 'required|string|unique:case_types,name',
             'category' => 'required|string|in:VAWC,BCPC,Both',
             'color' => 'nullable|string',
             'description' => 'nullable|string',
@@ -42,7 +42,7 @@ class SettingsController extends Controller
         $type = CaseAbuseType::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|unique:case_abuse_types,name,' . $id,
+            'name' => 'sometimes|required|string|unique:case_types,name,' . $id,
             'category' => 'sometimes|required|string|in:VAWC,BCPC,Both',
             'color' => 'nullable|string',
             'description' => 'nullable|string',
@@ -86,7 +86,7 @@ class SettingsController extends Controller
     public function storeCaseStatus(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:case_statuses,name',
+            'name' => 'required|string|unique:case_status,name',
             'description' => 'nullable|string',
             'type' => 'required|in:VAWC,BCPC,Both',
             'is_active' => 'boolean'
@@ -102,7 +102,7 @@ class SettingsController extends Controller
         $status = \App\Models\CaseStatus::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|unique:case_statuses,name,' . $id,
+            'name' => 'sometimes|required|string|unique:case_status,name,' . $id,
             'description' => 'nullable|string',
             'type' => 'required|in:VAWC,BCPC,Both',
             'is_active' => 'boolean'

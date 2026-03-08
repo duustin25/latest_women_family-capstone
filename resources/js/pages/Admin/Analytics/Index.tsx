@@ -15,16 +15,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-
 // Ensure route is typed (for Ziggy)
 declare const route: (name: string, params?: any) => string;
 
 interface Stats {
-    january: { vawc: number, cpp: number };
-    february: { vawc: number, cpp: number };
+    totalVawc: number;
+    totalBcpc: number;
+    activeReferrals: number;
     growth: string;
 }
 
@@ -39,16 +39,6 @@ interface ChartConfig {
     color: string;
 }
 
-interface GadStats {
-    total_utilized: number;
-    total_activities: number;
-    completed_count: number;
-    monthly_spending: {
-        month: string;
-        amount: number;
-    }[];
-}
-
 interface PageProps {
     stats: Stats;
     vawcData: ChartData[];
@@ -58,9 +48,12 @@ interface PageProps {
     bcpcChartConfig: ChartConfig[];
     membershipStats: any;
     caseResolutionStats: any[];
+    ageDemographics: any[];
+    locationDemographics: any[];
+    agencyStats: any[];
 }
 
-export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, membershipStats, caseResolutionStats }: PageProps) {
+export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, membershipStats, caseResolutionStats, ageDemographics, locationDemographics, agencyStats }: PageProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [chartMode, setChartMode] = useState<'VAWC' | 'BCPC'>('VAWC');
 
@@ -181,157 +174,116 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                     </div>
                 </div>
 
-                {/* Key Metrics Cards (Mock/Passed Data) */}
+                {/* TOP RIBBON: Key Metrics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Cases (YTD)</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-black uppercase tracking-widest text-[#ce1126]">Total VAWC Cases</CardTitle>
+                            <AlertTriangle className="h-4 w-4 text-[#ce1126]" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">124</div>
-                            <p className="text-xs text-muted-foreground">
-                                +12% from last year
+                            <div className="text-2xl font-black text-slate-900">{stats.totalVawc}</div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Reported cases in {currentYear}
                             </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
-                            <Activity className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-600">Total BCPC Cases</CardTitle>
+                            <Baby className="h-4 w-4 text-blue-600" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">12</div>
-                            <p className="text-xs text-muted-foreground">
-                                Currently being processed by DSWD/PNP
+                            <div className="text-2xl font-black text-slate-900">{stats.totalBcpc}</div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Child concerns in {currentYear}
                             </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Monthly Growth</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-black uppercase tracking-widest text-emerald-600">Active Referrals</CardTitle>
+                            <Activity className="h-4 w-4 text-emerald-600" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">{stats?.growth || '+0%'}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Increased reporting rate vs last month
+                            <div className="text-2xl font-black text-slate-900">{stats.activeReferrals}</div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Handled currently by PNP/DSWD/PAO
                             </p>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* Main Chart Section */}
-                <Card className="col-span-6 transition-all duration-300">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle className={cn("transition-colors duration-300", activeColor)}>
-                                {isVawc ? "Rates of Women's Abuse by Month" : "BCPC Case Concerns by Month"}
-                            </CardTitle>
-                            <CardDescription>
-                                Monthly breakdown of reported {isVawc ? 'abuse types' : 'child welfare concerns'} for {currentYear}.
-                            </CardDescription>
-                        </div>
+                {/* CORE TRENDS: Incident Over Time & Resolution Rates Phase II */}
+                <div className="pt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                        {/* TOGGLE SWITCH */}
-                        <div className="flex bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg">
-                            <button
-                                onClick={() => setChartMode('VAWC')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all",
-                                    isVawc ? "bg-white dark:bg-neutral-900 shadow-sm text-[#ce1126]" : "text-neutral-500 hover:text-neutral-700"
-                                )}
-                            >
-                                <AlertTriangle className="w-4 h-4" />
-                                VAWC
-                            </button>
-                            <button
-                                onClick={() => setChartMode('BCPC')}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-md transition-all",
-                                    !isVawc ? "bg-white dark:bg-neutral-900 shadow-sm text-blue-600" : "text-neutral-500 hover:text-neutral-700"
-                                )}
-                            >
-                                <Baby className="w-4 h-4" />
-                                BCPC
-                            </button>
-                        </div>
-                    </CardHeader>
+                    {/* Main Chart Section */}
+                    <Card className="lg:col-span-2 transition-all duration-300 shadow-sm border overflow-hidden">
+                        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b bg-gray-50/50 dark:bg-slate-900/50">
+                            <div>
+                                <CardTitle className={cn("transition-colors duration-300 font-black uppercase text-sm tracking-widest", activeColor)}>
+                                    {isVawc ? "Rates of Women's Abuse (Monthly)" : "BCPC Case Concerns (Monthly)"}
+                                </CardTitle>
+                                <CardDescription className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">
+                                    Chronological breakdown of {isVawc ? 'abuse types' : 'child welfare concerns'} for {currentYear}
+                                </CardDescription>
+                            </div>
 
-                    <CardContent className="pl-5">
-                        {/* Pass dynamic data and config */}
-                        <AnalyticsChart
-                            key={chartMode} // Force re-render animation
-                            data={isVawc ? vawcData : bcpcData}
-                            config={isVawc ? vawcChartConfig : bcpcChartConfig}
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* NEW Analytics Section */}
-                <div className="pt-8 border-t grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* Organization Membership Growth */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Org Membership Growth</CardTitle>
-                            <CardDescription>
-                                Active citizen participation over time ({membershipStats?.total_this_year} new this year)
-                            </CardDescription>
+                            {/* TOGGLE SWITCH */}
+                            <div className="flex bg-slate-200 dark:bg-slate-800 p-1 rounded-lg mt-4 sm:mt-0">
+                                <button
+                                    onClick={() => setChartMode('VAWC')}
+                                    className={cn(
+                                        "flex items-center gap-2 px-6 py-2 text-[10px] uppercase font-black tracking-widest rounded-md transition-all",
+                                        isVawc ? "bg-white dark:bg-slate-900 shadow-sm text-[#ce1126]" : "text-slate-500 hover:text-slate-700"
+                                    )}
+                                >
+                                    <AlertTriangle className="w-3 h-3" />
+                                    VAWC
+                                </button>
+                                <button
+                                    onClick={() => setChartMode('BCPC')}
+                                    className={cn(
+                                        "flex items-center gap-2 px-6 py-2 text-[10px] uppercase font-black tracking-widest rounded-md transition-all",
+                                        !isVawc ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600" : "text-slate-500 hover:text-slate-700"
+                                    )}
+                                >
+                                    <Baby className="w-3 h-3" />
+                                    BCPC
+                                </button>
+                            </div>
                         </CardHeader>
-                        <CardContent className="pl-0 pb-6 pr-6 pt-4 h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={membershipStats?.monthly_growth || []}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                    <XAxis
-                                        dataKey="month"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#64748b' }}
-                                        dy={10}
-                                    />
-                                    <YAxis
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 10, fill: '#64748b' }}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                                        labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="count"
-                                        name="New Members"
-                                        stroke="#2563eb"
-                                        strokeWidth={3}
-                                        dot={{ r: 4, strokeWidth: 2 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+
+                        <CardContent className="p-6">
+                            <AnalyticsChart
+                                key={chartMode}
+                                data={isVawc ? vawcData : bcpcData}
+                                config={isVawc ? vawcChartConfig : bcpcChartConfig}
+                            />
                         </CardContent>
                     </Card>
 
                     {/* Case Status Resolution */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="uppercase tracking-widest text-sm font-black text-emerald-500">Case Resolution Rates</CardTitle>
-                            <CardDescription>Breakdown of current VAWC/BCPC case statuses</CardDescription>
+                    <Card className="shadow-sm border overflow-hidden flex flex-col">
+                        <CardHeader className="border-b bg-gray-50/50 dark:bg-slate-900/50">
+                            <CardTitle className="uppercase tracking-widest text-sm font-black text-emerald-600">Case Resolution Rates</CardTitle>
+                            <CardDescription className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">
+                                Current Lifecycle Status
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="h-[200px] w-full">
+                        <CardContent className="p-6 flex-1 flex flex-col justify-center">
+                            <div className="h-[250px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
                                             data={caseResolutionStats}
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={40}
-                                            outerRadius={80}
+                                            innerRadius={60}
+                                            outerRadius={100}
                                             paddingAngle={2}
                                             dataKey="value"
-                                            label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            label={({ name, percent }: any) => percent > 0 ? `${(percent * 100).toFixed(0)}%` : ''}
                                             labelLine={false}
                                         >
                                             {caseResolutionStats.map((entry: any, index: number) => (
@@ -340,23 +292,130 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                                         </Pie>
                                         <Tooltip
                                             formatter={(value) => [`${value} Cases`, 'Total']}
-                                            contentStyle={{ borderRadius: '8px', border: 'none', background: '#333', color: '#fff' }}
+                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', padding: '8px 12px', fontSize: '12px', fontWeight: 'bold' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 mt-4">
+                            <div className="grid grid-cols-2 gap-y-3 gap-x-2 mt-4">
                                 {caseResolutionStats.map((stat: any, i: number) => (
                                     <div key={i} className="flex items-center gap-2" title={`${stat.value} total cases`}>
                                         <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: stat.fill }}></div>
-                                        <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 truncate">{stat.name} ({stat.value})</span>
+                                        <span className="text-[10px] uppercase font-black text-slate-700 dark:text-slate-300 truncate tracking-widest">{stat.name} <span className="text-slate-400 font-bold ml-1">({stat.value})</span></span>
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
                     </Card>
+                </div>
 
+                {/* DEEP DEMOGRAPHICS: Age, Location, Hand-offs */}
+                <div>
+                    <h2 className="text-lg font-black tracking-tight flex items-center gap-2 py-4 mb-2 border-b uppercase text-slate-800 dark:text-slate-200">
+                        <Users className="w-5 h-5 text-purple-600" />
+                        Demographic Statistical Reports
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        {/* 1. Victim Age Demographics */}
+                        <Card className="shadow-sm border">
+                            <CardHeader>
+                                <CardTitle className="uppercase tracking-widest text-xs font-black text-purple-600">Victim Age Groups</CardTitle>
+                                <CardDescription className="text-xs">Identified vulnerable demographics</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[300px] pl-0 pb-6 pr-6 pt-0">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={ageDemographics} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} width={100} />
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 'bold' }} />
+                                        <Bar dataKey="count" fill="#a855f7" radius={[0, 4, 4, 0]}>
+                                            {
+                                                ageDemographics.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.name.includes('Child') || entry.name.includes('Teen') ? '#ec4899' : '#a855f7'} />
+                                                ))
+                                            }
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        {/* 2. Incident Location Heatmap */}
+                        <Card className="shadow-sm border">
+                            <CardHeader>
+                                <CardTitle className="uppercase tracking-widest text-xs font-black text-orange-500">Incident Heatmap</CardTitle>
+                                <CardDescription className="text-xs">Highest reported incident zones (Top 8)</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[300px] pl-0 pb-6 pr-6 pt-0">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={locationDemographics} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f8fafc" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} width={120} />
+                                        <Tooltip
+                                            formatter={(value) => [`${value} Reports`, 'Cases']}
+                                            labelFormatter={(label, payload) => payload[0]?.payload.fullName || label}
+                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 'bold' }}
+                                        />
+                                        <Bar dataKey="count" fill="#f97316" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+
+                        {/* 3. Top Referral Agencies */}
+                        <Card className="shadow-sm border">
+                            <CardHeader>
+                                <CardTitle className="uppercase tracking-widest text-xs font-black text-slate-700">Top Referral Partners</CardTitle>
+                                <CardDescription className="text-xs">External agencies handling your cases</CardDescription>
+                            </CardHeader>
+                            <CardContent className="h-[300px] pb-6 pt-0 flex flex-col justify-center">
+                                {agencyStats.length > 0 ? (
+                                    <>
+                                        <div className="h-[180px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={agencyStats}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={40}
+                                                        outerRadius={80}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                        stroke="none"
+                                                    >
+                                                        {agencyStats.map((entry: any, index: number) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: '#333', color: '#fff', fontSize: '12px', fontWeight: 'bold' }} />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-y-2 gap-x-2 mt-4 px-4 overflow-y-auto max-h-[100px]">
+                                            {agencyStats.map((stat: any, i: number) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: stat.fill }}></div>
+                                                    <span className="text-[9px] uppercase font-black text-slate-600 truncate tracking-widest">{stat.name} <span className="text-slate-400 font-bold ml-1">({stat.value})</span></span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                        <Activity className="w-8 h-8 mb-2 opacity-20" />
+                                        <p className="text-xs font-bold uppercase tracking-widest">No Active Referrals</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                    </div>
                 </div>
 
             </div>

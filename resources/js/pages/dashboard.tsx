@@ -10,6 +10,7 @@ import {
     Clock,
     Activity,
     FileText,
+    UserPlus,
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import AnalyticsChart from '@/components/Admin/AnalyticsChart';
@@ -26,21 +27,36 @@ export default function Dashboard({
     chartConfig,
     systemStats,
     recentCases,
+    recentApplications,
     membershipStats,
     caseResolutionStats
 }: {
     analyticsData: any[],
     chartConfig: any[],
-    systemStats: { totalCases: number, totalUsers: number, totalOrgs: number },
+    systemStats: { totalCases: number, totalUsers: number, totalOrgs: number, pendingApps: number },
     recentCases: any[],
+    recentApplications: any[],
     membershipStats: any,
     caseResolutionStats: any[]
 }) {
     const stats = [
         { label: 'Total Cases', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-        { label: 'System Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+        { label: 'Pending Applicants', value: systemStats.pendingApps, icon: UserPlus, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
         { label: 'Organizations', value: systemStats.totalOrgs, icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+        { label: 'System Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     ];
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'New': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-500';
+            case 'Ongoing': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-500';
+            case 'Referred': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-500';
+            case 'Resolved': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500';
+            case 'Closed': return 'bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-400';
+            case 'Dismissed': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500';
+            default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-400';
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -61,7 +77,7 @@ export default function Dashboard({
                 </div>
 
                 {/* 2. Stat Cards Grid */}
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     {stats.map((stat, i) => (
                         <div key={i} className="border  p-6 rounded-xl shadow-sm transition-all">
                             <div className="flex justify-between items-start">
@@ -84,46 +100,92 @@ export default function Dashboard({
                 {/* 3. Main Content: Case Monitoring & Advanced Analytics */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-                    {/* Recent Cases Table */}
-                    <div className="lg:col-span-2 border rounded-xl shadow-sm overflow-hidden">
-                        <div className="p-6 border-b flex justify-between items-center">
-                            <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
-                                <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
-                            </h3>
-                            <Button variant="ghost" onClick={() => window.location.href = '/admin/cases'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
-                        </div>
-                        <div className="overflow-x-auto min-h-[150px]">
-                            <table className="w-full text-left">
-                                <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                                    <tr>
-                                        <th className="px-6 py-4">Case No.</th>
-                                        <th className="px-6 py-4">Classification</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                                    {recentCases.length === 0 ? (
+                    {/* Left Column wrapper for Tables */}
+                    <div className="lg:col-span-2 flex flex-col gap-6">
+
+                        {/* Recent Cases Table */}
+                        <div className="border rounded-xl shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+                            <div className="p-6 border-b flex justify-between items-center">
+                                <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
+                                </h3>
+                                <Button variant="ghost" onClick={() => window.location.href = '/admin/cases'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
+                            </div>
+                            <div className="overflow-x-auto min-h-[150px]">
+                                <table className="w-full text-left">
+                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-slate-800">
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No cases reported yet.</td>
+                                            <th className="px-6 py-4">Case No.</th>
+                                            <th className="px-6 py-4">Classification</th>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Date</th>
                                         </tr>
-                                    ) : recentCases.map(c => (
-                                        <tr key={c.id} className="border-t hover:bg-gray-50/50 dark:hover:bg-gray-700/50">
-                                            <td className="px-6 py-4">{c.case_number}</td>
-                                            <td className={`px-6 py-4 ${c.type === 'VAWC' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                                                {c.type} / {c.subType}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-[9px] ${c.status === 'Resolved' || c.status.includes('Closed') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500'}`}>
-                                                    {c.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-slate-400">{c.date}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                                        {recentCases.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No cases reported yet.</td>
+                                            </tr>
+                                        ) : recentCases.map(c => (
+                                            <tr key={c.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 dark:border-slate-800 transition-colors">
+                                                <td className="px-6 py-4">{c.case_number}</td>
+                                                <td className={`px-6 py-4 ${c.type === 'VAWC' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                                                    {c.type} / {c.subType}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded font-bold tracking-widest text-[9px] uppercase ${getStatusColor(c.status)}`}>
+                                                        {c.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-400">{c.date}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+
+                        {/* Recent Apps Table */}
+                        <div className="border rounded-xl shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+                            <div className="p-6 border-b flex justify-between items-center">
+                                <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <UserPlus className="w-4 h-4 text-emerald-500" /> Recent Membership Apps
+                                </h3>
+                                <Button variant="ghost" onClick={() => window.location.href = '/admin/applications'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
+                            </div>
+                            <div className="overflow-x-auto min-h-[150px]">
+                                <table className="w-full text-left">
+                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-slate-800">
+                                        <tr>
+                                            <th className="px-6 py-4">Applicant</th>
+                                            <th className="px-6 py-4">Organization</th>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                                        {recentApplications.map(app => (
+                                            <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 dark:border-slate-800 transition-colors">
+                                                <td className="px-6 py-4">{app.name}</td>
+                                                <td className="px-6 py-4 text-slate-500">{app.organization}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded font-bold tracking-widest text-[9px] uppercase ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-500'}`}>
+                                                        {app.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-400">{app.date}</td>
+                                            </tr>
+                                        ))}
+                                        {recentApplications.length === 0 && (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No applications received yet.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
                     {/* Quick Tasks -> Replaced by: Case Status Resolution (Pie Chart) */}

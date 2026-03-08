@@ -144,11 +144,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $stats = [
             'totalCases' => \App\Models\CaseReport::count(),
             'totalUsers' => \App\Models\User::count(),
-            'totalOrgs' => \App\Models\Organization::count()
+            'totalOrgs' => \App\Models\Organization::count(),
+            'pendingApps' => \App\Models\MembershipApplication::where('status', 'Pending')->count()
         ];
 
         // Recent Case Reports table
-        $recentCases = \App\Models\CaseReport::with(['abuseType', 'status'])
+        $recentCases = \App\Models\CaseReport::with(['abuseType'])
             ->orderByDesc('created_at')
             ->take(5)
             ->get()
@@ -158,8 +159,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'case_number' => $case->case_number,
                     'type' => $case->type,
                     'subType' => $case->abuseType ? $case->abuseType->name : 'N/A',
-                    'status' => $case->status ? $case->status->name : 'N/A',
+                    'status' => $case->lifecycle_status,
                     'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
+                ];
+            });
+
+        // Recent Membership Applications table
+        $recentApplications = \App\Models\MembershipApplication::with(['organization'])
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get()
+            ->map(function ($app) {
+                return [
+                    'id' => $app->id,
+                    'name' => $app->fullname,
+                    'organization' => $app->organization ? $app->organization->name : 'N/A',
+                    'status' => $app->status,
+                    'date' => $app->created_at->format('M d, Y'),
                 ];
             });
 
@@ -176,12 +192,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
         // --- NEW: Case Resolution Rates ---
-        $caseResolutionsRaw = \App\Models\CaseReport::select('case_status_id')
-            ->with('status')
+        $caseResolutionsRaw = \App\Models\CaseReport::select('lifecycle_status')
             ->whereYear('created_at', $currentYear)
             ->get()
             ->groupBy(function ($case) {
-                return $case->status ? $case->status->name : 'Unknown';
+                return $case->lifecycle_status ?: 'Unknown';
             })
             ->map(function ($group) {
                 return count($group);
@@ -203,10 +218,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         $caseResolutionStats = [];
         $statusColors = [
-            'Pending' => '#fbbf24',
+            'New' => '#f43f5e',
             'Ongoing' => '#3b82f6',
+            'Referred' => '#a855f7',
             'Resolved' => '#10b981',
-            'Closed - Dismissed' => '#ef4444',
+            'Closed' => '#64748b',
+            'Dismissed' => '#ef4444',
             'Unknown' => '#94a3b8'
         ];
 
@@ -224,6 +241,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'chartConfig' => $chartConfig,
             'systemStats' => $stats,
             'recentCases' => $recentCases,
+            'recentApplications' => $recentApplications,
             'membershipStats' => $membershipStats,
             'caseResolutionStats' => $caseResolutionStats
         ]);
