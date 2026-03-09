@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import PublicLayout from '@/layouts/PublicLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import {
-    Activity, Calendar, Heart, Users, Briefcase, Baby, Accessibility,
-    User, ChevronDown, ChevronUp, Clock, CheckCircle2, AlertCircle, MapPin
+    Activity, Calendar, Briefcase, ChevronDown, ChevronUp,
+    Clock, CheckCircle2, MapPin
 } from "lucide-react";
 
 interface GadEvent {
@@ -311,27 +311,6 @@ export default function GadIndex({ activities = [] }: { activities?: GadEvent[] 
                 </section>
 
                 <div className="container mx-auto px-6 py-12 space-y-20">
-
-                    {/* SECTORS GRID */}
-                    <section>
-                        <div className="flex items-center gap-2 mb-6">
-                            <Users className="text-purple-600 w-6 h-6" />
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Organizations We Support</h2>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                                { name: "Women's Desk", icon: Heart, href: "/vawc", color: "text-purple-600 dark:text-purple-400", border: "border-purple-200 dark:border-purple-900" },
-                                { name: "BCPC (Children)", icon: Baby, href: "/bcpc", color: "text-sky-500 dark:text-sky-400", border: "border-sky-200 dark:border-sky-900" },
-                                { name: "Organizations", icon: Users, href: "/organizations", color: "text-blue-600 dark:text-blue-400", border: "border-blue-200 dark:border-blue-900" },
-                                { name: "Officials", icon: User, href: "/officials", color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-200 dark:border-emerald-900" },
-                            ].map((sector, index) => (
-                                <Link key={index} href={sector.href} className={`group block p-4 bg-white dark:bg-neutral-900 rounded-xl border ${sector.border} shadow-sm hover:shadow-md hover:border-purple-400 dark:hover:border-purple-700 transition-all text-center`}>
-                                    <sector.icon className={`mx-auto w-6 h-6 ${sector.color} mb-2 group-hover:scale-110 transition-transform`} />
-                                    <h3 className="font-bold text-slate-800 dark:text-slate-200 text-[11px] uppercase tracking-wide">{sector.name}</h3>
-                                </Link>
-                            ))}
-                        </div>
-                    </section>
 
                     {/* --- DYNAMIC PROGRAM SECTIONS --- */}
                     <section id="programs-board">

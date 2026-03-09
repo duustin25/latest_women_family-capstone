@@ -60,19 +60,15 @@ Route::prefix('organizations')->group(function () {
 
 
 
-// 4. Consolidated Public Services (Fixing the BadMethodCallException)
+// 4. Public Services Routes
 Route::controller(PublicServicesController::class)->group(function () {
     Route::get('/vawc', 'vawc')->name('vawc.index');
-    // Route::get('/vawc/report', 'vawcReport')->name('vawc.report'); // DISABLED: Offline Reporting Only
-    // Route::post('/vawc/report', 'storeVawcReport')->name('vawc.report.store');
 
     Route::get('/gad', 'gad')->name('gad.index');
     Route::get('/gad/register', 'gadRegister')->name('gad.register');
     Route::post('/gad/register', [PublicServicesController::class, 'storeMembershipApplication'])->name('gad.register.store');
 
     Route::get('/bcpc', 'bcpc')->name('bcpc.index');
-    // Route::get('/bcpc/report', 'bcpcReport')->name('bcpc.report'); // DISABLED: Offline Reporting Only
-    // Route::post('/bcpc/report', 'storeBcpcReport')->name('bcpc.report.store');
 
     Route::get('/officials', 'officials')->name('officials.index');
     Route::get('/laws', 'laws')->name('public.laws.index');
@@ -82,170 +78,172 @@ Route::controller(PublicServicesController::class)->group(function () {
 //  Authenticated Routes (Keep 'dashboard' standard)
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::get('dashboard', function () {
-        $currentYear = \Carbon\Carbon::now()->year;
+    // Route::get('dashboard', function () {
+    //     $currentYear = \Carbon\Carbon::now()->year;
 
-        // Fetch dynamic types (same as AnalyticsController)
-        $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
-            ->whereIn('category', ['VAWC', 'Both'])
-            ->get();
+    //     // Fetch dynamic types (same as AnalyticsController)
+    //     $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
+    //         ->whereIn('category', ['VAWC', 'Both'])
+    //         ->get();
 
-        $reportsRaw = \App\Models\CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
-            ->where('type', 'VAWC')
-            ->whereYear('incident_date', $currentYear)
-            ->whereNotNull('abuse_type_id')
-            ->get()
-            ->groupBy(function ($date) {
-                return \Carbon\Carbon::parse($date->incident_date)->month;
-            })
-            ->map(function ($group) {
-                return $group->countBy('abuse_type_id');
-            });
+    //     $reportsRaw = \App\Models\CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
+    //         ->where('type', 'VAWC')
+    //         ->whereYear('incident_date', $currentYear)
+    //         ->whereNotNull('abuse_type_id')
+    //         ->get()
+    //         ->groupBy(function ($date) {
+    //             return \Carbon\Carbon::parse($date->incident_date)->month;
+    //         })
+    //         ->map(function ($group) {
+    //             return $group->countBy('abuse_type_id');
+    //         });
 
-        $reports = collect();
-        foreach ($reportsRaw as $month => $counts) {
-            foreach ($counts as $abuseTypeId => $count) {
-                $reports->push((object) [
-                    'month' => $month,
-                    'abuse_type_id' => $abuseTypeId,
-                    'count' => $count
-                ]);
-            }
-        }
+    //     $reports = collect();
+    //     foreach ($reportsRaw as $month => $counts) {
+    //         foreach ($counts as $abuseTypeId => $count) {
+    //             $reports->push((object) [
+    //                 'month' => $month,
+    //                 'abuse_type_id' => $abuseTypeId,
+    //                 'count' => $count
+    //             ]);
+    //         }
+    //     }
 
-        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        $formattedData = [];
+    //     $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    //     $formattedData = [];
 
-        foreach ($months as $index => $monthName) {
-            $monthNum = $index + 1;
-            $monthData = ['month' => $monthName];
+    //     foreach ($months as $index => $monthName) {
+    //         $monthNum = $index + 1;
+    //         $monthData = ['month' => $monthName];
 
-            foreach ($abuseTypes as $type) {
-                $key = strtolower($type->name);
-                $record = $reports->where('month', $monthNum)
-                    ->first(function ($item) use ($type) {
-                        return $item->abuse_type_id === $type->id;
-                    });
-                $monthData[$key] = $record ? $record->count : 0;
-            }
-            $formattedData[] = $monthData;
-        }
+    //         foreach ($abuseTypes as $type) {
+    //             $key = strtolower($type->name);
+    //             $record = $reports->where('month', $monthNum)
+    //                 ->first(function ($item) use ($type) {
+    //                     return $item->abuse_type_id === $type->id;
+    //                 });
+    //             $monthData[$key] = $record ? $record->count : 0;
+    //         }
+    //         $formattedData[] = $monthData;
+    //     }
 
-        // Pass types meta for Chart colors
-        $chartConfig = $abuseTypes->map(function ($t) {
-            return [
-                'key' => strtolower($t->name),
-                'label' => $t->name,
-                'color' => $t->color ?? '#000000'
-            ];
-        });
+    //     // Pass types meta for Chart colors
+    //     $chartConfig = $abuseTypes->map(function ($t) {
+    //         return [
+    //             'key' => strtolower($t->name),
+    //             'label' => $t->name,
+    //             'color' => $t->color ?? '#000000'
+    //         ];
+    //     });
 
-        // Dashboard Quick Stats
-        $stats = [
-            'totalCases' => \App\Models\CaseReport::count(),
-            'totalUsers' => \App\Models\User::count(),
-            'totalOrgs' => \App\Models\Organization::count(),
-            'pendingApps' => \App\Models\MembershipApplication::where('status', 'Pending')->count()
-        ];
+    //     // Dashboard Quick Stats
+    //     $stats = [
+    //         'totalCases' => \App\Models\CaseReport::count(),
+    //         'totalUsers' => \App\Models\User::count(),
+    //         'totalOrgs' => \App\Models\Organization::count(),
+    //         'pendingApps' => \App\Models\MembershipApplication::where('status', 'Pending')->count()
+    //     ];
 
-        // Recent Case Reports table
-        $recentCases = \App\Models\CaseReport::with(['abuseType'])
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get()
-            ->map(function ($case) {
-                return [
-                    'id' => $case->id,
-                    'case_number' => $case->case_number,
-                    'type' => $case->type,
-                    'subType' => $case->abuseType ? $case->abuseType->name : 'N/A',
-                    'status' => $case->lifecycle_status,
-                    'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
-                ];
-            });
+    //     // Recent Case Reports table
+    //     $recentCases = \App\Models\CaseReport::with(['abuseType'])
+    //         ->orderByDesc('created_at')
+    //         ->take(5)
+    //         ->get()
+    //         ->map(function ($case) {
+    //             return [
+    //                 'id' => $case->id,
+    //                 'case_number' => $case->case_number,
+    //                 'type' => $case->type,
+    //                 'subType' => $case->abuseType ? $case->abuseType->name : 'N/A',
+    //                 'status' => $case->lifecycle_status,
+    //                 'date' => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
+    //             ];
+    //         });
 
-        // Recent Membership Applications table
-        $recentApplications = \App\Models\MembershipApplication::with(['organization'])
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get()
-            ->map(function ($app) {
-                return [
-                    'id' => $app->id,
-                    'name' => $app->fullname,
-                    'organization' => $app->organization ? $app->organization->name : 'N/A',
-                    'status' => $app->status,
-                    'date' => $app->created_at->format('M d, Y'),
-                ];
-            });
+    //     // Recent Membership Applications table
+    //     $recentApplications = \App\Models\MembershipApplication::with(['organization'])
+    //         ->orderByDesc('created_at')
+    //         ->take(5)
+    //         ->get()
+    //         ->map(function ($app) {
+    //             return [
+    //                 'id' => $app->id,
+    //                 'name' => $app->fullname,
+    //                 'organization' => $app->organization ? $app->organization->name : 'N/A',
+    //                 'status' => $app->status,
+    //                 'date' => $app->created_at->format('M d, Y'),
+    //             ];
+    //         });
 
-        // --- NEW: Organization Membership Growth ---
-        $membershipsRaw = \App\Models\MembershipApplication::select('created_at', 'status', 'organization_id')
-            ->where('status', 'Approved')
-            ->whereYear('created_at', $currentYear)
-            ->get()
-            ->groupBy(function ($date) {
-                return \Carbon\Carbon::parse($date->created_at)->month;
-            })
-            ->map(function ($group) {
-                return $group->count();
-            });
+    //     // --- NEW: Organization Membership Growth ---
+    //     $membershipsRaw = \App\Models\MembershipApplication::select('created_at', 'status', 'organization_id')
+    //         ->where('status', 'Approved')
+    //         ->whereYear('created_at', $currentYear)
+    //         ->get()
+    //         ->groupBy(function ($date) {
+    //             return \Carbon\Carbon::parse($date->created_at)->month;
+    //         })
+    //         ->map(function ($group) {
+    //             return $group->count();
+    //         });
 
-        // --- NEW: Case Resolution Rates ---
-        $caseResolutionsRaw = \App\Models\CaseReport::select('lifecycle_status')
-            ->whereYear('created_at', $currentYear)
-            ->get()
-            ->groupBy(function ($case) {
-                return $case->lifecycle_status ?: 'Unknown';
-            })
-            ->map(function ($group) {
-                return count($group);
-            });
+    //     // --- NEW: Case Resolution Rates ---
+    //     $caseResolutionsRaw = \App\Models\CaseReport::select('lifecycle_status')
+    //         ->whereYear('created_at', $currentYear)
+    //         ->get()
+    //         ->groupBy(function ($case) {
+    //             return $case->lifecycle_status ?: 'Unknown';
+    //         })
+    //         ->map(function ($group) {
+    //             return count($group);
+    //         });
 
-        $membershipStats = [
-            'total_this_year' => \App\Models\MembershipApplication::where('status', 'Approved')->whereYear('created_at', $currentYear)->count(),
-            'total_all_time' => \App\Models\MembershipApplication::where('status', 'Approved')->count(),
-            'monthly_growth' => []
-        ];
+    //     $membershipStats = [
+    //         'total_this_year' => \App\Models\MembershipApplication::where('status', 'Approved')->whereYear('created_at', $currentYear)->count(),
+    //         'total_all_time' => \App\Models\MembershipApplication::where('status', 'Approved')->count(),
+    //         'monthly_growth' => []
+    //     ];
 
-        foreach ($months as $index => $monthName) {
-            $monthNum = $index + 1;
-            $membershipStats['monthly_growth'][] = [
-                'month' => $monthName,
-                'count' => $membershipsRaw->get($monthNum, 0)
-            ];
-        }
+    //     foreach ($months as $index => $monthName) {
+    //         $monthNum = $index + 1;
+    //         $membershipStats['monthly_growth'][] = [
+    //             'month' => $monthName,
+    //             'count' => $membershipsRaw->get($monthNum, 0)
+    //         ];
+    //     }
 
-        $caseResolutionStats = [];
-        $statusColors = [
-            'New' => '#f43f5e',
-            'Ongoing' => '#3b82f6',
-            'Referred' => '#a855f7',
-            'Resolved' => '#10b981',
-            'Closed' => '#64748b',
-            'Dismissed' => '#ef4444',
-            'Unknown' => '#94a3b8'
-        ];
+    //     $caseResolutionStats = [];
+    //     $statusColors = [
+    //         'New' => '#f43f5e',
+    //         'Ongoing' => '#3b82f6',
+    //         'Referred' => '#a855f7',
+    //         'Resolved' => '#10b981',
+    //         'Closed' => '#64748b',
+    //         'Dismissed' => '#ef4444',
+    //         'Unknown' => '#94a3b8'
+    //     ];
 
-        foreach ($caseResolutionsRaw as $statusName => $count) {
-            $caseResolutionStats[] = [
-                'name' => $statusName,
-                'value' => $count,
-                'fill' => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF))
-            ];
-        }
+    //     foreach ($caseResolutionsRaw as $statusName => $count) {
+    //         $caseResolutionStats[] = [
+    //             'name' => $statusName,
+    //             'value' => $count,
+    //             'fill' => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF))
+    //         ];
+    //     }
 
 
-        return Inertia::render('dashboard', [
-            'analyticsData' => $formattedData,
-            'chartConfig' => $chartConfig,
-            'systemStats' => $stats,
-            'recentCases' => $recentCases,
-            'recentApplications' => $recentApplications,
-            'membershipStats' => $membershipStats,
-            'caseResolutionStats' => $caseResolutionStats
-        ]);
-    })->name('dashboard');
+    //     return Inertia::render('dashboard', [
+    //         'analyticsData' => $formattedData,
+    //         'chartConfig' => $chartConfig,
+    //         'systemStats' => $stats,
+    //         'recentCases' => $recentCases,
+    //         'recentApplications' => $recentApplications,
+    //         'membershipStats' => $membershipStats,
+    //         'caseResolutionStats' => $caseResolutionStats
+    //     ]);
+    // })->name('dashboard');
+
+    Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
 
     // This turns 'announcements.index' into 'admin.announcements.index'
