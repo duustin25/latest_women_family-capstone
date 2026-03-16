@@ -246,7 +246,7 @@ export default function Index({ cases: initialCases, caseStatuses = [] }: { case
                     <div className="mb-6 text-xs font-bold uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50 p-2">
                         <h1>
                             NOTE: IF THE STATUS COLOR IS WHITE, THE STATUS
-                            MUST HAVE BEEN DISACTIVATED OR UPDATED, PLEASE CHECK
+                            MUST HAVE BEEN DEACTIVATED OR UPDATED, PLEASE CHECK
                             THE SYSTEM CONFIGURATION "CASE & REFERRAL CONFIGURATION"
                             TO UPDATE THIS.
                         </h1>

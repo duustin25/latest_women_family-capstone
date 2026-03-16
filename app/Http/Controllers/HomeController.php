@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\Organization;
+use App\Models\Banner;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Http\Resources\AnnouncementResource;
@@ -21,6 +22,9 @@ class HomeController extends Controller
             
             // Use the Resource here too!
             'organizations' => OrganizationResource::collection(Organization::latest()->take(4)->get()), 
+
+            // Fetch active banners for the hero slider
+            'banners' => Banner::where('is_active', true)->orderBy('order_index')->get(),
         ]);
     }
 }

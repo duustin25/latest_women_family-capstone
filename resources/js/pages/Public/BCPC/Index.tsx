@@ -30,31 +30,24 @@ export default function BcpcIndex() {
 
             <div className="min-h-screen bg-white dark:bg-neutral-950 font-sans text-slate-800 dark:text-slate-200 transition-colors">
 
-                {/* --- HERO SECTION (SKY BLUE THEME) --- */}
-                <section className="bg-slate-900 border-b-8 border-sky-500 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-sky-900/40 to-transparent z-0"></div>
-                    <div className="container mx-auto px-6 py-20 relative z-10">
-                        <div className="max-w-4xl">
-                            <h2 className="text-sky-400 font-black uppercase tracking-[0.3em] text-sm mb-4">Republic Act 9344</h2>
-                            <h1 className="text-4xl md:text-6xl font-black text-white uppercase leading-tight mb-6 tracking-tighter">
-                                Safeguarding the <span className="text-sky-500">Rights</span> & Welfare of Children
+                {/* HERO SECTION - Streamlined for Direct Access */}
+                <section className="bg-slate-900 border-b-4 border-sky-500 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-sky-900/30 to-slate-900 z-0"></div>
+                    <div className="container mx-auto px-6 py-12 md:py-16 relative z-10 text-center lg:text-left">
+                        <div className="max-w-5xl mx-auto lg:mx-0">
+                            <h2 className="text-sky-400 font-black uppercase tracking-widest text-xs md:text-sm mb-3">Welfare of Children Protection</h2>
+                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white uppercase leading-[1.1] mb-4 tracking-tight">
+                                Children's <span className="text-sky-500">Rights</span> & Welfare
                             </h1>
-                            <p className="text-lg md:text-xl text-slate-200 font-medium max-w-2xl mb-8 leading-relaxed italic">
-                                "Bawat bata ay may karapatang lumaki sa isang ligtas, payapa, at mapagkalingang komunidad."
+                            <p className="text-base md:text-xl text-slate-300 font-medium max-w-2xl mb-6 leading-relaxed hidden md:block">
+                                Bawat bata ay may karapatang lumaki sa isang ligtas, payapa, at mapagkalingang komunidad sa Barangay 183 Villamor.
                             </p>
-                            <div className="flex flex-wrap gap-4">
-                                <div className="bg-sky-950/30 border border-sky-500/30 backdrop-blur-sm p-4 rounded-lg mb-4 md:mb-0 max-w-md">
-                                    <p className="text-white text-sm font-medium">
-                                        <span className="font-bold text-sky-400 block mb-1 uppercase tracking-wider">Confidential Reporting</span>
-                                        To file a report, please visit the Barangay Hall or call our hotline. Your safety and privacy are our priority.
-                                    </p>
-                                </div>
+                            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                                 <Button
-                                    variant="outline"
-                                    className="bg-transparent border-white text-white hover:bg-white hover:text-slate-900 font-bold uppercase px-8 py-6 text-sm rounded-md tracking-widest cursor-pointer"
+                                    className="bg-sky-600 hover:bg-sky-700 text-white font-black uppercase px-8 py-6 text-xs tracking-widest rounded-md shadow-xl transition-all active:scale-95 cursor-pointer h-14"
                                     onClick={() => scrollToSection('intervention-process')}
                                 >
-                                    Intervention Process
+                                    Intervention Process <ArrowRight className="ml-2 w-5 h-5" />
                                 </Button>
                             </div>
                         </div>
@@ -74,7 +67,7 @@ export default function BcpcIndex() {
                                     <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Diversion Programs</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                    <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed">
                                         Alternative measures for Children in Conflict with the Law (CICL) to avoid court proceedings, focusing on restorative justice.
                                     </p>
                                 </CardContent>
@@ -88,7 +81,7 @@ export default function BcpcIndex() {
                                     <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Intervention (CAR)</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                    <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed">
                                         Immediate support and counseling for Children at Risk (CAR) to prevent them from offending and ensure their safety.
                                     </p>
                                 </CardContent>
@@ -102,7 +95,7 @@ export default function BcpcIndex() {
                                     <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Rehabilitation</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                    <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed">
                                         Community-based rehabilitation programs involving family and social workers to reintegrate the child into society.
                                     </p>
                                 </CardContent>
@@ -129,9 +122,9 @@ export default function BcpcIndex() {
                                     <div className="absolute md:top-[-6px] left-[-5px] md:left-0 w-3 h-3 bg-sky-600 rounded-full"></div>
                                     <div className="md:hidden absolute left-0 top-0 h-full w-1 bg-slate-200 dark:bg-neutral-700 group-hover:bg-sky-400 transition-colors"></div>
 
-                                    <h3 className="text-4xl font-black text-slate-200 dark:text-neutral-700 mb-2">{item.step}</h3>
-                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white uppercase mb-2">{item.title}</h4>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+                                    <h3 className="text-4xl font-black text-slate-300 dark:text-neutral-700 mb-2">{item.step}</h3>
+                                    <h4 className="text-xl font-bold text-slate-900 dark:text-white uppercase mb-2">{item.title}</h4>
+                                    <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{item.desc}</p>
                                 </div>
                             ))}
                         </div>
@@ -158,8 +151,8 @@ export default function BcpcIndex() {
                                             <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                         </div>
                                         <div>
-                                            <strong className="block text-slate-900 dark:text-white font-bold text-sm uppercase mb-1">{sign.title}</strong>
-                                            <span className="text-slate-600 dark:text-slate-400 text-sm leading-snug">{sign.desc}</span>
+                                            <strong className="block text-slate-900 dark:text-white font-black text-sm uppercase mb-1">{sign.title}</strong>
+                                            <span className="text-slate-700 dark:text-slate-300 text-base leading-snug font-medium">{sign.desc}</span>
                                         </div>
                                     </li>
                                 ))}
@@ -205,16 +198,16 @@ export default function BcpcIndex() {
                 </div>
 
                 {/* --- CALL TO ACTION --- */}
-                <section className="bg-slate-900 text-white py-16">
+                <section className="bg-white dark:bg-neutral-900 text-white py-16">
                     <div className="container mx-auto px-6 text-center">
                         <div className="flex justify-center mb-6">
                             <div className="w-16 h-16 bg-sky-600 rounded-full flex items-center justify-center animate-pulse">
                                 <Phone className="w-8 h-8 text-white" />
                             </div>
                         </div>
-                        <h2 className="text-3xl font-black uppercase mb-4">BCPC Hotline</h2>
+                        <h2 className="text-slate-900 dark:text-slate-200 text-3xl font-black uppercase mb-4">BCPC Hotline</h2>
                         <p className="text-sky-400 font-bold text-5xl tracking-tighter mb-4">(02) 8XXX-XXXX</p>
-                        <p className="text-slate-400 uppercase tracking-widest text-sm mb-8">Barangay 183 Villamor BCPC Desk • 24/7 Active</p>
+                        <p className="text-slate-900 dark:text-slate-200 uppercase tracking-widest text-sm mb-8">Barangay 183 Villamor BCPC Desk • 24/7 Active</p>
                     </div>
                 </section>
 

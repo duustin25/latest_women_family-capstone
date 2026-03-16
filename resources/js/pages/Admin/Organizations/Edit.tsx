@@ -1,12 +1,14 @@
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, LayoutTemplate, Settings } from "lucide-react";
+import { ArrowLeft, LayoutTemplate, Settings } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { useState } from 'react';
 import LivePaperPreview from "@/components/Admin/LivePaperPreview";
 import OrganizationSettings from "@/components/Admin/OrganizationSettings";
 import FormBuilder from "@/components/Admin/FormBuilder";
 import PrintSettingsBuilder from "@/components/Admin/PrintSettingsBuilder";
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { UnsavedChangesDialog } from '@/components/Admin/UnsavedChangesDialog';
 
 export default function Edit({ organization, users }: { organization: any, users?: any[] }) {
     const record = organization?.data ?? organization;
@@ -34,7 +36,7 @@ export default function Edit({ organization, users }: { organization: any, users
         return [...missingCore, ...updatedSchema];
     };
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty, reset } = useForm({
         _method: 'PUT',
         name: record?.name || '',
         description: record?.description || '',
@@ -52,19 +54,52 @@ export default function Edit({ organization, users }: { organization: any, users
         },
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = (e?: React.FormEvent | React.MouseEvent) => {
+        if (e) e.preventDefault();
         post(`/admin/organizations/${record.slug}`, {
             forceFormData: true,
             preserveScroll: true,
         });
     };
 
+    const {
+        showWarningModal,
+        setShowWarningModal,
+        handleSaveAndLeave,
+        handleDiscardChanges,
+        handleStayOnPage,
+        bypassWarningRef
+    } = useUnsavedChanges({
+        isDirty,
+        onReset: reset,
+        onSave: (url) => {
+            post(`/admin/organizations/${record.slug}`, {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    if (url) {
+                        bypassWarningRef.current = true;
+                        router.visit(url);
+                    }
+                }
+            });
+        }
+    });
+
     if (!record) return <div className="p-20 text-center font-black text-neutral-400">Data not found.</div>;
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Organizations', href: '/admin/organizations' }, { title: 'Edit Profile', href: '#' }]}>
             <Head title={`Edit - ${record.name}`} />
+
+            <UnsavedChangesDialog
+                open={showWarningModal}
+                onOpenChange={setShowWarningModal}
+                itemName={record.name}
+                onSaveAndLeave={handleSaveAndLeave}
+                onDiscardChanges={handleDiscardChanges}
+                onStayOnPage={handleStayOnPage}
+            />
 
             {/* FLOATING SAVE BUTTON */}
             <div className="fixed bottom-8 right-8 z-50">

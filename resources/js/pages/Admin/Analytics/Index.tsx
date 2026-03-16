@@ -345,7 +345,7 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                         </Card>
 
                         {/* 2. Incident Location Heatmap */}
-                        <Card className="shadow-sm border">
+                        {/* <Card className="shadow-sm border">
                             <CardHeader>
                                 <CardTitle className="uppercase tracking-widest text-xs font-black text-orange-500">Incident Heatmap</CardTitle>
                                 <CardDescription className="text-xs">Highest reported incident zones (Top 8)</CardDescription>
@@ -365,7 +365,7 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                                     </BarChart>
                                 </ResponsiveContainer>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* 3. Top Referral Agencies */}
                         <Card className="shadow-sm border">
