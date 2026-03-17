@@ -3,16 +3,16 @@ import * as React from "react";
 import PublicLayout from '@/layouts/PublicLayout';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import {
-    ArrowRight, MapPin, Calendar, ChevronRight
+    ShieldAlert, Users, Baby, ArrowRight,
+    MapPin, Calendar, ExternalLink, ChevronRight
 } from "lucide-react";
 
 interface WelcomeProps {
     announcements: { data: any[] };
     organizations: { data: any[] };
-    banners: any[];
 }
 
-export default function Welcome({ announcements, organizations, banners }: WelcomeProps) {
+export default function Welcome({ announcements, organizations }: WelcomeProps) {
     const [api, setApi] = React.useState<CarouselApi>()
 
     // This makes the picture slider move automatically
@@ -33,23 +33,20 @@ export default function Welcome({ announcements, organizations, banners }: Welco
         };
     }, [api]);
 
-    const activeSlides = banners && banners.length > 0 ? banners : [
+    const slides = [
         {
-            id: 'fallback-1',
-            image_path: null,
-            fallback_image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2069&auto=format&fit=crop",
+            id: 1,
+            image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2069&auto=format&fit=crop",
             title: "Safe Community",
         },
         {
-            id: 'fallback-2',
-            image_path: null,
-            fallback_image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=2070&auto=format&fit=crop",
+            id: 2,
+            image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=2070&auto=format&fit=crop",
             title: "Gender Equality",
         },
         {
-            id: 'fallback-3',
-            image_path: null,
-            fallback_image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+            id: 3,
+            image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
             title: "Child Protection",
         },
     ];
@@ -58,8 +55,17 @@ export default function Welcome({ announcements, organizations, banners }: Welco
         <PublicLayout>
             <Head title="Welcome - Brgy 183 Villamor" />
 
+            {/* FIXED BACKGROUND LOGO */}
+            <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
+                <img
+                    src="/Logo/barangay183LOGO.png"
+                    alt="Barangay 183 Logo"
+                    className="w-[500px] opacity-10"
+                />
+            </div>
+
             {/* 1. HERO SECTION - With Carousel Background */}
-            <section className="relative z-10 bg-neutral-900 text-white overflow-hidden h-[500px] lg:h-[600px] flex items-center">
+            <section className="relative z-10 bg-neutral-900 text-white overflow-hidden h-[600px] lg:h-[700px] flex items-center">
 
                 {/* CAROUSEL BACKGROUND */}
                 <div className="absolute inset-0 z-0 select-none pointer-events-none">
@@ -69,53 +75,23 @@ export default function Welcome({ announcements, organizations, banners }: Welco
                         opts={{ loop: true, align: "start" }}
                     >
                         <CarouselContent className="h-full ml-0">
-                            {activeSlides.map((slide: Record<string, any>) => {
-                                const slideContent = (
-                                    <div className="absolute inset-0 bg-neutral-900 group">
+                            {slides.map((slide) => (
+                                <CarouselItem key={slide.id} className="pl-0 h-full w-full relative">
+                                    <div className="absolute inset-0 bg-neutral-900">
                                         <img
-                                            src={slide.image_path ? `/storage/${slide.image_path}` : slide.fallback_image}
-                                            alt={slide.title || "Banner Image"}
+                                            src={slide.image}
+                                            alt={slide.title}
                                             onError={(e) => {
                                                 e.currentTarget.src = "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2069&auto=format&fit=crop";
                                             }}
-                                            className="w-full h-full object-cover opacity-60 group-hover:scale-105 group-hover:opacity-70 transition-all duration-1000"
+                                            className="w-full h-full object-cover opacity-60 animate-in fade-in duration-1000"
                                         />
                                         {/* Gradient Overlay for Text Readability */}
                                         <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-transparent"></div>
                                         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-neutral-900/20"></div>
-
-                                        {/* Slide Info (Bottom Right Focus) */}
-                                        {(slide.title || slide.subtitle) && (
-                                            <div className="absolute bottom-12 right-6 md:right-12 text-right pointer-events-none z-10 animate-in slide-in-from-bottom-5 fade-in duration-1000 max-w-2xl bg-black/40 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
-                                                {slide.title && <h3 className="text-2xl md:text-3xl lg:text-5xl font-black text-white uppercase tracking-tighter drop-shadow-xl leading-tight">{slide.title}</h3>}
-                                                {slide.subtitle && <p className="text-purple-200 font-bold tracking-widest uppercase text-xs md:text-sm drop-shadow-md mt-2 border-t border-white/20 pt-2 inline-block">{slide.subtitle}</p>}
-
-                                                {slide.link_url && (
-                                                    <div className="mt-4 flex justify-end">
-                                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white bg-purple-600 px-3 py-1.5 rounded-full shadow-lg">
-                                                            Read More <ChevronRight size={12} />
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
                                     </div>
-                                );
-
-                                return (
-                                    <CarouselItem key={slide.id} className="pl-0 h-full w-full relative">
-                                        {slide.link_url ? (
-                                            <a href={slide.link_url} target={slide.link_url.startsWith('http') ? "_blank" : "_self"} rel="noreferrer" className="block w-full h-full pointer-events-auto cursor-pointer">
-                                                {slideContent}
-                                            </a>
-                                        ) : (
-                                            <div className="block w-full h-full">
-                                                {slideContent}
-                                            </div>
-                                        )}
-                                    </CarouselItem>
-                                );
-                            })}
+                                </CarouselItem>
+                            ))}
                         </CarouselContent>
                     </Carousel>
                 </div>
@@ -147,8 +123,11 @@ export default function Welcome({ announcements, organizations, banners }: Welco
                 </div>
             </section>
 
-            {/* 2. COMMUNITY UPDATES */}
-            <section className="py-20 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 relative z-10 transition-colors">
+            {/* 2. CORE SERVICES GRID (Placeholder - keeping structure intact) */}
+
+
+            {/* 3. COMMUNITY UPDATES */}
+            <section className="py-20 border-t border-neutral-200 dark:border-neutral-800 relative z-10 transition-colors">
                 <div className="container mx-auto px-6">
                     <div className="flex items-end justify-between mb-12">
                         <div>
@@ -214,8 +193,8 @@ export default function Welcome({ announcements, organizations, banners }: Welco
                 </div>
             </section>
 
-            {/* 3. ACCREDITED ORGANIZATIONS */}
-            <section className="py-20 border-t border-neutral-100 dark:border-neutral-800 relative z-10 transition-colors bg-white dark:bg-neutral-900">
+            {/* 4. ACCREDITED ORGANIZATIONS */}
+            <section className="py-20 border-t border-neutral-100 dark:border-neutral-800 relative z-10 transition-colors">
                 <div className="container mx-auto px-6">
                     <div className="text-center max-w-2xl mx-auto mb-16">
                         <h2 className="text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest text-xs mb-3">Community Partners</h2>

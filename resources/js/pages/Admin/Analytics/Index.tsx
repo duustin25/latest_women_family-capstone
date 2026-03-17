@@ -202,8 +202,8 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-black uppercase tracking-widest text-emerald-600">Active Referrals</CardTitle>
-                            <Activity className="h-4 w-4 text-emerald-600" />
+                            <CardTitle className="text-sm font-black uppercase tracking-widest text-violet-600">Active Referrals</CardTitle>
+                            <Activity className="h-4 w-4 text-violet-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-black text-slate-900">{stats.activeReferrals}</div>

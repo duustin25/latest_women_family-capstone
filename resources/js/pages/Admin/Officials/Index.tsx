@@ -1,15 +1,10 @@
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
-import { Plus, Edit3, Trash2, User, Image as ImageIcon, Search, Shield, Briefcase } from 'lucide-react';
+import { Plus, Edit3, Trash2, User, Search, Shield, Briefcase } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface User {
@@ -30,20 +25,7 @@ interface Official {
 }
 
 export default function Index({ officials, users }: { officials: Official[], users: User[] }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editingId, setEditingId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-
-    const form = useForm({
-        user_id: '' as string | number,
-
-        position: '',
-        committee: '',
-        level: 'staff',
-        image_path: null as File | null,
-        _method: 'POST'
-    });
 
     const filteredOfficials = officials.filter(off => {
         const displayName = off.user ? off.user.name : 'Vacant Position';
@@ -51,61 +33,7 @@ export default function Index({ officials, users }: { officials: Official[], use
             off.position.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-    const openCreate = () => {
-        setIsEditing(false);
-        setEditingId(null);
-        form.reset();
-        form.setData({
-            user_id: '',
 
-            position: '',
-            committee: '',
-            level: 'staff',
-            image_path: null,
-            _method: 'POST'
-        });
-        setIsModalOpen(true);
-    };
-
-    const openEdit = (official: Official) => {
-        setIsEditing(true);
-        setEditingId(official.id);
-        form.setData({
-            user_id: official.user_id || '',
-
-            position: official.position,
-            committee: official.committee || '',
-            level: official.level as any,
-            image_path: null,
-            _method: 'PATCH'
-        });
-        setIsModalOpen(true);
-    };
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (isEditing && editingId) {
-            router.post(route('admin.officials.update', editingId), {
-                ...form.data,
-                image_path: form.data.image_path
-            }, {
-                onSuccess: () => setIsModalOpen(false),
-                onError: (errors) => {
-                    Object.values(errors).flat().forEach((err: any) => toast.error(err));
-                },
-                forceFormData: true
-            });
-        } else {
-            form.post(route('admin.officials.store'), {
-                onSuccess: () => setIsModalOpen(false),
-                onError: (errors) => {
-                    Object.values(errors).flat().forEach((err: any) => toast.error(err));
-                },
-                forceFormData: true
-            });
-        }
-    };
 
     const deleteOfficial = (id: number) => {
         if (confirm('Are you sure you want to remove this official?')) {
@@ -144,10 +72,12 @@ export default function Index({ officials, users }: { officials: Official[], use
                                 <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Active Members</span>
                             </div>
 
-                            <Button onClick={openCreate} className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 border-transparent dark:border-neutral-700">
-                                <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                                <span className="font-bold uppercase tracking-wide text-xs">Add Official</span>
-                            </Button>
+                            <Link href={route('admin.officials.create')}>
+                                <Button className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all border-2 border-transparent dark:border-neutral-700">
+                                    <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
+                                    <span className="font-bold uppercase tracking-wide text-xs">Add Official</span>
+                                </Button>
+                            </Link>
                         </div>
                     </div>
 
@@ -245,9 +175,11 @@ export default function Index({ officials, users }: { officials: Official[], use
 
                                                 <td className="p-5 pr-8 align-middle text-right">
                                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button variant="ghost" size="sm" onClick={() => openEdit(official)} className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
-                                                            <Edit3 size={14} />
-                                                        </Button>
+                                                        <Link href={route('admin.officials.edit', official.id)}>
+                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
+                                                                <Edit3 size={14} />
+                                                            </Button>
+                                                        </Link>
 
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -271,115 +203,7 @@ export default function Index({ officials, users }: { officials: Official[], use
                         </div>
                     </div>
 
-                    {/* MODAL */}
-                    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>{isEditing ? 'Edit Official' : 'Add New Official'}</DialogTitle>
-                                <DialogDescription>
-                                    {isEditing ? 'Update the details of the official.' : 'Add a new member to the organizational chart.'}
-                                </DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={submit} className="space-y-4 py-4">
 
-                                {/* USER SELECTION */}
-                                <div className="space-y-2 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
-                                    <Label className="text-[10px] uppercase tracking-widest font-black text-purple-600">Link to System Account</Label>
-                                    <Select
-                                        value={form.data.user_id?.toString()}
-                                        onValueChange={v => form.setData('user_id', v)}
-                                    >
-                                        <SelectTrigger className="bg-white dark:bg-black uppercase text-xs font-bold">
-                                            <SelectValue placeholder="SELECT REGISTERED USER" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="">SELECT REGISTERED USER</SelectItem>
-                                            {users.map(user => (
-                                                <SelectItem key={user.id} value={user.id.toString()}>
-                                                    {user.name.toUpperCase()}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-[9px] text-neutral-400">All organizational staff must be linked to a registered account.</p>
-                                    {form.errors.user_id && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.user_id}</p>
-                                    )}
-                                </div>
-
-
-
-                                {/* NEW: HIERARCHY LEVEL SELECTOR */}
-                                <div className="space-y-2">
-                                    <Label>Hierarchy Level</Label>
-                                    <Select
-                                        value={form.data.level}
-                                        onValueChange={v => form.setData('level', v as any)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="head">Head Committee (Only 1 allowed)</SelectItem>
-                                            <SelectItem value="secretary">Secretary (Only 1 allowed)</SelectItem>
-                                            <SelectItem value="staff">Office Staff (Multiple allowed)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {form.errors.level && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.level}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Position Title</Label>
-                                    <Input
-                                        value={form.data.position}
-                                        onChange={e => form.setData('position', e.target.value)}
-                                        placeholder="e.g. VAWC Head Officer"
-                                        required
-                                    />
-                                    {form.errors.position && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.position}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Committee (Optional)</Label>
-                                    <Input
-                                        value={form.data.committee}
-                                        onChange={e => form.setData('committee', e.target.value)}
-                                        placeholder="e.g. Committee on Women"
-                                    />
-                                    {form.errors.committee && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.committee}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label>Official Photo</Label>
-                                    <div className="flex items-center gap-2 border rounded-md p-2 bg-slate-50 dark:bg-slate-900 border-dashed border-slate-300">
-                                        <ImageIcon className="w-5 h-5 text-slate-400" />
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="text-sm cursor-pointer w-full text-slate-500 file:mr-4 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                                            onChange={e => form.setData('image_path', e.currentTarget.files ? e.currentTarget.files[0] : null)}
-                                        />
-                                    </div>
-                                    {form.errors.image_path && (
-                                        <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.image_path}</p>
-                                    )}
-                                    <p className="text-[10px] text-slate-400">Recommended: Square Aspect Ratio (1:1), Max 10MB.</p>
-                                </div>
-
-                                <DialogFooter>
-                                    <Button type="submit" disabled={form.processing} className="w-full bg-purple-600 hover:bg-purple-700">
-                                        {isEditing ? 'Update Official' : 'Confirm & Save'}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </div>
         </AppLayout>

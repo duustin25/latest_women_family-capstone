@@ -46,11 +46,8 @@ export default function Index({ announcements = { data: [] } }: any) {
                     <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/50 to-transparent z-10"></div>
 
                     <div className="relative z-20 text-center max-w-4xl px-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
-                        <span className="inline-block py-1 px-3 rounded-full bg-rose-600/20 text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase tracking-[0.2em] mb-4 backdrop-blur-sm">
-                            Community Updates
-                        </span>
                         <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 uppercase">
-                            Barangay <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">Bulletin</span>
+                            Barangay Bulletin
                         </h1>
                         <p className="text-neutral-400 font-bold uppercase text-xs tracking-widest max-w-2xl mx-auto leading-relaxed">
                             Stay informed with the latest news, official advisories, and community events from Barangay 183 Villamor.
@@ -163,6 +160,6 @@ export default function Index({ announcements = { data: [] } }: any) {
                     </section>
                 </main>
             </div>
-        </PublicLayout>
+        </PublicLayout >
     );
 }

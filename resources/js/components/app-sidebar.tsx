@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Activity, Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper, Images } from 'lucide-react';
+import { Activity, Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Wallpaper } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -21,11 +21,6 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'Banners',
-        href: '/admin/banners',
-        icon: Images,
     },
     {
         title: 'Announcements',

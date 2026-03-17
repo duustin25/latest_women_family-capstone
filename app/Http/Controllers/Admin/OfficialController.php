@@ -18,17 +18,21 @@ class OfficialController extends Controller
             ->orderBy('display_order')
             ->get();
 
-        $availableUsers = \App\Models\User::select('id', 'name')->get();
-
         return Inertia::render('Admin/Officials/Index', [
-            'officials' => $officials,
+            'officials' => $officials
+        ]);
+    }
+
+    public function create()
+    {
+        $availableUsers = \App\Models\User::select('id', 'name')->get();
+        return Inertia::render('Admin/Officials/Create', [
             'users' => $availableUsers
         ]);
     }
 
     public function store(Request $request)
     {
-        // 🚀 THE FIX: Intercept "0" or "none" from React and force it to be strictly null
         if ($request->user_id === '0' || $request->user_id === 'none') {
             $request->merge(['user_id' => null]);
         }
@@ -43,14 +47,11 @@ class OfficialController extends Controller
 
         $validated = $request->validate($rules);
 
-        // ENFORCE RULE: Only 1 Head, Only 1 Secretary
         if (in_array($request->level, ['head', 'secretary'])) {
             if (OrganizationalMember::where('level', $request->level)->exists()) {
                 return back()->withErrors(['level' => 'A ' . ucfirst($request->level) . ' is already assigned. Please reassign the current one to Staff first.']);
             }
         }
-
-
 
         if ($request->hasFile('image_path')) {
             $path = $request->file('image_path')->store('officials', 'public');
@@ -58,11 +59,26 @@ class OfficialController extends Controller
         }
 
         OrganizationalMember::create($validated);
-        return back()->with('success', 'Official added successfully.');
+        return redirect()->route('admin.officials.index')->with('success', 'Official added successfully.');
+    }
+
+    public function edit($id)
+    {
+        $official = OrganizationalMember::findOrFail($id);
+        $availableUsers = \App\Models\User::select('id', 'name')->get();
+
+        return Inertia::render('Admin/Officials/Edit', [
+            'official' => $official,
+            'users' => $availableUsers
+        ]);
     }
 
     public function update(Request $request, $id)
     {
+        if ($request->user_id === '0' || $request->user_id === 'none') {
+            $request->merge(['user_id' => null]);
+        }
+
         $official = OrganizationalMember::findOrFail($id);
 
         $rules = [
@@ -102,7 +118,7 @@ class OfficialController extends Controller
 
         $official->update($validated);
 
-        return back()->with('success', 'Official updated successfully.');
+        return redirect()->route('admin.officials.index')->with('success', 'Official updated successfully.');
     }
 
     public function destroy($id)

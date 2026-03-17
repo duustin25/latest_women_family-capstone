@@ -16,7 +16,6 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MembersController;
 use App\Http\Controllers\Admin\MembershipApplicationController;
-use App\Http\Controllers\Admin\BannerController;
 
 // Public Routes:
 use App\Http\Controllers\Public\PublicAnnouncementController;
@@ -88,7 +87,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('announcements', AnnouncementController::class);
         Route::get('organizations/{organization:slug}/members', [OrganizationController::class, 'members'])->name('organizations.members');
         Route::resource('organizations', OrganizationController::class);
-        Route::resource('banners', BannerController::class);
 
         Route::patch('cases/update-status', [CaseController::class, 'updateStatus'])->name('cases.update-status');
         Route::get('cases/{id}/print', [CaseController::class, 'print'])->name('cases.print');
