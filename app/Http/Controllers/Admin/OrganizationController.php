@@ -63,6 +63,8 @@ class OrganizationController extends Controller
             'president_name' => 'nullable|string',
             'color_theme' => 'required|string', // e.g., 'bg-blue-600'
             'image' => 'nullable|image|max:2048',
+            'left_logo' => 'nullable|image|max:2048',
+            'right_logo' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array', // Captured as an array for the JSON column
             'print_settings' => 'nullable|array',
         ], [
@@ -72,7 +74,15 @@ class OrganizationController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('admin/organizations', 'public');
+            $validated['image_path'] = $request->file('image')->store('organizations', 'public');
+        }
+
+        if ($request->hasFile('left_logo')) {
+            $validated['left_logo_path'] = $request->file('left_logo')->store('organizations', 'public');
+        }
+
+        if ($request->hasFile('right_logo')) {
+            $validated['right_logo_path'] = $request->file('right_logo')->store('organizations', 'public');
         }
 
         // --- THE FIX STARTS HERE ---
@@ -127,6 +137,8 @@ class OrganizationController extends Controller
             'president_name' => 'nullable|string',
             'color_theme' => 'required|string',
             'image' => 'nullable|image|max:2048',
+            'left_logo' => 'nullable|image|max:2048',
+            'right_logo' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array',
             'form_schema' => 'nullable|array',
             'print_settings' => 'nullable|array',
@@ -137,6 +149,20 @@ class OrganizationController extends Controller
                 Storage::disk('public')->delete($organization->image_path);
             }
             $validated['image_path'] = $request->file('image')->store('organizations', 'public');
+        }
+
+        if ($request->hasFile('left_logo')) {
+            if ($organization->left_logo_path) {
+                Storage::disk('public')->delete($organization->left_logo_path);
+            }
+            $validated['left_logo_path'] = $request->file('left_logo')->store('organizations', 'public');
+        }
+
+        if ($request->hasFile('right_logo')) {
+            if ($organization->right_logo_path) {
+                Storage::disk('public')->delete($organization->right_logo_path);
+            }
+            $validated['right_logo_path'] = $request->file('right_logo')->store('organizations', 'public');
         }
 
         // Ensure form_schema is saved as JSON
@@ -179,6 +205,14 @@ class OrganizationController extends Controller
 
         if ($organization->image_path) {
             Storage::disk('public')->delete($organization->image_path);
+        }
+
+        if ($organization->left_logo_path) {
+            Storage::disk('public')->delete($organization->left_logo_path);
+        }
+
+        if ($organization->right_logo_path) {
+            Storage::disk('public')->delete($organization->right_logo_path);
         }
 
         // Unlink president before deleting

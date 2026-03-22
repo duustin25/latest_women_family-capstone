@@ -43,6 +43,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     return (
         <div className="flex flex-wrap gap-1 p-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 rounded-t-md">
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('bold')}
                 onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -51,6 +52,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <Bold className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('italic')}
                 onPressedChange={() => editor.chain().focus().toggleItalic().run()}
@@ -59,6 +61,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <Italic className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('strike')}
                 onPressedChange={() => editor.chain().focus().toggleStrike().run()}
@@ -67,6 +70,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <Strikethrough className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('underline')}
                 onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
@@ -78,6 +82,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
             <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-1 self-center" />
 
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('bulletList')}
                 onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
@@ -86,6 +91,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <List className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('orderedList')}
                 onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
@@ -97,6 +103,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
             <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-1 self-center" />
 
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive({ textAlign: 'left' })}
                 onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
@@ -105,6 +112,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <AlignLeft className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive({ textAlign: 'center' })}
                 onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
@@ -113,6 +121,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <AlignCenter className="h-4 w-4" />
             </Toggle>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive({ textAlign: 'right' })}
                 onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
@@ -124,6 +133,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
             <div className="w-px h-6 bg-neutral-300 dark:bg-neutral-700 mx-1 self-center" />
 
             <Button
+                type="button"
                 variant={editor.isActive('link') ? "secondary" : "ghost"}
                 size="sm"
                 onClick={setLink}
@@ -132,6 +142,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 <LinkIcon className="h-4 w-4" />
             </Button>
             <Toggle
+                type="button"
                 size="sm"
                 pressed={editor.isActive('blockquote')}
                 onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}

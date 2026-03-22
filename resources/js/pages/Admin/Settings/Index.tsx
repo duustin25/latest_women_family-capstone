@@ -9,14 +9,16 @@ import AbuseTypesTable from './Partials/AbuseTypesTable';
 import ReferralAgenciesTable from './Partials/ReferralAgenciesTable';
 import StatusesTable from './Partials/StatusesTable';
 import AppearanceSettings from './Partials/AppearanceSettings';
+import ZonesTable from './Partials/ZonesTable';
 
 interface PageProps {
     abuseTypes: any[];
     referralPartners: any[];
     caseStatuses: any[];
+    zones: any[];
 }
 
-export default function Index({ abuseTypes, referralPartners, caseStatuses }: PageProps) {
+export default function Index({ abuseTypes, referralPartners, caseStatuses, zones }: PageProps) {
     const [activeTab, setActiveTab] = useState('case_categories');
 
     const tabs = [
@@ -63,6 +65,7 @@ export default function Index({ abuseTypes, referralPartners, caseStatuses }: Pa
                             <div className="space-y-6">
                                 <AbuseTypesTable caseAbuseTypes={abuseTypes || []} />
                                 <StatusesTable statuses={caseStatuses || []} />
+                                <ZonesTable zones={zones || []} />
                                 <ReferralAgenciesTable caseReferralAgencies={referralPartners || []} />
                             </div>
                         )}

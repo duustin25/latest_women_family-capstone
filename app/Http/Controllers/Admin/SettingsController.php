@@ -15,11 +15,13 @@ class SettingsController extends Controller
         $abuseTypes = CaseAbuseType::orderBy('category')->orderBy('name')->get();
         $referralPartners = Agency::orderBy('category')->orderBy('name')->get();
         $caseStatuses = \App\Models\CaseStatus::orderBy('name')->get();
+        $zones = \App\Models\Zone::orderBy('name')->get();
 
         return Inertia::render('Admin/Settings/Index', [
             'abuseTypes' => $abuseTypes,
             'referralPartners' => $referralPartners,
-            'caseStatuses' => $caseStatuses
+            'caseStatuses' => $caseStatuses,
+            'zones' => $zones
         ]);
     }
 
@@ -111,5 +113,30 @@ class SettingsController extends Controller
         $status->update($validated);
 
         return back()->with('success', 'Status updated.');
+    }
+
+    public function storeZone(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|unique:zones,name',
+        ]);
+
+        \App\Models\Zone::create($validated);
+
+        return back()->with('success', 'Zone added successfully.');
+    }
+
+    public function updateZone(Request $request, $id)
+    {
+        $zone = \App\Models\Zone::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|unique:zones,name,' . $id,
+            'is_active' => 'boolean'
+        ]);
+
+        $zone->update($validated);
+
+        return back()->with('success', 'Zone updated.');
     }
 }

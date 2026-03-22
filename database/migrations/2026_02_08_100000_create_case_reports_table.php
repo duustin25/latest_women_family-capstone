@@ -35,6 +35,7 @@ return new class extends Migration {
             // Categorization and Status (Foreign Keys to Configuration Tables)
             $table->foreignId('abuse_type_id')->nullable()->constrained('case_types')->nullOnDelete();
             $table->foreignId('case_status_id')->nullable()->constrained('case_status')->nullOnDelete();
+            $table->foreignId('zone_id')->nullable()->constrained('zones')->nullOnDelete();
 
             // Evidence
             $table->string('evidence_path')->nullable(); // For uploaded files

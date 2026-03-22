@@ -19,6 +19,8 @@ class Organization extends Model
         'description',
         'color_theme',
         'image_path',
+        'left_logo_path',
+        'right_logo_path',
         'requirements',
         'form_schema',
         'print_settings'

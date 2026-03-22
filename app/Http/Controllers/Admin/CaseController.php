@@ -75,9 +75,12 @@ class CaseController extends Controller
                     ->orWhere('category', 'Both');
             })->get();
 
+        $zones = \App\Models\Zone::where('is_active', true)->get();
+
         return Inertia::render('Admin/Cases/Create', [
             'type' => $type,
-            'abuseTypes' => $abuseTypes
+            'abuseTypes' => $abuseTypes,
+            'zones' => $zones
         ]);
     }
 
@@ -116,11 +119,14 @@ class CaseController extends Controller
                     ->orWhere('type', 'Both');
             })->orderBy('name')->get();
 
+        $zones = \App\Models\Zone::where('is_active', true)->get();
+
         return Inertia::render('Admin/Cases/Edit', [
             'caseData' => $case,
             'abuseTypes' => $abuseTypes,
             'referralPartners' => $referralPartners,
-            'caseStatuses' => $caseStatuses
+            'caseStatuses' => $caseStatuses,
+            'zones' => $zones
         ]);
     }
 

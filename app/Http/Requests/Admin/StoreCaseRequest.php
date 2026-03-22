@@ -34,6 +34,7 @@ class StoreCaseRequest extends FormRequest
             'description' => 'required|string',
             'abuse_type' => 'required|string|max:255',
             'is_anonymous' => 'nullable|boolean',
+            'zone_id' => 'nullable|exists:zones,id',
         ];
     }
 }

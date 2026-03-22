@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { useState } from 'react';
+import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 // Ensure route is typed (for Ziggy)
 declare const route: (name: string, params?: any) => string;
@@ -50,12 +51,15 @@ interface PageProps {
     caseResolutionStats: any[];
     ageDemographics: any[];
     locationDemographics: any[];
+    zoneDistribution: any[];
     agencyStats: any[];
 }
 
-export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, membershipStats, caseResolutionStats, ageDemographics, locationDemographics, agencyStats }: PageProps) {
+export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChartConfig, bcpcChartConfig, membershipStats, caseResolutionStats, ageDemographics, locationDemographics, zoneDistribution, agencyStats }: PageProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [chartMode, setChartMode] = useState<'VAWC' | 'BCPC'>('VAWC');
+
+    // ... (rest of component logic)
 
     // Form for Adding New Abuse Type
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -85,24 +89,20 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
 
                 {/* Header with Add Button */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                            <Activity className="w-6 h-6 text-[#ce1126]" />
-                            Analytics Overview
-                        </h1>
-                        <p className="text-sm">
-                            Statistical reports for Women and Children Protection.
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+                                <Activity className="w-6 h-6 text-[#ce1126]" />
+                                OFFICIAL REPORTING DASHBOARD
+                            </h1>
+                        </div>
+                        <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+                            Real-time statistical reports and situational case intelligence.
                         </p>
                     </div>
 
                     <div className="flex items-center gap-4">
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            {/* <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="gap-2">
-                                    <Plus className="w-4 h-4" /> Add Type
-                                </Button>
-                            </DialogTrigger> */}
-                            {/* ... Content remains same, just moved trigger ... */}
                             <DialogContent className="sm:max-w-[425px]">
                                 <DialogHeader>
                                     <DialogTitle className="font-black uppercase text-[#ce1126]">New Abuse Category</DialogTitle>
@@ -344,28 +344,27 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                             </CardContent>
                         </Card>
 
-                        {/* 2. Incident Location Heatmap */}
-                        {/* <Card className="shadow-sm border">
+                        {/* 2. Incident Zone Distribution */}
+                        <Card className="shadow-sm border">
                             <CardHeader>
-                                <CardTitle className="uppercase tracking-widest text-xs font-black text-orange-500">Incident Heatmap</CardTitle>
-                                <CardDescription className="text-xs">Highest reported incident zones (Top 8)</CardDescription>
+                                <CardTitle className="uppercase tracking-widest text-xs font-black text-orange-500">Cases by Zone</CardTitle>
+                                <CardDescription className="text-xs">Reported incident distribution across zones</CardDescription>
                             </CardHeader>
                             <CardContent className="h-[300px] pl-0 pb-6 pr-6 pt-0">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={locationDemographics} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                    <BarChart data={zoneDistribution} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f8fafc" />
                                         <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'bold' }} width={120} />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} width={100} />
                                         <Tooltip
                                             formatter={(value) => [`${value} Reports`, 'Cases']}
-                                            labelFormatter={(label, payload) => payload[0]?.payload.fullName || label}
                                             contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 'bold' }}
                                         />
                                         <Bar dataKey="count" fill="#f97316" radius={[0, 4, 4, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </CardContent>
-                        </Card> */}
+                        </Card>
 
                         {/* 3. Top Referral Agencies */}
                         <Card className="shadow-sm border">
@@ -418,6 +417,69 @@ export default function Index({ stats, vawcData, bcpcData, currentYear, vawcChar
                     </div>
                 </div>
 
+                {/* APPLICATION MANAGEMENT: Membership Trends */}
+                <div className="pt-8 pb-12">
+                    <h2 className="text-lg font-black tracking-tight flex items-center gap-2 py-4 mb-2 border-b uppercase text-slate-800 dark:text-slate-200">
+                        <TrendingUp className="w-5 h-5 text-emerald-600" />
+                        REGISTRY & MEMBERSHIP GROWTH INTELLIGENCE
+                    </h2>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <Card className="lg:col-span-1 shadow-sm border border-emerald-100 dark:border-emerald-900 bg-emerald-50/10">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-600">Total Members</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-4xl font-black text-slate-900 dark:text-white leading-none mb-1">{membershipStats.total}</div>
+                                <div className="flex items-center gap-2">
+                                    <span className={cn("text-[10px] font-black uppercase px-2 py-1 rounded-full",
+                                        (membershipStats.growth || '+0%').startsWith('+') ? "bg-emerald-100 text-emerald-700 font-black" : "bg-slate-100 text-slate-600")}>
+                                        {membershipStats.growth || '+0%'}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Growth Rate</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="lg:col-span-3 shadow-sm border">
+                            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Membership Growth Trend</CardTitle>
+                                    <CardDescription className="text-[10px] uppercase font-bold text-slate-400">Monthly breakdown for {currentYear}</CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="h-[200px] pl-0">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={membershipStats.monthly}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                        <XAxis
+                                            dataKey="month"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 'bold', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="count"
+                                            stroke="#10b981"
+                                            strokeWidth={4}
+                                            dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                                            activeDot={{ r: 7, fill: '#10b981' }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

@@ -8,9 +8,10 @@ interface VawcFormFieldsProps {
     setData: (field: string, value: any) => void;
     errors: any;
     options: { id: number; name: string }[];
+    zones: { id: number; name: string }[];
 }
 
-export default function VawcFormFields({ data, setData, errors, options }: VawcFormFieldsProps) {
+export default function VawcFormFields({ data, setData, errors, options, zones }: VawcFormFieldsProps) {
     return (
         <>
             <div className="space-y-4">
@@ -104,16 +105,34 @@ export default function VawcFormFields({ data, setData, errors, options }: VawcF
                 </div>
             </div>
 
-            <div className="space-y-2 pt-6 pb-2">
-                <Label className="text-xs font-bold uppercase text-slate-500">Incident Location <span className="text-red-500">*</span></Label>
-                <Input
-                    value={data.incident_location}
-                    onChange={e => setData('incident_location', e.target.value)}
-                    placeholder="Where did it happen?"
-                    className="h-11"
-                    required
-                />
-                {errors.incident_location && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.incident_location}</span>}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 pb-2">
+                <div className="md:col-span-1 space-y-2">
+                    <Label className="text-xs font-bold uppercase text-slate-500">Barangay Zone <span className="text-red-500">*</span></Label>
+                    <Select 
+                        value={data.zone_id?.toString()} 
+                        onValueChange={v => setData('zone_id', parseInt(v))} 
+                        required
+                    >
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select Zone" /></SelectTrigger>
+                        <SelectContent>
+                            {zones.map((z) => (
+                                <SelectItem key={z.id} value={z.id.toString()}>{z.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.zone_id && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.zone_id}</span>}
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                    <Label className="text-xs font-bold uppercase text-slate-500">Specific Location / Purok <span className="text-red-500">*</span></Label>
+                    <Input
+                        value={data.incident_location}
+                        onChange={e => setData('incident_location', e.target.value)}
+                        placeholder="e.g. Purok 4, Near Elementary School"
+                        className="h-11"
+                        required
+                    />
+                    {errors.incident_location && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.incident_location}</span>}
+                </div>
             </div>
         </>
     );

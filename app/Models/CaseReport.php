@@ -28,6 +28,7 @@ class CaseReport extends Model
         'lifecycle_status',
         'handled_by_id',
         'case_status_id',
+        'zone_id',
     ];
 
     protected $casts = [
@@ -73,5 +74,12 @@ class CaseReport extends Model
     public function audits()
     {
         return $this->morphMany(AuditLog::class, 'auditable');
+    }
+    /**
+     * Get the zone where the incident occurred.
+     */
+    public function zone(): BelongsTo
+    {
+        return $this->belongsTo(Zone::class);
     }
 }

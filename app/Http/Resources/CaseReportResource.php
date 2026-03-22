@@ -39,7 +39,7 @@ class CaseReportResource extends JsonResource
             'lifecycle_status' => $this->lifecycle_status,
             'date' => $this->incident_date ? $this->incident_date->format('M d, Y') : $this->created_at->format('M d, Y'),
             'time' => $this->created_at->format('h:i A'),
-            'referred_to' => ($latestReferral && $latestReferral->agency) ? $latestReferral->agency->name : null,
+            'zone' => $this->zone ? $this->zone->name : 'Unspecified',
             'created_at' => $this->created_at,
             'deleted_at' => $this->deleted_at,
         ];

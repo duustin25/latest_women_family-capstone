@@ -8,9 +8,10 @@ interface BcpcFormFieldsProps {
     setData: (field: string, value: any) => void;
     errors: any;
     options: { id: number; name: string }[];
+    zones: { id: number; name: string }[];
 }
 
-export default function BcpcFormFields({ data, setData, errors, options }: BcpcFormFieldsProps) {
+export default function BcpcFormFields({ data, setData, errors, options, zones }: BcpcFormFieldsProps) {
     return (
         <>
             <div className="space-y-4">
@@ -68,16 +69,33 @@ export default function BcpcFormFields({ data, setData, errors, options }: BcpcF
                     {errors.abuse_type && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.abuse_type}</span>}
                 </div>
                 <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-slate-500">Location/Residence <span className="text-red-500">*</span></Label>
-                    <Input
-                        value={data.incident_location}
-                        onChange={e => setData('incident_location', e.target.value)}
-                        placeholder="Location details"
-                        className="h-11"
+                    <Label className="text-xs font-bold uppercase text-slate-500">Barangay Zone <span className="text-red-500">*</span></Label>
+                    <Select 
+                        value={data.zone_id?.toString()} 
+                        onValueChange={v => setData('zone_id', parseInt(v))} 
                         required
-                    />
-                    {errors.incident_location && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.incident_location}</span>}
+                    >
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select Zone" /></SelectTrigger>
+                        <SelectContent>
+                            {zones.map((z) => (
+                                <SelectItem key={z.id} value={z.id.toString()}>{z.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {errors.zone_id && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.zone_id}</span>}
                 </div>
+            </div>
+
+            <div className="space-y-2 pt-6">
+                <Label className="text-xs font-bold uppercase text-slate-500">Specific Location / Residence Details <span className="text-red-500">*</span></Label>
+                <Input
+                    value={data.incident_location}
+                    onChange={e => setData('incident_location', e.target.value)}
+                    placeholder="Location details"
+                    className="h-11"
+                    required
+                />
+                {errors.incident_location && <span className="text-red-500 text-xs flex items-center gap-1"><AlertCircle size={12} />{errors.incident_location}</span>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 pb-2">

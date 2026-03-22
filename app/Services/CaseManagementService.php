@@ -30,6 +30,7 @@ class CaseManagementService
             'incident_location' => $validatedData['incident_location'] ?? 'Unknown',
             'description' => $validatedData['description'] ?? '',
             'is_anonymous' => $validatedData['is_anonymous'] ?? false,
+            'zone_id' => $validatedData['zone_id'] ?? null,
         ];
 
         // 1. Abuse Type

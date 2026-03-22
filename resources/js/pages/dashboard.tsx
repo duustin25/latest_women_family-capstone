@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -40,10 +40,10 @@ export default function Dashboard({
     caseResolutionStats: any[]
 }) {
     const stats = [
-        { label: 'Total Cases', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-        { label: 'Pending Applicants', value: systemStats.pendingApps, icon: UserPlus, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-        { label: 'Organizations', value: systemStats.totalOrgs, icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-        { label: 'System Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+        { label: 'Active Case Files', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
+        { label: 'Pending Review', value: systemStats.pendingApps, icon: UserPlus, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+        { label: 'Partner Orgs', value: systemStats.totalOrgs, icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+        { label: 'Registered Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     ];
 
     const getStatusColor = (status: string) => {
@@ -67,11 +67,12 @@ export default function Dashboard({
                 {/* 1. Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                            System Overview
+                        <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                            <Activity className="w-6 h-6 text-[#ce1126]" />
+                            MANAGEMENT COMMAND CENTER
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                            Brgy. 183 Villamor • Women and Family Protection
+                            Brgy. 183 Villamor • Executive Information System
                         </p>
                     </div>
                 </div>
@@ -109,7 +110,7 @@ export default function Dashboard({
                                 <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
                                 </h3>
-                                <Button variant="ghost" onClick={() => window.location.href = '/admin/cases'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
+                                <Button variant="ghost" onClick={() => router.visit('/admin/cases')} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
                             </div>
                             <div className="overflow-x-auto min-h-[150px]">
                                 <table className="w-full text-left">
@@ -151,7 +152,7 @@ export default function Dashboard({
                                 <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
                                     <UserPlus className="w-4 h-4 text-emerald-500" /> Recent Membership Apps
                                 </h3>
-                                <Button variant="ghost" onClick={() => window.location.href = '/admin/applications'} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
+                                <Button variant="ghost" onClick={() => router.visit('/admin/applications')} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
                             </div>
                             <div className="overflow-x-auto min-h-[150px]">
                                 <table className="w-full text-left">
@@ -237,9 +238,9 @@ export default function Dashboard({
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="uppercase tracking-widest text-sm font-black text-[#ce1126]">Rates of Women Abuse</CardTitle>
+                                <CardTitle className="uppercase tracking-widest text-sm font-black text-[#ce1126]">Vulnerable Demographic Activity</CardTitle>
                                 <CardDescription>
-                                    Incidence rates categorized by abuse type.
+                                    Incidence metrics categorized by official abuse classification.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pl-5">
@@ -249,9 +250,9 @@ export default function Dashboard({
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Org Membership Growth</CardTitle>
+                                <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Citizen Participation Matrix</CardTitle>
                                 <CardDescription>
-                                    Active citizen participation over time ({membershipStats?.total_this_year} new this year)
+                                    Holistic growth in community membership ({membershipStats?.total_this_year} new registry updates)
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="pl-0 pb-6 pr-6 pt-4 h-[300px]">

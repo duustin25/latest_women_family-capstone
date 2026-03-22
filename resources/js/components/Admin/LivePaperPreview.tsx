@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 interface LivePaperPreviewProps {
     data: {
@@ -8,17 +8,43 @@ interface LivePaperPreviewProps {
         president_name: string;
         form_schema: any[];
         print_settings?: any;
+        left_logo?: File | null;
+        right_logo?: File | null;
     };
+    record?: any;
 }
 
-export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
+export default function LivePaperPreview({ data, record }: LivePaperPreviewProps) {
+    const [leftPreview, setLeftPreview] = useState<string | null>(null);
+    const [rightPreview, setRightPreview] = useState<string | null>(null);
+
     const printSettings = data.print_settings || {
         form_title: 'APPLICATION',
         alignment: 'center',
         include_barangay_header: true,
-        left_logo_url: '/Logo/barangay183LOGO.png',
-        right_logo_url: '/Logo/women&family_logo.png',
     };
+
+    // Handle Left Logo Preview
+    useEffect(() => {
+        if (!data.left_logo) {
+            setLeftPreview(null);
+            return;
+        }
+        const url = URL.createObjectURL(data.left_logo);
+        setLeftPreview(url);
+        return () => URL.revokeObjectURL(url);
+    }, [data.left_logo]);
+
+    // Handle Right Logo Preview
+    useEffect(() => {
+        if (!data.right_logo) {
+            setRightPreview(null);
+            return;
+        }
+        const url = URL.createObjectURL(data.right_logo);
+        setRightPreview(url);
+        return () => URL.revokeObjectURL(url);
+    }, [data.right_logo]);
 
     return (
         <div className="xl:w-[8.0in] xl:shrink-0 sticky top-8 hidden xl:block">
@@ -41,28 +67,32 @@ export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
             >
                 {/* --- OFFICIAL HEADER --- */}
                 <header className={`mb-8 relative pb-4 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
-                    <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr] md:grid-cols-[1.5in_1fr]' : 'grid-cols-[1.5in_1fr_1.5in]'} items-center gap-4`}>
+                    <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr]' : 'grid-cols-[1.2in_1fr_1.2in]'} items-center gap-4`}>
                         {/* Left Logo */}
-                        {(printSettings.alignment === 'center' || printSettings.left_logo_url) && (
-                            <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
-                                {printSettings.left_logo_url && (
-                                    <img src={printSettings.left_logo_url} className="h-24 w-24 object-contain" alt="Left Logo" />
-                                )}
-                            </div>
-                        )}
+                        <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
+                            {leftPreview ? (
+                                <img src={leftPreview} className="h-20 w-20 object-contain" alt="Left Logo" />
+                            ) : record?.left_logo ? (
+                                <img src={record.left_logo} className="h-20 w-20 object-contain" alt="Left Logo" />
+                            ) : (
+                                <div className="h-20 w-20 border-2 border-dashed border-neutral-100 rounded-lg flex items-center justify-center">
+                                    <span className="text-[8px] text-neutral-300 uppercase font-black">LOGO L</span>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Center Text */}
-                        <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start justify-center' : 'items-center justify-center'}`}>
+                        <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start' : 'items-center'}`}>
                             {printSettings.include_barangay_header !== false && (
                                 <>
-                                    <p className="text-[10pt] leading-tight">Republic of the Philippines</p>
-                                    <h1 className="text-[12pt] font-bold uppercase leading-tight mt-1">
+                                    <p className="text-[10pt] leading-tight text-neutral-600">Republic of the Philippines</p>
+                                    <h1 className="text-[12pt] font-black uppercase leading-tight mt-1 text-neutral-900">
                                         {import.meta.env.VITE_BARANGAY_NAME || "BARANGAY 183 VILLAMOR"}
                                     </h1>
-                                    <p className="text-[10pt] leading-tight mt-1">
+                                    <p className="text-[10pt] font-bold leading-tight mt-1 text-neutral-700">
                                         {import.meta.env.VITE_BARANGAY_ADDRESS || "Zone 20 District 1 Pasay City, Metro Manila"}
                                     </p>
-                                    <p className="text-[10pt] leading-tight text-gray-800">
+                                    <p className="text-[10pt] font-bold leading-tight text-neutral-500">
                                         {import.meta.env.VITE_BARANGAY_LANDLINE || "Telephone No. (02) 853-0907 / (02) 835-1953"}
                                     </p>
                                 </>
@@ -72,15 +102,21 @@ export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
                         {/* Right Logo */}
                         {printSettings.alignment === 'center' && (
                             <div className="flex justify-center">
-                                {printSettings.right_logo_url && (
-                                    <img src={printSettings.right_logo_url} className="h-24 w-24 object-contain" alt="Right Logo" />
+                                {rightPreview ? (
+                                    <img src={rightPreview} className="h-20 w-20 object-contain" alt="Right Logo" />
+                                ) : record?.right_logo ? (
+                                    <img src={record.right_logo} className="h-20 w-20 object-contain" alt="Right Logo" />
+                                ) : (
+                                    <div className="h-20 w-20 border-2 border-dashed border-neutral-100 rounded-lg flex items-center justify-center">
+                                        <span className="text-[8px] text-neutral-300 uppercase font-black">LOGO R</span>
+                                    </div>
                                 )}
                             </div>
                         )}
                     </div>
 
                     {/* Application Title */}
-                    <div className={`mt-6 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                    <div className={`mt-8 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
                         <h2 className={`text-[14pt] font-bold uppercase tracking-wide ${printSettings.alignment === 'center' ? 'underline' : ''}`}>
                             {printSettings.form_title || 'APPLICATION'}
                         </h2>
@@ -150,6 +186,15 @@ export default function LivePaperPreview({ data }: LivePaperPreviewProps) {
                                                             <span className="text-gray-400 italic text-xs">No options defined</span>
                                                         )}
                                                     </div>
+                                                </div>
+                                            ) : field.type === 'section' ? (
+                                                <div className="w-full pt-4 pb-1">
+                                                    <h3 className="text-[12pt] font-black uppercase text-gray-800 border-b-2 border-gray-300 leading-tight">{field.label}</h3>
+                                                </div>
+                                            ) : field.type === 'checkbox' ? (
+                                                <div className="w-full flex items-start gap-2 pt-1 pb-1">
+                                                    <div className="w-4 h-4 border border-black rounded-sm shrink-0 mt-[2px]"></div>
+                                                    <span className="font-bold uppercase text-gray-700 leading-tight text-[10pt]">{field.label}</span>
                                                 </div>
                                             ) : field.type === 'repeater' ? (
                                                 <div className="w-full">

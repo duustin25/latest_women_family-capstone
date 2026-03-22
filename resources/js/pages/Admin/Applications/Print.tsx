@@ -29,8 +29,6 @@ export default function Print({ application, organization }: PrintProps) {
         form_title: 'APPLICATION',
         alignment: 'center',
         include_barangay_header: true,
-        left_logo_url: '/Logo/barangay183LOGO.png',
-        right_logo_url: '/Logo/women&family_logo.png',
     };
 
     // Auto-trigger print dialog on mount
@@ -46,30 +44,28 @@ export default function Print({ application, organization }: PrintProps) {
             <Head title={`Print Application - ${record.fullname}`} />
 
             {/* --- OFFICIAL HEADER --- */}
-            <header className={`mb-8 relative pb-4 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
-                <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr] md:grid-cols-[1.5in_1fr]' : 'grid-cols-[1.5in_1fr_1.5in]'} items-center gap-4`}>
+            <header className={`mb-8 relative pb-4 border-b-2 border-black ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                <div className={`grid ${printSettings.alignment === 'left' ? 'grid-cols-[auto_1fr]' : 'grid-cols-[1.2in_1fr_1.2in]'} items-center gap-4`}>
                     {/* Left Logo */}
-                    {(printSettings.alignment === 'center' || printSettings.left_logo_url) && (
-                        <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
-                            {printSettings.left_logo_url && (
-                                <img src={printSettings.left_logo_url} className="h-28 w-28 object-contain" alt="Left Logo" />
-                            )}
-                        </div>
-                    )}
+                    <div className={`flex ${printSettings.alignment === 'left' ? 'justify-start' : 'justify-center'}`}>
+                        {org.left_logo && (
+                            <img src={org.left_logo} className="h-24 w-24 object-contain" alt="Barangay Seal" />
+                        )}
+                    </div>
 
                     {/* Center Text */}
-                    <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start justify-center' : 'items-center justify-center'}`}>
+                    <div className={`flex flex-col ${printSettings.alignment === 'left' ? 'items-start' : 'items-center'}`}>
                         {printSettings.include_barangay_header !== false && (
                             <>
-                                <p className="text-[12pt] leading-tight">Republic of the Philippines</p>
-                                <h1 className="text-[14pt] font-bold uppercase leading-tight mt-1">
-                                    {import.meta.env.VITE_BARANGAY_NAME}
+                                <p className="text-[10pt] leading-tight text-neutral-600 uppercase tracking-tight">Republic of the Philippines</p>
+                                <h1 className="text-[13pt] font-black uppercase leading-tight mt-1 text-black tracking-tight">
+                                    {import.meta.env.VITE_BARANGAY_NAME || "BARANGAY 183 VILLAMOR"}
                                 </h1>
-                                <p className="text-[11pt] leading-tight mt-1">
-                                    {import.meta.env.VITE_BARANGAY_ADDRESS}
+                                <p className="text-[10pt] font-bold leading-tight mt-1 text-neutral-800">
+                                    {import.meta.env.VITE_BARANGAY_ADDRESS || "Zone 20 District 1 Pasay City, Metro Manila"}
                                 </p>
-                                <p className="text-[11pt] leading-tight text-gray-800">
-                                    {import.meta.env.VITE_BARANGAY_LANDLINE}
+                                <p className="text-[9pt] font-bold leading-tight text-neutral-500">
+                                    {import.meta.env.VITE_BARANGAY_LANDLINE || "Telephone No. (02) 853-0907 / (02) 835-1953"}
                                 </p>
                             </>
                         )}
@@ -78,19 +74,19 @@ export default function Print({ application, organization }: PrintProps) {
                     {/* Right Logo */}
                     {printSettings.alignment === 'center' && (
                         <div className="flex justify-center">
-                            {printSettings.right_logo_url && (
-                                <img src={printSettings.right_logo_url} className="h-28 w-28 object-contain" alt="Right Logo" />
+                            {org.right_logo && (
+                                <img src={org.right_logo} className="h-24 w-24 object-contain" alt="Organization Logo" />
                             )}
                         </div>
                     )}
                 </div>
 
                 {/* Application Title */}
-                <div className={`mt-8 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
-                    <h2 className={`text-[14pt] font-bold uppercase tracking-wide ${printSettings.alignment === 'center' ? 'underline' : ''}`}>
+                <div className={`mt-10 ${printSettings.alignment === 'left' ? 'text-left' : 'text-center'}`}>
+                    <h2 className={`text-[16pt] font-black uppercase tracking-widest text-black ${printSettings.alignment === 'center' ? 'underline underline-offset-8 decoration-2' : ''}`}>
                         {printSettings.form_title || 'APPLICATION'}
                     </h2>
-                    <h3 className="text-[12pt] mt-1 font-bold">{org.name}</h3>
+                    <h3 className="text-[13pt] mt-3 font-black text-neutral-800 italic">{org.name || 'Organization Name'}</h3>
                 </div>
             </header>
 

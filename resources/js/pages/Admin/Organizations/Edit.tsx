@@ -43,14 +43,14 @@ export default function Edit({ organization, users }: { organization: any, users
         president_name: record?.president_name || '',
         color_theme: record?.color_theme || 'bg-[#0038a8]',
         image: null as File | null,
+        left_logo: null as File | null,
+        right_logo: null as File | null,
         requirements: record?.requirements || [],
         form_schema: ensureCoreFields(record?.form_schema || []),
         print_settings: record?.print_settings || {
             form_title: 'APPLICATION',
             alignment: 'center',
             include_barangay_header: true,
-            left_logo_url: '/Logo/barangay183LOGO.png',
-            right_logo_url: '/Logo/women&family_logo.png',
         },
     });
 
@@ -116,9 +116,9 @@ export default function Edit({ organization, users }: { organization: any, users
                 <div className="max-w-[95%] mx-auto px-4">
 
                     {/* Navigation */}
-                    <div className="flex items-center justify-between mb-8">
-                        <Link href="/admin/organizations" className="flex items-center text-[10px] font-black tracking-widest text-neutral-400 hover:text-blue-600 group transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> CANCEL & RETURN
+                    <div className="flex items-center justify-between mb-10">
+                        <Link href="/admin/organizations" className="flex items-center text-xs font-black tracking-widest text-neutral-400 hover:text-blue-600 group transition-colors bg-white dark:bg-neutral-900 px-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm">
+                            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" /> CANCEL & RETURN TO LIST
                         </Link>
                     </div>
 
@@ -128,27 +128,27 @@ export default function Edit({ organization, users }: { organization: any, users
                         <div className="flex-1 w-full min-w-0">
 
                             {/* TABS NAVIGATION */}
-                            <div className="bg-white dark:bg-neutral-900 p-1 rounded-lg inline-flex gap-1 mb-6 shadow-sm border border-neutral-200 dark:border-neutral-800">
+                            <div className="bg-white dark:bg-neutral-900 p-1.5 rounded-xl inline-flex gap-1.5 mb-8 shadow-md border border-neutral-200 dark:border-neutral-800">
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('settings')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'settings' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                    className={`flex items-center gap-2.5 px-8 py-3.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-inner' : 'text-neutral-400 hover:text-neutral-600'}`}
                                 >
-                                    <Settings size={14} /> Organization Helper
+                                    <Settings size={18} /> Profile Helper
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('builder')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'builder' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                    className={`flex items-center gap-2.5 px-8 py-3.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'builder' ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-inner' : 'text-neutral-400 hover:text-neutral-600'}`}
                                 >
-                                    <LayoutTemplate size={14} /> Form Builder
+                                    <LayoutTemplate size={18} /> Form Builder
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('print')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'print' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                                    className={`flex items-center gap-2.5 px-8 py-3.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'print' ? 'bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-inner' : 'text-neutral-400 hover:text-neutral-600'}`}
                                 >
-                                    <Settings size={14} /> Print Settings
+                                    <Settings size={18} /> Paper Print
                                 </button>
                             </div>
 
@@ -158,14 +158,14 @@ export default function Edit({ organization, users }: { organization: any, users
                                 ) : activeTab === 'builder' ? (
                                     <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
                                 ) : (
-                                    <PrintSettingsBuilder data={data} setData={setData} />
+                                    <PrintSettingsBuilder data={data} setData={setData} record={record} />
                                 )}
                             </div>
 
                         </div>
 
                         {/* RIGHT COLUMN: LIVE PREVIEW (Sticky) */}
-                        <LivePaperPreview data={data} />
+                        <LivePaperPreview data={data as any} record={record} />
                     </form>
                 </div>
             </div>

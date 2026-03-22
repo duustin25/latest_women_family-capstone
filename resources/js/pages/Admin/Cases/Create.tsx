@@ -18,9 +18,10 @@ interface CaseAbuseType {
 interface PageProps {
     type: string;
     abuseTypes?: CaseAbuseType[];
+    zones?: { id: number; name: string }[];
 }
 
-export default function Create({ type, abuseTypes = [] }: PageProps) {
+export default function Create({ type, abuseTypes = [], zones = [] }: PageProps) {
     // Determine mode strictly
     const isVAWC = type === 'VAWC';
 
@@ -35,6 +36,7 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
         relation_to_victim: '',
         abuse_type: '',
         incident_date: '',
+        zone_id: '' as string | number,
         incident_location: '',
         description: '',
         is_anonymous: false,
@@ -96,9 +98,9 @@ export default function Create({ type, abuseTypes = [] }: PageProps) {
                         <CardContent className="p-8 grid gap-8 bg-white dark:bg-neutral-900">
 
                             {isVAWC ? (
-                                <VawcFormFields data={data} setData={setData} errors={errors} options={options} />
+                                <VawcFormFields data={data} setData={setData} errors={errors} options={options} zones={zones} />
                             ) : (
-                                <BcpcFormFields data={data} setData={setData} errors={errors} options={options} />
+                                <BcpcFormFields data={data} setData={setData} errors={errors} options={options} zones={zones} />
                             )}
 
                             {/* --- SHARED DESCRIPTION --- */}

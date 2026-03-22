@@ -80,15 +80,15 @@ export default function Index({ organization, filters }: PageProps) {
                     </div>
 
                     {/* CONTROL BAR */}
-                    <div className="sticky top-4 z-30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md p-2 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                    <div className="sticky top-4 z-30 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md p-3 rounded-2xl shadow-md border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
 
-                        <div className="flex items-center gap-2 w-full md:w-auto">
+                        <div className="flex items-center gap-3 w-full md:w-auto">
                             {/* SEARCH BAR */}
-                            <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 flex-1 md:w-[320px]">
-                                <Search size={14} className="text-neutral-400" />
+                            <div className="bg-neutral-100 dark:bg-neutral-950 px-4 h-12 rounded-xl flex items-center gap-3 flex-1 md:w-[400px] border border-transparent focus-within:border-blue-500/50 transition-all">
+                                <Search size={18} className="text-neutral-400" />
                                 <input
-                                    placeholder="SEARCH NAME OR PRESIDENT..."
-                                    className="bg-transparent border-none focus:ring-0 text-xs font-bold w-full uppercase placeholder:text-neutral-400 text-neutral-900 dark:text-white h-full"
+                                    placeholder="SEARCH BY NAME OR PRESIDENT..."
+                                    className="bg-transparent border-none focus:ring-0 text-sm font-bold w-full uppercase placeholder:text-neutral-400 text-neutral-900 dark:text-white h-full"
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
                                     autoComplete="off"
@@ -98,49 +98,49 @@ export default function Index({ organization, filters }: PageProps) {
                     </div>
 
                     {/* TABLE VIEW */}
-                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="border-b border-neutral-200 dark:border-neutral-800 text-[10px] font-black uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50">
-                                        <th className="p-5 pl-8">Organization</th>
-                                        <th className="p-5">Leadership</th>
-                                        <th className="p-5">System Config</th>
-                                        <th className="p-5 text-right pr-8">Actions</th>
+                                    <tr className="border-b border-neutral-200 dark:border-neutral-800 text-xs font-black uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50">
+                                        <th className="p-6 pl-10">Organization</th>
+                                        <th className="p-6">Leadership</th>
+                                        <th className="p-6">System Config</th>
+                                        <th className="p-6 text-right pr-10">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 font-medium">
                                     {organization.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="p-12 text-center">
+                                            <td colSpan={4} className="p-20 text-center">
                                                 <div className="flex flex-col items-center justify-center opacity-60">
-                                                    <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400">
-                                                        <Building2 size={20} />
+                                                    <div className="w-16 h-16 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4 text-neutral-400">
+                                                        <Building2 size={24} />
                                                     </div>
-                                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">No organizations found</h3>
-                                                    <p className="text-xs text-neutral-500">Create a new group to get started.</p>
+                                                    <h3 className="text-lg font-black text-neutral-900 dark:text-white uppercase tracking-tight">No organizations found</h3>
+                                                    <p className="text-sm text-neutral-500 mt-1">Create a new group to get started with management.</p>
                                                 </div>
                                             </td>
                                         </tr>
                                     ) : (
                                         organization.data.map((org) => (
-                                            <tr key={org.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                            <tr key={org.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all duration-200">
                                                 {/* ORGANIZATION DETAILS */}
-                                                <td className="p-5 pl-8 align-middle">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center ${org.color_theme ? `bg-${org.color_theme}-50` : 'bg-neutral-50'}`}>
+                                                <td className="p-6 pl-10 align-middle">
+                                                    <div className="flex items-center gap-5">
+                                                        <div className={`w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center shadow-sm ${org.color_theme ? `bg-${org.color_theme}-50` : 'bg-neutral-50'}`}>
                                                             {org.image ? (
                                                                 <img src={org.image} alt="" className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <Building2 size={20} className="text-neutral-400" />
+                                                                <Building2 size={24} className="text-neutral-400" />
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <span className="text-sm font-bold text-neutral-900 dark:text-white block">
+                                                            <span className="text-base font-black text-neutral-900 dark:text-white block tracking-tight">
                                                                 {org.name}
                                                             </span>
-                                                            <span className="flex items-center gap-1.5 mt-0.5">
-                                                                <Badge variant="outline" className="text-[10px] bg-neutral-100 border-neutral-200 text-neutral-500 px-1.5 py-0 h-5">
+                                                            <span className="flex items-center gap-2 mt-1">
+                                                                <Badge variant="outline" className="text-[11px] font-bold bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 px-2 py-0.5 h-6 uppercase tracking-wider">
                                                                     {org.slug}
                                                                 </Badge>
                                                             </span>
@@ -149,57 +149,57 @@ export default function Index({ organization, filters }: PageProps) {
                                                 </td>
 
                                                 {/* LEADERSHIP */}
-                                                <td className="p-5 align-middle">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-[10px] font-black border border-blue-100">
-                                                            {org.president_name?.charAt(0) || <Users size={12} />}
+                                                <td className="p-6 align-middle">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-black border border-blue-100 dark:border-blue-900/50 shadow-sm">
+                                                            {org.president_name?.charAt(0) || <Users size={16} />}
                                                         </div>
                                                         <div>
-                                                            <span className="text-xs font-bold text-neutral-900 dark:text-white block">
+                                                            <span className="text-sm font-black text-neutral-900 dark:text-white block uppercase tracking-tight">
                                                                 {org.president_name || 'No President'}
                                                             </span>
-                                                            <span className="text-[10px] text-neutral-500 uppercase tracking-wide font-medium">
-                                                                President
+                                                            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-bold">
+                                                                President / Lead
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 {/* SYSTEM CONFIG */}
-                                                <td className="p-5 align-middle">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-                                                            <LayoutTemplate size={12} className="text-neutral-400" />
+                                                <td className="p-6 align-middle">
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex items-center gap-2 text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase tracking-wider">
+                                                            <LayoutTemplate size={14} className="text-blue-500" />
                                                             {org.form_schema?.length || 0} Questions
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-                                                            <Briefcase size={12} className="text-neutral-400" />
+                                                        <div className="flex items-center gap-2 text-xs font-black text-neutral-600 dark:text-neutral-300 uppercase tracking-wider">
+                                                            <Briefcase size={14} className="text-purple-500" />
                                                             {org.requirements?.length || 0} Requirements
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 {/* ACTIONS */}
-                                                <td className="p-5 pr-8 align-middle text-right">
-                                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <td className="p-6 pr-10 align-middle text-right">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Link href={`/admin/organizations/${org.slug}/members`} title="View Members">
-                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                                                                <Users size={14} />
+                                                            <Button variant="outline" size="sm" className="h-10 px-4 rounded-xl text-blue-600 border-blue-100 bg-blue-50 hover:bg-blue-600 hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                                                                Members
                                                             </Button>
                                                         </Link>
                                                         <Link href={`/admin/organizations/${org.slug}/edit`}>
-                                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-700">
-                                                                <Edit3 size={14} />
+                                                            <Button variant="outline" size="sm" className="h-10 w-10 p-0 rounded-xl text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 border-neutral-200 dark:hover:bg-neutral-800 dark:border-neutral-700">
+                                                                <Edit3 size={18} />
                                                             </Button>
                                                         </Link>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                                    <Trash2 size={14} />
+                                                                <Button variant="outline" size="sm" className="h-10 w-10 p-0 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-red-50 border-neutral-200 dark:hover:bg-red-950 dark:border-neutral-700">
+                                                                    <Trash2 size={18} />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem className="text-red-600 font-bold focus:text-red-700 focus:bg-red-50 cursor-pointer" onClick={() => handleDelete(org)}>
+                                                                <DropdownMenuItem className="text-red-600 font-bold focus:text-red-700 focus:bg-red-50 cursor-pointer p-3 text-sm" onClick={() => handleDelete(org)}>
                                                                     Delete Organization
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
@@ -215,17 +215,17 @@ export default function Index({ organization, filters }: PageProps) {
                     </div>
 
                     {/* PAGINATION */}
-                    <div className="mt-6">
-                        <div className="flex justify-center items-center gap-1">
+                    <div className="mt-10">
+                        <div className="flex justify-center items-center gap-2">
                             {organization.meta.links.map((link: any, i: number) => (
                                 <Link
                                     key={i}
                                     href={link.url || '#'}
                                     dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${link.active
-                                        ? 'bg-neutral-900 text-white shadow-lg transform -translate-y-0.5'
-                                        : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                        } ${!link.url && 'opacity-40 cursor-not-allowed pointer-events-none'}`}
+                                    className={`px-4 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-sm ${link.active
+                                        ? 'bg-neutral-900 text-white shadow-xl transform -translate-y-1'
+                                        : 'text-neutral-500 hover:text-neutral-900 bg-white dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:shadow-md border border-neutral-200 dark:border-neutral-800'
+                                        } ${!link.url && 'opacity-30 cursor-not-allowed pointer-events-none'}`}
                                 />
                             ))}
                         </div>

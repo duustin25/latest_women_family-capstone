@@ -141,6 +141,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'v
     // Case Statuses Settings Routes
     Route::post('/settings/case-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeCaseStatus'])->name('settings.case-statuses.store');
     Route::patch('/settings/case-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCaseStatus'])->name('settings.case-statuses.update');
+
+    // Zones Settings Routes
+    Route::post('/settings/zones', [\App\Http\Controllers\Admin\SettingsController::class, 'storeZone'])->name('settings.zones.store');
+    Route::patch('/settings/zones/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateZone'])->name('settings.zones.update');
 });
 
 

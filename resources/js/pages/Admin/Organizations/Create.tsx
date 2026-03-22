@@ -18,6 +18,8 @@ export default function Create({ users }: { users: any[] }) {
         president_name: '',
         color_theme: 'bg-[#0038a8]',
         image: null as File | null,
+        left_logo: null as File | null,
+        right_logo: null as File | null,
         requirements: [] as string[],
         form_schema: [
             // CORE FIELDS (LOCKED)
@@ -32,8 +34,6 @@ export default function Create({ users }: { users: any[] }) {
             form_title: 'APPLICATION',
             alignment: 'center',
             include_barangay_header: true,
-            left_logo_url: '/Logo/barangay183LOGO.png',
-            right_logo_url: '/Logo/women&family_logo.png',
         },
     });
 
@@ -106,14 +106,14 @@ export default function Create({ users }: { users: any[] }) {
                                 ) : activeTab === 'builder' ? (
                                     <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
                                 ) : (
-                                    <PrintSettingsBuilder data={data} setData={setData} />
+                                    <PrintSettingsBuilder data={data} setData={setData} record={null} />
                                 )}
                             </div>
 
                         </div>
 
                         {/* RIGHT COLUMN: LIVE PREVIEW (Sticky) */}
-                        <LivePaperPreview data={data} />
+                        <LivePaperPreview data={data as any} record={null} />
                     </form>
                 </div>
             </div>
