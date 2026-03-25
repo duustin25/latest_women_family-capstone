@@ -191,6 +191,24 @@
             ]
         },
         {
+            "tag": "contact_numbers",
+            "patterns": [
+                "What is the contact number?",
+                "Give me the hotline",
+                "Emergency number",
+                "Ano ang number ng VAWC?",
+                "Contact details",
+                "Hotlines",
+                "Who to call?",
+                "VAWC desk number",
+                "BCPC contact number",
+                "Telephone number"
+            ],
+            "responses": [
+                "ACTION_FETCH_CONTACTS"
+            ]
+        },
+        {
             "tag": "irrelevant",
             "patterns": [
                 "Sinong nanalo sa basketball?",

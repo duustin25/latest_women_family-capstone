@@ -2,51 +2,47 @@ import { Head, Link } from '@inertiajs/react';
 import * as React from "react";
 import PublicLayout from '@/layouts/PublicLayout';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import {
     ShieldAlert, Users, Baby, ArrowRight,
-    MapPin, Calendar, ExternalLink, ChevronRight
+    MapPin, Calendar, ExternalLink, ChevronRight,
+    LogOut, ShieldCheck, Handshake, Scale, HeartHandshake, Siren
 } from "lucide-react";
 
 interface WelcomeProps {
     announcements: { data: any[] };
     organizations: { data: any[] };
+    stats?: {
+        vawc_cases: number;
+        organizations: number;
+        gad_events: number;
+    }
 }
 
-export default function Welcome({ announcements, organizations }: WelcomeProps) {
+export default function Welcome({ announcements, organizations, stats }: WelcomeProps) {
+    const vawcCount = stats?.vawc_cases ?? 120;
+    const orgCount = stats?.organizations ?? 15;
+    const gadCount = stats?.gad_events ?? 45;
+
     const [api, setApi] = React.useState<CarouselApi>()
-
-    // This makes the picture slider move automatically
-    React.useEffect(() => {
-        // If the slider is not ready, do nothing
-        if (!api) {
-            return;
-        }
-
-        // Create a timer that clicks "next" every 4 seconds (4000 milliseconds)
-        const timer = setInterval(() => {
-            api.scrollNext();
-        }, 4000);
-
-        // When the user leaves the page, stop the timer so it doesn't run in the background
-        return () => {
-            clearInterval(timer);
-        };
-    }, [api]);
+    const plugin = React.useRef(
+        Autoplay({ delay: 4000, stopOnInteraction: false })
+    );
 
     const slides = [
         {
             id: 1,
-            image: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2069&auto=format&fit=crop",
+            image: "/images/wfps_image.jpg",
             title: "Safe Community",
         },
         {
             id: 2,
-            image: "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=2070&auto=format&fit=crop",
+            image: "/images/vawc_image.jpg",
             title: "Gender Equality",
         },
         {
             id: 3,
-            image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+            image: "/images/bcpc_image.jpg",
             title: "Child Protection",
         },
     ];
@@ -55,7 +51,17 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
         <PublicLayout>
             <Head title="Welcome - Brgy 183 Villamor" />
 
-            {/* FIXED BACKGROUND LOGO */}
+            {/* ======================== SECURE QUICK EXIT ==========================*/}
+            <a
+                href="https://www.google.com"
+                className="fixed bottom-6 left-6 z-[100] flex items-center gap-2 bg-red-600 hover:bg-neutral-900 text-white font-black px-5 py-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 ring-4 ring-white/10 dark:ring-neutral-900/50"
+                title="Leave Site Quickly - Opens Google"
+            >
+                <LogOut size={20} />
+                <span className="hidden sm:inline uppercase tracking-widest text-sm">Quick Exit</span>
+            </a>
+
+            {/* ======================== FIXED BACKGROUND LOGO ==========================*/}
             <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
                 <img
                     src="/Logo/barangay183LOGO.png"
@@ -64,31 +70,16 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                 />
             </div>
 
-            {/* 1. HERO SECTION - With Carousel Background */}
-            <section className="relative z-10 bg-neutral-900 text-white overflow-hidden h-[600px] lg:h-[700px] flex items-center">
-
-                {/* CAROUSEL BACKGROUND */}
-                <div className="absolute inset-0 z-0 select-none pointer-events-none">
-                    <Carousel
-                        setApi={setApi}
-                        className="w-full h-full [&>div]:h-full"
-                        opts={{ loop: true, align: "start" }}
-                    >
+            {/* ======================== HERO SECTION ==========================*/}
+            <section className="relative z-10 py-20 overflow-hidden min-h-[750px] flex items-center bg-neutral-950 text-white transition-colors">
+                {/* HERO CAROUSEL BACKGROUND */}
+                <div className="absolute inset-0 z-0">
+                    <Carousel plugins={[plugin.current]} setApi={setApi} className="w-full h-full [&_div]:h-full" opts={{ loop: true }}>
                         <CarouselContent className="h-full ml-0">
                             {slides.map((slide) => (
-                                <CarouselItem key={slide.id} className="pl-0 h-full w-full relative">
-                                    <div className="absolute inset-0 bg-neutral-900">
-                                        <img
-                                            src={slide.image}
-                                            alt={slide.title}
-                                            onError={(e) => {
-                                                e.currentTarget.src = "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2069&auto=format&fit=crop";
-                                            }}
-                                            className="w-full h-full object-cover opacity-60 animate-in fade-in duration-1000"
-                                        />
-                                        {/* Gradient Overlay for Text Readability */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-transparent"></div>
-                                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-neutral-900/20"></div>
+                                <CarouselItem key={slide.id} className="h-full w-full relative pl-0">
+                                    <div className="absolute inset-0 bg-neutral-950">
+                                        <img src={slide.image} alt={slide.title} className="w-full h-full object-cover opacity-40" />
                                     </div>
                                 </CarouselItem>
                             ))}
@@ -96,83 +87,147 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                     </Carousel>
                 </div>
 
-                <div className="container mx-auto px-6 relative z-10 w-full">
-                    <div className="max-w-3xl animate-in slide-in-from-left-10 fade-in duration-1000">
-                        <span className="inline-block py-1 px-3 rounded-full bg-yellow-500/10 text-yellow-500 text-[10px] font-black uppercase tracking-widest mb-6 border border-yellow-500/20">
-                            Create a Safe Community
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] mb-6 uppercase">
+                {/* 2. THE TEXT CONTENT */}
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="max-w-3xl">
+                        <h1 className="text-6xl md:text-8xl font-black uppercase leading-[0.85] tracking-tighter mb-8 animate-in slide-in-from-left-10 duration-700">
                             Women & Family <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
-                                Protection Center
-                            </span>
+                            <span className="text-yellow-500">Protection Center</span>
                         </h1>
-                        <p className="text-lg text-neutral-400 font-medium max-w-xl mb-10 leading-relaxed">
-                            Providing accessible services, protection, and empowerment for every family in Barangay 183 Villamor.
+                        <p className="text-xl text-neutral-300 max-w-2xl mb-12 leading-relaxed animate-in slide-in-from-left-12 duration-1000">
+                            Providing accessible services, protection, and empowerment for every family in Barangay 183 Villamor. Safe, Secure, and Supportive.
                         </p>
-
-                        <div className="flex flex-wrap gap-4">
-                            <Link href="/vawc" className="px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-wider text-xs rounded-lg transition-all shadow-lg shadow-rose-900/20 flex items-center gap-2 group">
-                                VAWC Services
+                        <div className="flex flex-wrap gap-6 animate-in slide-in-from-left-14 duration-1000">
+                            <Link href="/vawc" className="px-10 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase tracking-wider text-sm rounded-lg transition-all shadow-xl shadow-rose-900/40">
+                                Get VAWC Help
                             </Link>
-                            <Link href="/gad" className="px-8 py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-black uppercase tracking-wider text-xs rounded-lg transition-all border border-neutral-700 flex items-center gap-2">
-                                GAD Services
+                            <Link href="/gad" className="px-10 py-4 bg-white/10 hover:bg-white/20 text-white font-black uppercase tracking-wider text-sm rounded-lg transition-all border border-white/20 backdrop-blur-sm">
+                                View GAD Programs
                             </Link>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* 2. CORE SERVICES GRID (Placeholder - keeping structure intact) */}
+            {/* ======================== IMPACT STATS SECTION ==========================*/}
+            <section className="relative z-20 py-10 mx-4 lg:mx-auto max-w-5xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm mt-15">
+                <div className="container mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-neutral-900 dark:text-white text-center divide-y md:divide-y-0 md:divide-x divide-neutral-200 dark:divide-neutral-800">
+                        <div className="flex flex-col items-center py-2 md:py-0">
+                            <h4 className="text-4xl font-bold mb-1">{vawcCount}</h4>
+                            <p className="uppercase tracking-wide text-sm text-neutral-500 dark:text-neutral-400">Cases Managed</p>
+                        </div>
+                        <div className="flex flex-col items-center py-2 md:py-0">
+                            <h4 className="text-4xl font-bold mb-1">{orgCount}</h4>
+                            <p className="uppercase tracking-wide text-sm text-neutral-500 dark:text-neutral-400">Accredited Partners</p>
+                        </div>
+                        <div className="flex flex-col items-center py-2 md:py-0">
+                            <h4 className="text-4xl font-bold mb-1">{gadCount}</h4>
+                            <p className="uppercase tracking-wide text-sm text-neutral-500 dark:text-neutral-400">GAD Events</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
+            {/* ======================== CORE SERVICES ==========================*/}
+            <section className="py-20 transition-colors bg-neutral-100 dark:bg-neutral-900 border-y border-neutral-200 dark:border-neutral-800 mt-16">
+                <div className="container mx-auto px-6">
+                    <div className="flex items-end justify-between mb-12">
+                        <div>
+                            <h2 className="font-bold uppercase text-xs mb-2 tracking-widest">How We Help</h2>
+                            <h3 className="font-bold text-3xl uppercase">Core Services</h3>
+                        </div>
+                    </div>
 
-            {/* 3. COMMUNITY UPDATES */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Service 1 */}
+                        <div className="border bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full flex flex-col items-start gap-4">
+                            <div className="flex items-center gap-3">
+                                <Siren size={24} className="text-neutral-900 dark:text-white shrink-0" />
+                                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">VAWC Support & Assistance</h1>
+                            </div>
+                            <p className="text-md leading-relaxed text-neutral-700 dark:text-neutral-300">
+                                Comprehensive guidance and contact information for victims. For absolute privacy and confidentiality, all cases are securely filed in-person by our dedicated VAWC desk officers.
+                            </p>
+                        </div>
+
+                        {/* Service 2 */}
+                        <div className="border bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full flex flex-col items-start gap-4">
+                            <div className="flex items-center gap-3">
+                                <Scale size={24} className="text-neutral-900 dark:text-white shrink-0" />
+                                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">GAD Event Registration</h1>
+                            </div>
+                            <p className="text-md leading-relaxed text-neutral-700 dark:text-neutral-300">
+                                Browse upcoming Gender and Development (GAD) seminars and community programs. Citizens can effortlessly register for events directly through the portal.
+                            </p>
+                        </div>
+
+                        {/* Service 3 */}
+                        <div className="border bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full flex flex-col items-start gap-4">
+                            <div className="flex items-center gap-3">
+                                <HeartHandshake size={24} className="text-neutral-900 dark:text-white shrink-0" />
+                                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Organization Memberships</h1>
+                            </div>
+                            <p className="text-md leading-relaxed text-neutral-700 dark:text-neutral-300">
+                                Discover accredited community partners and organizations. Submit membership applications online to join initiatives and help the community.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ======================== ANNOUNCEMENTS SECTION ==========================*/}
             <section className="py-20 border-t border-neutral-200 dark:border-neutral-800 relative z-10 transition-colors">
                 <div className="container mx-auto px-6">
                     <div className="flex items-end justify-between mb-12">
                         <div>
-                            <h2 className="text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-widest text-xs mb-2">Barangay Updates</h2>
-                            <h3 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tighter">Latest Announcements</h3>
+                            <h2 className="font-bold uppercase text-xs mb-2 tracking-widest">Barangay Updates</h2>
+                            <h3 className="font-bold text-3xl uppercase">Latest Announcements</h3>
                         </div>
-                        <Link href="/announcements" className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                            View All <ArrowRight size={14} />
-                        </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Announcement Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {announcements.data.length > 0 ? (
                             announcements.data.map((post: any) => (
-                                <Link key={post.id} href={`/announcements/${post.slug}`} className="group bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                <Link
+                                    key={post.id}
+                                    href={`/announcements/${post.slug}`}
+                                    className=" bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                                >
+                                    {/* Image Section */}
                                     <div className="aspect-[16/9] bg-neutral-100 dark:bg-neutral-800 relative overflow-hidden">
 
                                         {/* GAD Badge if applicable */}
                                         {post.category === 'GAD' && (
-                                            <div className="absolute top-4 left-4 z-10 bg-purple-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                                                GAD Featured
+                                            <div className="absolute top-4 left-4 z-10 bg-purple-600 text-white text-[15px] font-black px-5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                                {post.category}
                                             </div>
                                         )}
 
                                         <img
-                                            src={post.image || 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?q=80&w=2000'}
+                                            src={post.image}
                                             alt={post.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full group-hover:scale-105 transition-transform duration-500"
                                         />
                                     </div>
+
+                                    {/** Below of the image */}
                                     <div className="p-8">
-                                        <div className="flex items-center gap-4 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-4">
+                                        <div className="flex items-center gap-6 mb-4">
                                             <span className="flex items-center gap-1">
-                                                <Calendar size={12} /> {post.date}
+                                                <Calendar size={18} /> {post.date}
                                             </span>
                                             {post.location && (
                                                 <span className="flex items-center gap-1 line-clamp-1">
-                                                    <MapPin size={12} /> {post.location}
+                                                    <MapPin size={18} /> {post.location}
                                                 </span>
                                             )}
                                         </div>
-                                        <h4 className="text-lg font-black text-neutral-900 dark:text-white leading-tight mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                                        <h4 className="text-2xl font-bold line-clamp-2">
                                             {post.title}
                                         </h4>
-                                        <p className="text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                                        <p className="text-lg line-clamp-2 leading-relaxed">
                                             {post.excerpt}
                                         </p>
                                     </div>
@@ -180,58 +235,75 @@ export default function Welcome({ announcements, organizations }: WelcomeProps) 
                             ))
                         ) : (
                             <div className="col-span-full py-16 text-center border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                                <p className="text-neutral-400 dark:text-neutral-500 font-bold uppercase text-xs tracking-wider">No announcements posted yet</p>
+                                <p className="">No announcements posted yet</p>
                             </div>
                         )}
                     </div>
 
-                    <div className="mt-8 text-center md:hidden">
-                        <Link href="/announcements" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-900 dark:text-white">
-                            View All Updates <ArrowRight size={14} />
+                    <div className="mt-8 text-center">
+                        <Link
+                            href="/announcements"
+                            className="inline-flex items-center gap-2 uppercase mt-5">
+                            view all announcements <ArrowRight size={14} />
                         </Link>
                     </div>
                 </div>
             </section>
 
-            {/* 4. ACCREDITED ORGANIZATIONS */}
-            <section className="py-20 border-t border-neutral-100 dark:border-neutral-800 relative z-10 transition-colors">
+            {/* ======================== ORGANIZATIONS SECTION ==========================*/}
+            <section className="py-20 border-t border-neutral-200 dark:border-neutral-800 relative z-10 transition-colors h-[600px]">
                 <div className="container mx-auto px-6">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-purple-600 dark:text-purple-400 font-bold uppercase tracking-widest text-xs mb-3">Community Partners</h2>
-                        <h3 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tighter mb-4">Accredited Organizations</h3>
-                        <p className="text-neutral-500 dark:text-neutral-400 font-medium">Verified local groups working together for community development.</p>
+                    <div className="flex items-end justify-between mb-12">
+                        <div>
+                            <h2 className="font-bold uppercase text-xs mb-2 tracking-widest">Community Partners</h2>
+                            <h3 className="font-bold text-3xl uppercase">Organizations</h3>
+                        </div>
                     </div>
 
+                    {/* organizaitons grid cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {organizations.data.length > 0 ? (
                             organizations.data.map((org: any) => (
-                                <Link key={org.id} href={`/organizations/${org.slug}`} className="flex items-center gap-4 p-5 bg-neutral-50 dark:bg-neutral-900 hover:bg-white dark:hover:bg-neutral-800 border border-neutral-100 dark:border-neutral-800 hover:border-purple-200 dark:hover:border-purple-900 rounded-xl transition-all group shadow-sm hover:shadow-md">
-                                    <div className={`w-3 h-3 rounded-full shrink-0 ${org.color_theme || 'bg-neutral-300'}`}></div>
-                                    <div className="min-w-0">
-                                        <h4 className="font-bold text-neutral-900 dark:text-white text-sm uppercase tracking-tight truncate group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
-                                            {org.name}
-                                        </h4>
-                                        <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mt-0.5">
-                                            View Profile <ChevronRight size={10} />
+                                <Link
+                                    key={org.id}
+                                    href={`/organizations/${org.slug}`}
+                                    className="border rounded-lg p-4 flex flex-row items-start gap-4 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full"
+                                >
+                                    {/** 1. THE COLOR DOT */}
+                                    {/* Adjusted mt-2 so it aligns with the first line of text */}
+                                    <div className={`w-3 h-3 rounded-full shrink-0 mt-2 ${org.color_theme}`}></div>
+
+                                    {/** 2. THE TEXT CONTAINER */}
+                                    {/* h-full and justify-between are the keys here */}
+                                    <div className="flex flex-col justify-between h-full min-w-0 flex-1">
+                                        <div>
+                                            <h1 className="text-2xl font-bold mb-2">
+                                                {org.name}
+                                            </h1>
+                                        </div>
+                                        <div className="items-center gap-1 pt-2 border-t">
+                                            <span className="text-md tracking-wide">Pres: </span>
+                                            <span className="text-md tracking-wide">{org.president_name || "No President"}</span>
                                         </div>
                                     </div>
                                 </Link>
+
                             ))
                         ) : (
-                            <div className="col-span-full text-center py-10">
-                                <p className="text-neutral-400 dark:text-neutral-500 text-xs font-bold uppercase">No organizations found</p>
+                            <div>
+                                <h1>No organizations found</h1>
                             </div>
                         )}
                     </div>
-
-                    <div className="mt-12 text-center">
-                        <Link href="/organizations" className="inline-flex items-center justify-center px-8 py-3 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white font-black uppercase text-[10px] tracking-[0.2em] rounded-full transition-colors">
-                            View Full Directory
+                    <div className="mt-8 text-center">
+                        <Link
+                            href="/organizations"
+                            className="inline-flex items-center gap-2 uppercase mt-5">
+                            View all organizations <ArrowRight size={14} />
                         </Link>
                     </div>
                 </div>
             </section>
-
         </PublicLayout>
     );
 }

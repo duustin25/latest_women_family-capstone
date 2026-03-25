@@ -63,6 +63,9 @@ class ChatbotService
         switch ($action) {
             case 'ACTION_FETCH_ANNOUNCEMENTS':
                 return $this->fetchAnnouncements();
+            case 'ACTION_FETCH_CONTACTS':
+                // Removed Analytics for confidentiality and replaced with Contacts
+                return $this->fetchContacts();
             case 'ACTION_FETCH_OFFICIALS':
                 return $this->fetchOfficials();
             case 'ACTION_FETCH_LAWS':
@@ -96,7 +99,9 @@ class ChatbotService
         $response = "Here are the latest announcements:\n\n";
         foreach ($news as $item) {
             $date = $item->created_at->format('M d, Y');
-            $response .= "{$item->title} ({$date})\n{$item->content}\n\n";
+            // strip tags to prevent HTML from tiptap editor showing up in chatbot
+            $content = strip_tags($item->content);
+            $response .= "{$item->title} ({$date})\n{$content}\n\n";
         }
 
         return ['response' => $response];
@@ -104,7 +109,9 @@ class ChatbotService
 
     private function fetchOfficials(): array
     {
-        $officials = \App\Models\OrganizationalMember::orderBy('id')->get(); // Adjust ordering as needed
+        $officials = \App\Models\OrganizationalMember::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
 
         if ($officials->isEmpty()) {
             return ['response' => "The list of officials is currently unavailable."];
@@ -117,6 +124,21 @@ class ChatbotService
         }
 
         return ['response' => $response];
+    }
+
+    private function fetchContacts(): array
+    {
+        $response = "Here are the important emergency and contact numbers:\n\n";
+        $response .= "• National Emergency Hotline: 911\n";
+        $response .= "• Violence Against Women and Children (VAWC) Desk: (Provide local number here or 1343)\n";
+        $response .= "• PNP Women and Children Protection Center (WCPC): 177 / (02) 8532-6690\n";
+        $response .= "• Barangay Council for the Protection of Children (BCPC): (Ask your local barangay hall)\n\n";
+        $response .= "If you or someone else is in immediate danger, please do not hesitate to call 911 or the local police.";
+
+        return [
+            'response' => $response,
+            'suggestions' => ['File VAWC Case', 'File BCPC Case']
+        ];
     }
 
     private function fetchLaws(): array

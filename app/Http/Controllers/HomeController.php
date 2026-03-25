@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\Organization;
+use App\Models\CaseReport;
+use App\Models\GadEvent;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Http\Resources\AnnouncementResource;
@@ -18,9 +20,16 @@ class HomeController extends Controller
 
             // Latest 3 for the home page slider/grid
             'announcements' => AnnouncementResource::collection(Announcement::latest()->take(3)->get()),
-            
+
             // Use the Resource here too!
-            'organizations' => OrganizationResource::collection(Organization::latest()->take(4)->get()), 
+            'organizations' => OrganizationResource::collection(Organization::latest()->take(4)->get()),
+
+            // Accurate Dynamic Database Stats
+            'stats' => [
+                'vawc_cases' => CaseReport::count(),
+                'organizations' => Organization::count(),
+                'gad_events' => GadEvent::count(),
+            ]
         ]);
     }
 }

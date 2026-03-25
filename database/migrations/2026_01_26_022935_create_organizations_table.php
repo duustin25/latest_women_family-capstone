@@ -17,10 +17,16 @@ return new class extends Migration {
             $table->text('description'); // Short description
             $table->string('color_theme')->default('bg-blue-700'); // For your UI coloring
             $table->string('image_path')->nullable(); // Banner image
+            $table->string('left_logo_path')->nullable();
+            $table->string('right_logo_path')->nullable();
             $table->json('requirements')->nullable(); // Array of requirements needed to apply
             $table->json('form_schema')->nullable();
             $table->json('print_settings')->nullable(); // Print layout configuration
             $table->timestamps();
+        });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('organization_id')->references('id')->on('organizations')->nullOnDelete();
         });
     }
 
@@ -29,6 +35,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['organization_id']);
+        });
+
         Schema::dropIfExists('organizations');
     }
 };
