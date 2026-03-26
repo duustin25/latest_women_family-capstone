@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CaseReportResource;
 use App\Models\Announcement;
 use App\Models\Organization;
 use App\Models\CaseReport;
 use App\Models\GadEvent;
+use App\Models\MembershipApplication;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use App\Http\Resources\AnnouncementResource;
@@ -24,11 +26,12 @@ class HomeController extends Controller
             // Use the Resource here too!
             'organizations' => OrganizationResource::collection(Organization::latest()->take(4)->get()),
 
-            // Accurate Dynamic Database Stats
+            // statistics for the homepage, case, orgs, gad events.
             'stats' => [
-                'vawc_cases' => CaseReport::count(),
-                'organizations' => Organization::count(),
-                'gad_events' => GadEvent::count(),
+                'caseTotal' => CaseReport::count(),
+                'eventTotal' => GadEvent::count(),
+                'orgTotal' => Organization::count(),
+                'memTotal' => MembershipApplication::count()
             ]
         ]);
     }
