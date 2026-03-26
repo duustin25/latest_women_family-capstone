@@ -58,6 +58,11 @@ const mainNavItems: NavItem[] = [
         icon: Activity,
     },
     {
+        title: 'Event Proposals',
+        href: '/admin/organization/events',
+        icon: Activity,
+    },
+    {
         title: 'Data Analytics',
         href: '/admin/analytics',
         icon: ChartLine,
@@ -100,13 +105,12 @@ export function AppSidebar() {
             return false;
         }
 
-        // Cases and Users represent highly sensitive/admin-level data.
-        // Block them from Presidents
+        // Presidents see Event Proposals, not the admin GAD menu
+        if (item.title === 'Event Proposals' && role !== 'president') return false;
+
         if (role === 'president') {
-            const hiddenFromPresident = ['Cases', 'Users', 'Officials', 'Data Analytics', 'Audit Logs', 'Settings'];
-            if (hiddenFromPresident.includes(item.title)) {
-                return false;
-            }
+            const hiddenFromPresident = ['Cases', 'Users', 'Officials', 'Data Analytics', 'Audit Logs', 'Settings', 'GAD'];
+            if (hiddenFromPresident.includes(item.title)) return false;
         }
 
         // Head Committee visibility

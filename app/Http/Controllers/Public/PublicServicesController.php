@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\CaseReport;
 
 class PublicServicesController extends Controller
 {
@@ -37,7 +36,8 @@ class PublicServicesController extends Controller
 
     public function gad()
     {
-        $activities = \App\Models\GadEvent::orderBy('event_date', 'desc')
+        $activities = \App\Models\GadEvent::where('status', 'approved')
+            ->orderBy('event_date', 'desc')
             ->take(6)
             ->get();
 

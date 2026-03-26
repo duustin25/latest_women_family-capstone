@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\MembersController;
 use App\Http\Controllers\Admin\MembershipApplicationController;
+use App\Http\Controllers\Admin\OrganizationEventController;
 
 // Public Routes:
 use App\Http\Controllers\Public\PublicAnnouncementController;
@@ -123,8 +124,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/members', [MembersController::class, 'index'])
             ->name('members');
 
-        // GAD Events Module
+        // GAD Events Module (Admin)
         Route::resource('gad/events', \App\Http\Controllers\Admin\GadEventController::class, ['names' => 'gad.events']);
+        Route::patch('gad/events/{id}/status', [\App\Http\Controllers\Admin\GadEventController::class, 'updateStatus'])->name('gad.events.update-status');
+
+        // Organization Event Proposals (President Portal)
+        Route::resource('organization/events', OrganizationEventController::class, ['names' => 'organization.events']);
+
+        // Notifications
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     });
 

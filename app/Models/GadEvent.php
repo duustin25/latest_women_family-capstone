@@ -13,9 +13,20 @@ class GadEvent extends Model
         'event_time',
         'location',
         'image_path',
+        'organization_id',
+        'status',
+        'reject_reason',
     ];
 
     protected $casts = [
         'event_date' => 'datetime',
     ];
+
+    /**
+     * RELATIONSHIP: An event belongs to an organization.
+     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

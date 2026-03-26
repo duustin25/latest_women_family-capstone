@@ -15,34 +15,37 @@ class GadEventController extends Controller
      */
     public function index(Request $request)
     {
-        $query = GadEvent::query();
+        $query = GadEvent::query()->with('organization');
 
-        // Optional search filter
         if ($search = $request->input('search')) {
             $query->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+                  ->orWhere('description', 'like', "%{$search}%");
+        }
+
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
         }
 
         $events = $query->orderBy('event_date', 'desc')->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/GadEvents/Index', [
             'events' => $events,
-            'filters' => $request->only('search')
+            'filters' => $request->only('search', 'status')
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource in storage (Admin-created → auto-approved).
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'title'      => 'required|string|max:255',
+            'description'=> 'required|string',
             'event_date' => 'required|date',
             'event_time' => 'required',
-            'location' => 'required|string|max:255',
-            'image_path' => 'nullable|image|max:2048' // 2MB max
+            'location'   => 'required|string|max:255',
+            'image_path' => 'nullable|image|max:2048',
         ]);
 
         if ($request->hasFile('image_path')) {
@@ -50,9 +53,12 @@ class GadEventController extends Controller
             $validated['image_path'] = $path;
         }
 
+        // Admin-created events are immediately approved & visible on the public calendar
+        $validated['status'] = 'approved';
+
         GadEvent::create($validated);
 
-        return redirect()->route('admin.gad.events.index')->with('success', 'Event created successfully.');
+        return redirect()->route('admin.gad.events.index')->with('success', 'Event created and published successfully.');
     }
 
     /**
@@ -63,16 +69,15 @@ class GadEventController extends Controller
         $event = GadEvent::findOrFail($id);
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'title'      => 'required|string|max:255',
+            'description'=> 'required|string',
             'event_date' => 'required|date',
             'event_time' => 'required',
-            'location' => 'required|string|max:255',
-            'image_path' => 'nullable|image|max:2048'
+            'location'   => 'required|string|max:255',
+            'image_path' => 'nullable|image|max:2048',
         ]);
 
         if ($request->hasFile('image_path')) {
-            // Delete old image if it exists
             if ($event->image_path) {
                 Storage::disk('public')->delete($event->image_path);
             }
@@ -99,5 +104,34 @@ class GadEventController extends Controller
         $event->delete();
 
         return redirect()->route('admin.gad.events.index')->with('success', 'Event deleted successfully.');
+    }
+
+    /**
+     * Update the approval status of a proposed event.
+     */
+    public function updateStatus(Request $request, string $id)
+    {
+        $event = GadEvent::findOrFail($id);
+
+        $validated = $request->validate([
+            'status'        => 'required|in:approved,rejected,reschedule_requested',
+            'reject_reason' => 'required_if:status,rejected,reschedule_requested|nullable|string',
+        ]);
+
+        $event->update([
+            'status'        => $validated['status'],
+            'reject_reason' => $validated['reject_reason'] ?? null,
+        ]);
+
+        $message = match($validated['status']) {
+            'approved'              => 'Event approved and published to the Global Public Calendar.',
+            'reschedule_requested'  => 'Reschedule request sent to the organization.',
+            default                 => 'Event rejected.',
+        };
+
+        // Broadcast the status change
+        event(new \App\Events\GadEventStatusChanged($event));
+
+        return redirect()->back()->with('success', $message);
     }
 }

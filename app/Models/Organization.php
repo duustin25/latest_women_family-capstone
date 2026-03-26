@@ -43,6 +43,14 @@ class Organization extends Model
     }
 
     /**
+     * RELATIONSHIP: An organization has many events/proposals.
+     */
+    public function events(): HasMany
+    {
+        return $this->hasMany(GadEvent::class);
+    }
+
+    /**
      * RELATIONSHIP: Inverse connection to User (President)
      */
     public function president()
