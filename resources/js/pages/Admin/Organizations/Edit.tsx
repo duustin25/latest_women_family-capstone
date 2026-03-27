@@ -19,6 +19,7 @@ export default function Edit({ organization, users }: { organization: any, users
         const coreFields = [
             { id: 'fullname', type: 'text', label: 'Full Name', required: true, width: 'w-full', layout: 'block', is_core: true },
             { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true },
+            { id: 'email', type: 'email', label: 'Email Address', required: false, width: 'w-full', layout: 'block', is_core: true },
         ];
 
         const existingIds = new Set(schema.map(f => f.id));
@@ -27,7 +28,7 @@ export default function Edit({ organization, users }: { organization: any, users
         // If we have missing core fields, prepend them. 
         // Also force-update existing core fields to have is_core: true just in case.
         const updatedSchema = schema.map(f => {
-            if (f.id === 'fullname' || f.id === 'address') {
+            if (f.id === 'fullname' || f.id === 'address' || f.id === 'email') {
                 return { ...f, is_core: true, required: true }; // Enforce core props
             }
             return f;

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { route } from 'ziggy-js';
+import PublicLayout from '@/layouts/PublicLayout';
 
 interface PortalProps {
     member: any;
@@ -11,9 +12,10 @@ interface PortalProps {
     communications: any[];
     dispatches: any[];
     secure_token: string;
+    announcements: any[];
 }
 
-export default function MemberPortal({ member, organization, communications, dispatches, secure_token }: PortalProps) {
+export default function MemberPortal({ member, organization, communications, dispatches, secure_token, announcements }: PortalProps) {
 
     const handleClaim = (dispatch_id: number) => {
         if (!confirm('Are you sure you want to acknowledge receipt of this benefit?')) return;
@@ -24,10 +26,10 @@ export default function MemberPortal({ member, organization, communications, dis
     };
 
     return (
-        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 p-4 md:p-10 transition-colors font-sans italic">
+        <PublicLayout bgColor="bg-neutral-50">
             <Head title={`Citizen Portal - ${member.fullname}`} />
 
-            <div className="max-w-6xl mx-auto space-y-10">
+            <div className="max-w-6xl mx-auto space-y-10 py-10 font-sans italic">
                 {/* ... existing header code ... */}
 
                 {/* --- HEADER --- */}
@@ -65,7 +67,7 @@ export default function MemberPortal({ member, organization, communications, dis
                         <Card className="overflow-hidden border-none shadow-2xl bg-neutral-900 dark:bg-neutral-800 text-white relative group min-h-[240px] rounded-3xl">
                             <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
                                 <img
-                                    src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(window.location.href)}&choe=UTF-8`}
+                                    src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(route('public.member.verify', secure_token))}&choe=UTF-8`}
                                     alt="QR Code Background"
                                     className="w-48 h-48 invert"
                                 />
@@ -106,7 +108,7 @@ export default function MemberPortal({ member, organization, communications, dis
                                     </div>
                                     <div className="p-2 bg-white rounded-2xl shadow-xl hover:scale-110 transition-transform cursor-pointer">
                                         <img
-                                            src={`https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=${encodeURIComponent(window.location.href)}&choe=UTF-8`}
+                                            src={`https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=${encodeURIComponent(route('public.member.verify', secure_token))}&choe=UTF-8`}
                                             alt="QR Code"
                                             className="w-16 h-16"
                                         />
@@ -242,6 +244,35 @@ export default function MemberPortal({ member, organization, communications, dis
                             </div>
                         </section>
 
+                        {/* EXCLUSIVE PERKS & ANNOUNCEMENTS */}
+                        <section className="space-y-6 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                            <div className="flex items-center justify-between pb-2">
+                                <h3 className="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight flex items-center gap-3 italic">
+                                    <Bell className="w-6 h-6 text-purple-600" /> Exclusive Perks
+                                </h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                {announcements && announcements.length > 0 ? announcements.map((announcement) => (
+                                    <div key={announcement.id} className="p-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-sm hover:shadow-md transition-all flex gap-4 items-center">
+                                        <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                                            {announcement.image_path ? (
+                                                <img src={`/storage/${announcement.image_path}`} className="w-full h-full object-cover" alt={announcement.title} />
+                                            ) : (
+                                                <Bell className="w-6 h-6 text-purple-400" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest mb-1 text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-900/20">{announcement.category || 'Member Update'}</Badge>
+                                            <h4 className="text-sm font-black leading-tight text-neutral-900 dark:text-white uppercase italic mt-1">{announcement.title}</h4>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <p className="text-xs text-neutral-400 italic font-black uppercase tracking-widest text-center py-6">No exclusive perks at the moment.</p>
+                                )}
+                            </div>
+                        </section>
+
                     </div>
                 </div>
 
@@ -256,6 +287,6 @@ export default function MemberPortal({ member, organization, communications, dis
                     </div>
                 </footer>
             </div>
-        </div>
+        </PublicLayout>
     );
 }

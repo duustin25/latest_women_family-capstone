@@ -70,7 +70,7 @@ export default function OrganizationSettings({ data, setData, record, users = []
 
                 <div className="flex flex-wrap gap-6 text-neutral-500 dark:text-neutral-400 font-bold tracking-wider items-center">
                     <span className="flex items-center gap-3 px-4 py-2 bg-neutral-50 dark:bg-neutral-950 rounded-lg border border-neutral-100 dark:border-neutral-800 transition-colors shadow-sm">
-                        <Users className="w-5 h-5 text-blue-500" /> 
+                        <Users className="w-5 h-5 text-blue-500" />
                         <span className="text-xs uppercase font-black tracking-widest text-neutral-400">President:</span>
                         {/* President Selection */}
                         <div className="w-64">
@@ -153,11 +153,11 @@ export default function OrganizationSettings({ data, setData, record, users = []
             {/* Requirements List */}
             <div className="bg-neutral-900 p-8 rounded-xl shadow-2xl text-white border-l-[12px] border-yellow-500 overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                
+
                 <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3 mb-8 text-yellow-500 drop-shadow-sm">
                     <ListChecks className="w-6 h-6" /> Required Documents for Membership
                 </h3>
-                
+
                 <div className="space-y-6">
                     <div className="flex gap-3">
                         <Input
@@ -181,7 +181,7 @@ export default function OrganizationSettings({ data, setData, record, users = []
                             <Plus size={20} strokeWidth={3} />
                         </Button>
                     </div>
-                    
+
                     <ul className="space-y-3 max-h-[300px] overflow-y-auto pr-3 custom-scrollbar">
                         {data.requirements.length === 0 ? (
                             <li className="text-neutral-500 italic text-sm py-4 border-2 border-dashed border-neutral-800 rounded-xl text-center">No requirements listed yet.</li>

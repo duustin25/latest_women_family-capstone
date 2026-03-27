@@ -19,6 +19,7 @@ export default function Edit({ application, organization }: { application: any, 
 
     const { data, setData, put, processing, errors } = useForm({
         fullname: record.fullname || '',
+        email: record.email || '',
         address: record.address || '',
         form_data: initialFormData,
     });
@@ -115,7 +116,10 @@ export default function Edit({ application, organization }: { application: any, 
                                             <Label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Full Name <span className="text-red-500">*</span></Label>
                                             <Input
                                                 value={data.fullname}
-                                                onChange={e => setData('fullname', e.target.value)}
+                                                onChange={e => {
+                                                    setData('fullname', e.target.value);
+                                                    handleDynamicInputChange('fullname', e.target.value);
+                                                }}
                                                 required
                                                 className="bg-neutral-50 dark:bg-neutral-950 font-bold border-neutral-200 dark:border-neutral-800 shadow-none focus-visible:ring-blue-500"
                                             />
@@ -125,11 +129,30 @@ export default function Edit({ application, organization }: { application: any, 
                                             <Label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Address <span className="text-red-500">*</span></Label>
                                             <Input
                                                 value={data.address}
-                                                onChange={e => setData('address', e.target.value)}
+                                                onChange={e => {
+                                                    setData('address', e.target.value);
+                                                    handleDynamicInputChange('address', e.target.value);
+                                                }}
                                                 required
                                                 className="bg-neutral-50 dark:bg-neutral-950 font-medium border-neutral-200 dark:border-neutral-800 shadow-none focus-visible:ring-blue-500"
                                             />
                                             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Email Address <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                type="email"
+                                                value={data.email}
+                                                onChange={e => {
+                                                    setData('email', e.target.value);
+                                                    handleDynamicInputChange('email', e.target.value);
+                                                }}
+                                                required
+                                                className="bg-neutral-50 dark:bg-neutral-950 font-medium border-neutral-200 dark:border-neutral-800 shadow-none focus-visible:ring-blue-500"
+                                            />
+                                            {// @ts-ignore
+                                                errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -151,7 +174,7 @@ export default function Edit({ application, organization }: { application: any, 
                                         {org.form_schema && org.form_schema.length > 0 ? (
                                             <div className="grid grid-cols-1 gap-6">
                                                 <DynamicFields
-                                                    schema={org.form_schema}
+                                                    schema={org.form_schema.filter((f: any) => !f.is_core)}
                                                     data={data.form_data}
                                                     setData={handleDynamicInputChange}
                                                     errors={errors}

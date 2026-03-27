@@ -136,6 +136,7 @@ class MembershipApplicationController extends Controller
         // 1. Validate Basic Info
         $validated = $request->validate([
             'fullname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'address' => 'required|string|max:255',
             // We allow updating the JSON blobs directly if needed, or specific fields
             'form_data' => 'nullable|array',

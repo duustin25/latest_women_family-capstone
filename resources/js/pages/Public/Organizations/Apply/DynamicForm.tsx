@@ -8,6 +8,7 @@ import DynamicFields from '@/components/DynamicFields';
 export default function DynamicForm({ organization }: { organization: any }) {
     const { data, setData, post, processing, errors } = useForm({
         fullname: '',
+        email: '',
         address: '',
         form_data: {} as Record<string, any>,
     });
@@ -27,7 +28,10 @@ export default function DynamicForm({ organization }: { organization: any }) {
         if (data.form_data.address) {
             setData('address', data.form_data.address);
         }
-    }, [data.form_data.fullname, data.form_data.address]);
+        if (data.form_data.email) {
+            setData('email', data.form_data.email);
+        }
+    }, [data.form_data.fullname, data.form_data.address, data.form_data.email]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

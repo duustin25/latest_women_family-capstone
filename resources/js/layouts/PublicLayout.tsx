@@ -62,6 +62,7 @@ export default function PublicLayout({ children, bgColor = "bg-white" }: PublicL
         { name: 'GAD Initiatives', href: '/gad' },
         { name: 'Organizations', href: '/organizations' },
         { name: 'Officials', href: '/officials' },
+        { name: 'Verify ID', href: '/verify' },
     ];
 
     return (

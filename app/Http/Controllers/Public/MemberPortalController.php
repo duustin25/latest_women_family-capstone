@@ -27,6 +27,7 @@ class MemberPortalController extends Controller
             'communications' => $member->communications()->latest()->get(),
             'dispatches' => $member->dispatches()->latest()->get(),
             'secure_token' => $token, // Pass for actions
+            'announcements' => \App\Models\Announcement::latest()->take(3)->get(),
         ]);
     }
 
