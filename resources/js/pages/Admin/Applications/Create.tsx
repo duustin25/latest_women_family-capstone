@@ -55,7 +55,7 @@ export default function Create({ organizations }: PageProps) {
                         {organizations.map((org) => (
                             <Link 
                                 key={org.id} 
-                                href={`/organizations/${org.slug}/apply`}
+                                href={`/admin/applications/encode/${org.slug}`}
                                 className="group relative bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 p-8 rounded-3xl hover:border-blue-600 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 overflow-hidden"
                             >
                                 {/* Decorative Background Icon */}

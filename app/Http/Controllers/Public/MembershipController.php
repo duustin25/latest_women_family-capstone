@@ -148,16 +148,22 @@ class MembershipController extends Controller
         }
 
         // 6. PERSISTENCE
-        $organization->membershipApplications()->create([
+        $application = $organization->membershipApplications()->create([
             'fullname' => $fullname,
             'address' => $address,
             'email' => $email, // NEW COLUMN
             // We store the dynamic answers in the new JSON column
-            'form_data' => array_merge($finalSubmissionData, ['email' => $email]),
+            'form_data' => $finalSubmissionData,
             'status' => $isAdmin ? 'Approved' : 'Pending',
             'approved_by' => $isAdmin ? Auth::user()->name : null,
             'actioned_at' => $isAdmin ? now() : null,
         ]);
+
+        // Automatically sends an Email due to logic of the system na may automatic approve pag admin nag encode ng data
+        if ($isAdmin) {
+            event(new \App\Events\ApplicationApproved($application));
+        }
+
 
         // 5. FLASH MESSAGE REDIRECT
         if ($isAdmin) {

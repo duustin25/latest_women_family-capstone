@@ -29,6 +29,7 @@ export default function Create({ organizations }: { organizations: Organization[
         password_confirmation: '',
         role: 'head',
         organization_id: '',
+        current_admin_password: '',
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +45,10 @@ export default function Create({ organizations }: { organizations: Organization[
         e.preventDefault();
         setIsSubmitting(true);
         post('/admin/system-users', {
-            onFinish: () => setIsSubmitting(false),
+            onFinish: () => {
+                setIsSubmitting(false);
+                setData('current_admin_password', '');
+            },
         });
     };
 
@@ -67,7 +71,7 @@ export default function Create({ organizations }: { organizations: Organization[
 
                         {/* Header */}
                         <div className="flex items-center gap-4 mb-10 pb-8 border-b border-neutral-100 dark:border-neutral-800">
-                            <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl text-neutral-900 dark:text-white">
+                            <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl text-neutral-900 dark:white">
                                 <UserPlus className="w-8 h-8" strokeWidth={1.5} />
                             </div>
                             <div>
@@ -84,7 +88,7 @@ export default function Create({ organizations }: { organizations: Organization[
                                     <Label htmlFor="name" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Official Name</Label>
                                     <Input
                                         id="name"
-                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900"
+                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900 dark:text-white"
                                         value={data.name}
                                         onChange={e => setData('name', e.target.value)}
                                         required
@@ -98,7 +102,7 @@ export default function Create({ organizations }: { organizations: Organization[
                                     <Input
                                         id="email"
                                         type="email"
-                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900"
+                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900 dark:text-white"
                                         value={data.email}
                                         onChange={e => setData('email', e.target.value)}
                                         required
@@ -162,6 +166,30 @@ export default function Create({ organizations }: { organizations: Organization[
                                 organizations={organizations}
                                 error={errors.organization_id}
                             />
+
+                            {/* ADMINISTRATIVE VERIFICATION SECTION */}
+                            <div className="p-8 bg-neutral-900 dark:bg-black rounded-3xl border border-neutral-800 space-y-4 shadow-2xl">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                    <h3 className="text-sm font-black text-white uppercase tracking-wider">Administrative Verification</h3>
+                                </div>
+                                <p className="text-xs font-medium text-neutral-400 leading-relaxed italic">
+                                    As a security measure, creating new system access requires your administrative authorization. Please enter **your** current password to proceed.
+                                </p>
+                                <div className="space-y-2 max-w-sm">
+                                    <Label htmlFor="current_admin_password" className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Confirm your Identity</Label>
+                                    <Input
+                                        id="current_admin_password"
+                                        type="password"
+                                        className="h-12 bg-neutral-800 border-neutral-700 focus:ring-emerald-500 font-bold text-white placeholder:text-neutral-600"
+                                        value={data.current_admin_password}
+                                        onChange={e => setData('current_admin_password', e.target.value)}
+                                        placeholder="Enter your password"
+                                        required
+                                    />
+                                    {errors.current_admin_password && <p className="text-red-500 text-xs font-bold mt-1">{errors.current_admin_password}</p>}
+                                </div>
+                            </div>
 
                             {/* Submit Buttons */}
                             <div className="flex items-center justify-end gap-4 pt-6 border-t border-neutral-100 dark:border-neutral-800">

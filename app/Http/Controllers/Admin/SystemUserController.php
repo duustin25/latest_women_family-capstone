@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class SystemUserController extends Controller
 {
@@ -65,6 +66,7 @@ class SystemUserController extends Controller
             'role' => 'required|in:admin,head,president',
             // Only require organization_id if role is President
             'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
+            'current_admin_password' => ['required', 'string', 'current_password'],
         ]);
 
         User::create([
@@ -87,6 +89,7 @@ class SystemUserController extends Controller
             'password' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'role' => 'required|in:admin,head,president',
             'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
+            'current_admin_password' => ['required', 'string', 'current_password'],
         ]);
 
         $data = [
@@ -102,6 +105,11 @@ class SystemUserController extends Controller
             $data['password'] = bcrypt($request->input('password'));
         }
 
+        // Prevent demoting the last Super Admin
+        if ($system_user->isAdmin() && $validated['role'] !== 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'Cannot demote the last Super Admin.');
+        }
+
         $system_user->update($data);
 
         return redirect()->route('admin.system-users.index')->with('success', 'System Account Updated.');
@@ -109,7 +117,7 @@ class SystemUserController extends Controller
 
     public function destroy(User $system_user)
     {
-        if ($system_user->id === auth()->id()) {
+        if ($system_user->getKey() === auth()->id()) {
             return back()->with('error', 'You cannot delete yourself.');
         }
 

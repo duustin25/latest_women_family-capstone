@@ -23,6 +23,7 @@ class MembershipApplicationResource extends JsonResource
             // Primary Identity
             'fullname' => $this->fullname,
             'address' => $this->address,
+            'email' => $this->email,
             'status' => $this->status,
 
             // Dynamic Form Submission (New Unified Mapping)

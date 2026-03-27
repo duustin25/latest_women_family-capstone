@@ -8,7 +8,7 @@ use App\Http\Resources\MembershipApplicationResource;
 use Illuminate\Http\Request;
 use App\Models\Organization;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;    
+use Illuminate\Support\Facades\Auth;
 
 class MembershipApplicationController extends Controller
 {
@@ -56,6 +56,17 @@ class MembershipApplicationController extends Controller
     }
 
     /**
+     * Show the manual encoding form for a specific organization in admin context.
+     */
+    public function encode(Organization $organization)
+    {
+        return Inertia::render('Public/Organizations/Apply/DynamicForm', [
+            'organization' => $organization,
+            'mode' => 'admin'
+        ]);
+    }
+
+    /**
      * Display the specific application for review.
      */
     // Inside MembershipApplicationController.php
@@ -72,7 +83,6 @@ class MembershipApplicationController extends Controller
             'mode' => 'admin'
         ]);
     }
-
 
 
     /**
@@ -95,6 +105,8 @@ class MembershipApplicationController extends Controller
         // Trigger side effects when approved (Member creation, Email sequence)
         if ($validated['status'] === 'Approved' && $previousStatus !== 'Approved') {
             event(new \App\Events\ApplicationApproved($application));
+        } else if ($validated['status'] === 'Disapproved' && $previousStatus !== 'Disapproved') {
+            event(new \App\Events\ApplicationDisapproved($application));
         }
 
         return redirect()->route('admin.applications.index')

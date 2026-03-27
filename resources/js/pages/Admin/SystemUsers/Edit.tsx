@@ -37,6 +37,7 @@ export default function Edit({ user, organizations }: { user: User, organization
         password_confirmation: '',
         role: user.role,
         organization_id: user.organization_id ? String(user.organization_id) : '',
+        current_admin_password: '',
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +53,10 @@ export default function Edit({ user, organizations }: { user: User, organization
         e.preventDefault();
         setIsSubmitting(true);
         put(`/admin/system-users/${user.id}`, {
-            onFinish: () => setIsSubmitting(false),
+            onFinish: () => {
+                setIsSubmitting(false);
+                setData('current_admin_password', '');
+            },
         });
     };
 
@@ -137,6 +141,30 @@ export default function Edit({ user, organizations }: { user: User, organization
                                 error={errors.organization_id}
                                 description=""
                             />
+
+                            {/* ADMINISTRATIVE VERIFICATION SECTION */}
+                            <div className="p-8 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-800/50 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                    <h3 className="text-sm font-black text-amber-900 dark:text-amber-400 uppercase tracking-wider">Administrative Approval Required</h3>
+                                </div>
+                                <p className="text-xs font-medium text-amber-700 dark:text-amber-500/80 leading-relaxed italic">
+                                    To authorize these changes (especially role or password updates), please enter **your** (the Super Admin) current password. This ensures only authorized personnel can modify system access.
+                                </p>
+                                <div className="space-y-2 max-w-sm">
+                                    <Label htmlFor="current_admin_password" className="text-[10px] font-black text-amber-900/60 dark:text-amber-400/60 uppercase tracking-widest">Your Current Password</Label>
+                                    <Input
+                                        id="current_admin_password"
+                                        type="password"
+                                        className="h-12 bg-white dark:bg-neutral-900 border-amber-200 dark:border-amber-800 focus:ring-amber-500 font-bold dark:text-white"
+                                        value={data.current_admin_password}
+                                        onChange={e => setData('current_admin_password', e.target.value)}
+                                        placeholder="Confirm you are the real administrator"
+                                        required
+                                    />
+                                    {errors.current_admin_password && <p className="text-red-500 text-xs font-bold mt-1">{errors.current_admin_password}</p>}
+                                </div>
+                            </div>
 
                             <div className="flex items-center justify-end gap-4 pt-6 border-t border-neutral-100 dark:border-neutral-800">
                                 <Link href={'/admin/system-users' + location.search}>

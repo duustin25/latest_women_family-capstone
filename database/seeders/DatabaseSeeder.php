@@ -46,29 +46,5 @@ class DatabaseSeeder extends Seeder
         // ==========================================
 
         // 4. Create 5 Organizations and their Presidents
-        $orgs = [
-            ['name' => 'KALIPI Women\'s Federation', 'desc' => 'Kalipunan ng Liping Pilipina, empowering women across the barangay.', 'president' => 'Maria Santos'],
-            ['name' => 'SOLO PARENT Association', 'desc' => 'Support group and livelihood cooperative for solo parents.', 'president' => 'Juanita dela Cruz'],
-            ['name' => 'ERPAT', 'desc' => 'Empowerment and Reaffirmation of Paternal Abilities Training.', 'president' => 'Roberto Bautista'],
-            ['name' => 'KABAHAGI', 'desc' => 'Community volunteers for disaster risk reduction and social welfare.', 'president' => 'Elena Reyes'],
-            ['name' => 'Villamor Childrens Organization (VCO)', 'desc' => 'Advocating for children\'s rights, education, and nutrition. ', 'president' => 'Carmela Reyes'],
-        ];
-
-        foreach ($orgs as $index => $orgData) {
-            $org = \App\Models\Organization::create([
-                'name' => $orgData['name'],
-                'description' => $orgData['desc'],
-                'color_theme' => ['bg-blue-600', 'bg-red-600', 'bg-green-600', 'bg-orange-600', 'bg-purple-600'][$index],
-            ]);
-
-            // Create the President User and link to the Org
-            User::factory()->create([
-                'name' => $orgData['president'],
-                'email' => 'president' . ($index + 1) . '@gmail.com',
-                'password' => bcrypt('password'),
-                'role' => User::ROLE_PRESIDENT,
-                'organization_id' => $org->id,
-            ]);
-        }
     }
 }

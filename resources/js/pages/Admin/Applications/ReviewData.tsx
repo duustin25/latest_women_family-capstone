@@ -92,7 +92,7 @@ export default function ReviewData({ application, organization }: { application:
                             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-6 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 dark:bg-blue-500/10 rounded-bl-full -mr-8 -mt-8 pointer-events-none" />
                                 <h2 className="text-xs font-black uppercase tracking-widest text-blue-600 mb-4 flex items-center">
-                                    <FileText size={14} className="mr-2" /> Quick Summary
+                                    Quick Summary
                                 </h2>
 
                                 <div className="space-y-4">
@@ -112,12 +112,13 @@ export default function ReviewData({ application, organization }: { application:
                             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                                 <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
                                     <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
-                                        <Users size={14} className="mr-2" /> Core Applicant Data
+                                        Core Applicant Data
                                     </h2>
                                 </div>
                                 <div className="p-2">
                                     <DataRow label="Full Name" value={record.fullname} />
                                     <DataRow label="Address" value={record.address} />
+                                    <DataRow label="Email" value={record.email} />
                                 </div>
                             </div>
                         </div>
@@ -130,12 +131,13 @@ export default function ReviewData({ application, organization }: { application:
                                 <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                                     <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 flex justify-between items-center">
                                         <h2 className="text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 flex items-center">
-                                            <Briefcase size={14} className="mr-2" /> Form Questionnaires & Specifics
+                                            Data Forms
                                         </h2>
                                     </div>
+                                    {/* This is where the dynamic data (JSON data from organizations) is displayed */}
                                     <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
                                         {Object.entries(formData).map(([key, value]: [string, any]) => {
-                                            if (key === 'fullname' || key === 'address') return null; // Skip redundant
+                                            if (key === 'fullname' || key === 'address' || key === 'email') return null; // Skip redundant
 
                                             // Helper to get true label from schema
                                             const getFieldLabel = (keyId: string) => {

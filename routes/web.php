@@ -20,8 +20,6 @@ use App\Http\Controllers\Admin\OrganizationEventController;
 
 // Public Routes:
 use App\Http\Controllers\Public\PublicAnnouncementController;
-// use App\Http\Controllers\Public\PublicVawcController;
-// use App\Http\Controllers\Public\PublicGadController;
 use App\Http\Controllers\Public\PublicServicesController;
 use App\Http\Controllers\Public\PublicOrganizationController;
 use App\Http\Controllers\Public\MembershipController;
@@ -58,7 +56,6 @@ Route::prefix('organizations')->group(function () {
 
     Route::get('/{organization}/apply/{application}/print', [MembershipController::class, 'print'])
         ->name('public.organizations.print');
-
 });
 
 // Public Secure Member Portals (Login-less)
@@ -101,11 +98,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('cases/{id}/restore', [CaseController::class, 'restore'])->name('cases.restore');
         Route::get('cases/archive', [CaseController::class, 'archive'])->name('cases.archive');
         Route::resource('cases', CaseController::class);
-        // 'system-users'
-        Route::get('system-users/archives', [\App\Http\Controllers\Admin\SystemUserController::class, 'archives'])->name('system-users.archives');
-        Route::post('system-users/{id}/restore', [\App\Http\Controllers\Admin\SystemUserController::class, 'restore'])->name('system-users.restore');
-        Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class);
-
         // 'officials'
         Route::resource('officials', OfficialController::class);
 
@@ -114,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Static routes (create) MUST come before wildcard routes ({application})
         Route::get('applications', [MembershipApplicationController::class, 'index'])->name('applications.index');
         Route::get('applications/create', [MembershipApplicationController::class, 'create'])->name('applications.create');
+        Route::get('applications/encode/{organization:slug}', [MembershipApplicationController::class, 'encode'])->name('applications.encode'); // NEW: Admin-specific intake URL
         Route::get('applications/{application}/print', [MembershipApplicationController::class, 'print'])->name('applications.print');
         Route::get('applications/{application}', [MembershipApplicationController::class, 'show'])->name('applications.show');
         Route::patch('applications/{application}/status', [MembershipApplicationController::class, 'updateStatus'])->name('applications.update-status');
@@ -143,9 +136,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Notifications
         Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-
     });
-
 });
 
 // STRICT ADMIN-ONLY ROUTES: System Taxonomy & Configurations
@@ -163,8 +154,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'v
     // Zones Settings Routes
     Route::post('/settings/zones', [\App\Http\Controllers\Admin\SettingsController::class, 'storeZone'])->name('settings.zones.store');
     Route::patch('/settings/zones/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateZone'])->name('settings.zones.update');
+
+    // System Users Management (ADMIN ONLY + THROTTLED)
+    Route::get('system-users/archives', [\App\Http\Controllers\Admin\SystemUserController::class, 'archives'])->name('system-users.archives');
+    Route::post('system-users/{id}/restore', [\App\Http\Controllers\Admin\SystemUserController::class, 'restore'])->name('system-users.restore');
+    Route::resource('system-users', \App\Http\Controllers\Admin\SystemUserController::class)->middleware('throttle:10,1');
 });
 
 
 require __DIR__ . '/settings.php';
-
