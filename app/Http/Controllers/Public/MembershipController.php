@@ -35,10 +35,12 @@ class MembershipController extends Controller
         $request->validate([
             'fullname' => 'required|string|max:255',
             'address' => 'required|string|max:255',
+            'email' => 'required|email|max:255', // Required for Magic Link Portal
         ]);
 
         $fullname = $request->input('fullname');
         $address = $request->input('address');
+        $email = $request->input('email');
 
         // 2. DUPLICATE CHECK (Prevent flooding)
         // Check if this person has an active application (Pending or Approved)
@@ -149,8 +151,9 @@ class MembershipController extends Controller
         $organization->membershipApplications()->create([
             'fullname' => $fullname,
             'address' => $address,
+            'email' => $email, // NEW COLUMN
             // We store the dynamic answers in the new JSON column
-            'form_data' => $finalSubmissionData,
+            'form_data' => array_merge($finalSubmissionData, ['email' => $email]),
             'status' => $isAdmin ? 'Approved' : 'Pending',
             'approved_by' => $isAdmin ? Auth::user()->name : null,
             'actioned_at' => $isAdmin ? now() : null,

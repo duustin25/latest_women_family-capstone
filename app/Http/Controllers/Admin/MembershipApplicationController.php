@@ -8,6 +8,7 @@ use App\Http\Resources\MembershipApplicationResource;
 use Illuminate\Http\Request;
 use App\Models\Organization;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;    
 
 class MembershipApplicationController extends Controller
 {
@@ -83,11 +84,18 @@ class MembershipApplicationController extends Controller
             'status' => 'required|in:Approved,Disapproved',
         ]);
 
+        $previousStatus = $application->status;
+
         $application->update([
             'status' => $validated['status'],
-            'approved_by' => auth()->user()->name, // Track which admin actioned this
+            'approved_by' => Auth::user()->name, // Track which admin actioned this
             'actioned_at' => now(),
         ]);
+
+        // Trigger side effects when approved (Member creation, Email sequence)
+        if ($validated['status'] === 'Approved' && $previousStatus !== 'Approved') {
+            event(new \App\Events\ApplicationApproved($application));
+        }
 
         return redirect()->route('admin.applications.index')
             ->with('success', "Application has been {$validated['status']}.");
@@ -135,6 +143,16 @@ class MembershipApplicationController extends Controller
 
         // 2. Update the record
         $application->update($validated);
+
+        // 3. Sync with Member Record if it exists (KEEPS THEM CONNECTED)
+        $member = \App\Models\Member::where('membership_application_id', $application->id)->first();
+        if ($member) {
+            $member->update([
+                'fullname' => $application->fullname,
+                'email' => $application->email ?? ($application->form_data['email'] ?? $member->email),
+                'phone' => $application->form_data['contact'] ?? ($application->form_data['contact_number'] ?? $member->phone),
+            ]);
+        }
 
         // 3. Log the "Edit" action in Audit Logs (Optional but recommended)
         // \App\Models\AuditLog::create([ ... ]); 

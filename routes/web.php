@@ -25,6 +25,7 @@ use App\Http\Controllers\Public\PublicAnnouncementController;
 use App\Http\Controllers\Public\PublicServicesController;
 use App\Http\Controllers\Public\PublicOrganizationController;
 use App\Http\Controllers\Public\MembershipController;
+use App\Http\Controllers\Public\MemberPortalController;
 use App\Http\Controllers\Public\ChatbotController;
 
 Route::post('/chatbot/query', [ChatbotController::class, 'query'])->middleware('throttle:10,1');
@@ -59,18 +60,20 @@ Route::prefix('organizations')->group(function () {
 
 });
 
+// Public Secure Member Portals (Login-less)
+Route::get('/member/view/{token}', [MemberPortalController::class, 'show'])->name('public.member.portal');
+Route::post('/member/view/{token}/claim/{dispatch}', [MemberPortalController::class, 'claimBenefit'])->name('public.member.claim');
+
+
 
 
 // 4. Public Services Routes
 Route::controller(PublicServicesController::class)->group(function () {
     Route::get('/vawc', 'vawc')->name('vawc.index');
-
     Route::get('/gad', 'gad')->name('gad.index');
     Route::get('/gad/register', 'gadRegister')->name('gad.register');
     Route::post('/gad/register', [PublicServicesController::class, 'storeMembershipApplication'])->name('gad.register.store');
-
     Route::get('/bcpc', 'bcpc')->name('bcpc.index');
-
     Route::get('/officials', 'officials')->name('officials.index');
     Route::get('/laws', 'laws')->name('public.laws.index');
 });
@@ -121,8 +124,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])
             ->name('audit-logs');
 
-        Route::get('/members', [MembersController::class, 'index'])
-            ->name('members');
+        Route::get('/members', [MembersController::class, 'index'])->name('members');
+        Route::post('/members/{member}/email', [MembersController::class, 'sendIndividualEmail'])->name('members.email.individual');
+        Route::post('/members/bulk-email', [MembersController::class, 'sendBulkEmail'])->name('members.email.bulk');
+        Route::post('/members/{member}/beneficiary', [MembersController::class, 'tagBeneficiary'])->name('members.beneficiary.tag');
 
         // GAD Events Module (Admin)
         Route::resource('gad/events', \App\Http\Controllers\Admin\GadEventController::class, ['names' => 'gad.events']);

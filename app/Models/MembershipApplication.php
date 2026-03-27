@@ -11,6 +11,7 @@ class MembershipApplication extends Model
         'organization_id',
         'fullname',
         'address',
+        'email',
         'form_data',
         'status',
         'recommended_by',
