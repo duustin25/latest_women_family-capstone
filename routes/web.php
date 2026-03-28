@@ -98,6 +98,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('cases/{id}/restore', [CaseController::class, 'restore'])->name('cases.restore');
         Route::get('cases/archive', [CaseController::class, 'archive'])->name('cases.archive');
         Route::resource('cases', CaseController::class);
+
+
+        // CASE MANAGEMENT BASE ON WORKFLOW OF HANDLING VAWC CASES AND BPO ISSUANCE
+        // -----------------------------------------------------------
+        // VAWC Digital Case Management (RA 9262)
+        Route::get('vawc/cases/create', [\App\Http\Controllers\Admin\VawcController::class, 'create'])->name('vawc.create');
+        Route::post('vawc/cases', [\App\Http\Controllers\Admin\VawcController::class, 'store'])->name('vawc.store');
+        Route::get('vawc/cases', [\App\Http\Controllers\Admin\VawcController::class, 'index'])->name('vawc.index');
+        Route::get('vawc/dashboard', [\App\Http\Controllers\Admin\VawcController::class, 'dashboard'])->name('vawc.dashboard');
+        Route::get('vawc/cases/{id}', [\App\Http\Controllers\Admin\VawcController::class, 'show'])->name('vawc.show');
+
+        // BPO Lifecycle Routes
+        Route::post('vawc/cases/{id}/apply-bpo', [\App\Http\Controllers\Admin\VawcController::class, 'applyBpo'])->name('vawc.apply-bpo');
+        Route::post('vawc/cases/{id}/issue-bpo', [\App\Http\Controllers\Admin\VawcController::class, 'issueBpo'])->name('vawc.issue-bpo');
+        Route::post('vawc/cases/{id}/record-service', [\App\Http\Controllers\Admin\VawcController::class, 'recordBpoService'])->name('vawc.record-service');
+        Route::get('vawc/cases/{id}/pnp-transmittal', [\App\Http\Controllers\Admin\VawcController::class, 'pnpTransmittal'])->name('vawc.pnp-transmittal');
+        Route::post('vawc/cases/{id}/log-compliance', [\App\Http\Controllers\Admin\VawcController::class, 'logCompliance'])->name('vawc.log-compliance');
+        Route::post('vawc/cases/{id}/escalate', [\App\Http\Controllers\Admin\VawcController::class, 'escalate'])->name('vawc.escalate');
+        Route::get('vawc/cases/{id}/complaint-form', [\App\Http\Controllers\Admin\VawcController::class, 'complaintForm'])->name('vawc.complaint-form');
+        // ------------------------------------------------------------
+
         // 'officials'
         Route::resource('officials', OfficialController::class);
 
