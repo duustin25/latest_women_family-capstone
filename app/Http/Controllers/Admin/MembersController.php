@@ -65,6 +65,13 @@ class MembersController extends Controller
             'body' => 'required|string',
         ]);
 
+        // RBAC: President can only message their own organization's members
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isPresident() && $user->organization_id !== $member->organization_id) {
+            abort(403, 'Unauthorized. Access Denied.');
+        }
+
         if (!$member->email) {
             return back()->with('error', 'Member does not have a recorded email address.');
         }
@@ -131,6 +138,13 @@ class MembersController extends Controller
      */
     public function tagBeneficiary(Request $request, Member $member)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isPresident() && $user->organization_id !== $member->organization_id) {
+            abort(403, 'Unauthorized to tag this member.');
+        }
+
         $validated = $request->validate([
             'benefit_name' => 'required|string|max:255',
             'instructions' => 'nullable|string',

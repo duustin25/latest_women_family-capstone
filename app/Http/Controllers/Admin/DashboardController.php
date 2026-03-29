@@ -16,8 +16,9 @@ class DashboardController extends Controller
         $this->analyticsService = $analyticsService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
         $currentYear = \Carbon\Carbon::now()->year;
 
         // Fetch Abuse Types for the chart config
@@ -26,13 +27,13 @@ class DashboardController extends Controller
             ->get();
 
         return Inertia::render('dashboard', [
-            'analyticsData'       => $this->analyticsService->getMonthlyCaseAnalytics('VAWC', $currentYear, $vawcTypes),
-            'chartConfig'         => $this->analyticsService->getVawcChartConfig(),
-            'systemStats'         => $this->analyticsService->getSystemStats(),
-            'recentCases'         => $this->analyticsService->getRecentCases(),
-            'recentApplications'  => $this->analyticsService->getRecentApplications(),
-            'membershipStats'     => $this->analyticsService->getMembershipTrends($currentYear),
-            'caseResolutionStats' => $this->analyticsService->getCaseResolutionStats($currentYear)
+            'analyticsData'       => $user->isPresident() ? [] : $this->analyticsService->getMonthlyCaseAnalytics('VAWC', $currentYear, $vawcTypes),
+            'chartConfig'         => $user->isPresident() ? [] : $this->analyticsService->getVawcChartConfig(),
+            'systemStats'         => $this->analyticsService->getSystemStats($user),
+            'recentCases'         => $this->analyticsService->getRecentCases(5, $user),
+            'recentApplications'  => $this->analyticsService->getRecentApplications(5, $user),
+            'membershipStats'     => $this->analyticsService->getMembershipTrends($currentYear, $user),
+            'caseResolutionStats' => $this->analyticsService->getCaseResolutionStats($currentYear, $user)
         ]);
     }
 }

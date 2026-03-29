@@ -78,10 +78,19 @@ class User extends Authenticatable
         return $this->role === self::ROLE_ADMIN;
     }
 
+    public function isHead(): bool
+    {
+        return $this->role === self::ROLE_HEAD;
+    }
 
     public function isPresident(): bool
     {
         return $this->role === self::ROLE_PRESIDENT;
+    }
+
+    public function isStaff(): bool
+    {
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_HEAD]);
     }
 }
 

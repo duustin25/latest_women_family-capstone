@@ -29,6 +29,21 @@ class RoleMiddleware
             return $next($request);
         }
 
+        // --- ACCOUNTABILITY: Log Unauthorized Access Attempt ---
+        \App\Models\AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'UNAUTHORIZED_ACCESS_ATTEMPT',
+            'auditable_type' => 'Route',
+            'auditable_id' => 0,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'new_values' => [
+                'path' => $request->path(),
+                'method' => $request->method(),
+                'required_roles' => $roles
+            ]
+        ]);
+
         abort(403, 'Unauthorized. Access Denied.');
     }
 }

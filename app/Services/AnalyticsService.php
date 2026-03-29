@@ -50,21 +50,39 @@ class AnalyticsService
     /**
      * Get high-level system counts for the general dashboard.
      */
-    public function getSystemStats(): array
+    public function getSystemStats(?\App\Models\User $user = null): array
     {
-        return [
+        $baseStats = [
             'totalCases'  => CaseReport::count(),
             'totalOrgs'   => \App\Models\Organization::count(),
             'totalUsers'  => \App\Models\User::count(),
             'pendingApps' => MembershipApplication::where('status', 'Pending')->count()
         ];
+
+        // RBAC: Presidents see stats only for their organization
+        if ($user && $user->isPresident()) {
+            return [
+                'totalCases'  => 0, // Org Presidents don't see cases
+                'totalOrgs'   => 1,
+                'totalUsers'  => \App\Models\User::where('organization_id', $user->organization_id)->count(),
+                'pendingApps' => MembershipApplication::where('organization_id', $user->organization_id)
+                    ->where('status', 'Pending')->count()
+            ];
+        }
+
+        return $baseStats;
     }
 
     /**
      * Get recent case reports.
      */
-    public function getRecentCases(int $limit = 5): Collection
+    public function getRecentCases(int $limit = 5, ?\App\Models\User $user = null): Collection
     {
+        // RBAC: Org Presidents don't see cases
+        if ($user && $user->isPresident()) {
+            return collect([]);
+        }
+
         return CaseReport::with(['abuseType', 'vawcCase'])
             ->orderByDesc('created_at')
             ->take($limit)
@@ -82,10 +100,16 @@ class AnalyticsService
     /**
      * Get recent membership applications.
      */
-    public function getRecentApplications(int $limit = 5): Collection
+    public function getRecentApplications(int $limit = 5, ?\App\Models\User $user = null): Collection
     {
-        return MembershipApplication::with(['organization'])
-            ->orderByDesc('created_at')
+        $query = MembershipApplication::with(['organization']);
+
+        // RBAC: President sees only their organization's applications
+        if ($user && $user->isPresident()) {
+            $query->where('organization_id', $user->organization_id);
+        }
+
+        return $query->orderByDesc('created_at')
             ->take($limit)
             ->get()
             ->map(fn($app) => [
@@ -100,8 +124,13 @@ class AnalyticsService
     /**
      * Get distribution of case resolution statuses.
      */
-    public function getCaseResolutionStats(int $year): array
+    public function getCaseResolutionStats(int $year, ?\App\Models\User $user = null): array
     {
+        // RBAC: Org Presidents don't see case stats
+        if ($user && $user->isPresident()) {
+            return [];
+        }
+
         $cases = CaseReport::with('vawcCase')
             ->whereYear('created_at', $year)
             ->get();
@@ -397,12 +426,17 @@ class AnalyticsService
     /**
      * Get membership application growth trends.
      */
-    public function getMembershipTrends(int $year): array
+    public function getMembershipTrends(int $year, ?\App\Models\User $user = null): array
     {
-        $memberships = MembershipApplication::select('created_at')
-            ->where('status', 'Approved')
-            ->whereYear('created_at', $year)
-            ->get()
+        $query = MembershipApplication::where('status', 'Approved')
+            ->whereYear('created_at', $year);
+
+        // RBAC: Scope for Presidents
+        if ($user && $user->isPresident()) {
+            $query->where('organization_id', $user->organization_id);
+        }
+
+        $memberships = $query->get()
             ->groupBy(fn($m) => Carbon::parse($m->created_at)->month)
             ->map(fn($group) => count($group));
 

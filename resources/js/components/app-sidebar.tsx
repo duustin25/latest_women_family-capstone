@@ -13,10 +13,26 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import { usePage, Link } from '@inertiajs/react';
-import { Activity, Airplay, BookOpen, BookUser, ChartLine, CircleUser, FileSearch, Folder, LayoutGrid, Logs, Settings, User2, Users, Wallpaper } from 'lucide-react';
+import {
+    Activity,
+    Building2,
+    CalendarRange,
+    ChartLine,
+    CircleUser,
+    FileSearch,
+    FileText,
+    LayoutGrid,
+    Logs,
+    Settings,
+    ShieldAlert,
+    User2,
+    Users,
+    Wallpaper
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
+    // --- OVERVIEW ---
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -27,13 +43,30 @@ const mainNavItems: NavItem[] = [
         href: '/admin/announcements',
         icon: Wallpaper,
     },
+    // --- CORE SERVICES (Capstone Focus) ---
     {
-        title: 'Organizations',
-        href: '/admin/organizations',
-        icon: Airplay,
+        title: 'VAWC/BCPC Cases',
+        href: '/admin/cases',
+        icon: ShieldAlert,
     },
     {
-        title: 'Applications',
+        title: 'GAD Programs',
+        href: '/admin/gad/events',
+        icon: CalendarRange,
+    },
+    {
+        title: 'Data Analytics',
+        href: '/admin/analytics',
+        icon: ChartLine,
+    },
+    // --- COMMUNITY & ORGS ---
+    {
+        title: 'Partner Orgs',
+        href: '/admin/organizations',
+        icon: Building2,
+    },
+    {
+        title: 'Membership Applications',
         href: '/admin/applications',
         icon: FileSearch,
     },
@@ -43,34 +76,20 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
-        title: 'Cases',
-        href: '/admin/cases',
-        icon: BookUser,
+        title: 'Org Proposals',
+        href: '/admin/organization/events',
+        icon: FileText,
     },
-    {
-        title: 'Users',
-        href: '/admin/system-users',
-        icon: CircleUser,
-    },
+    // --- GOVERNANCE & ADMIN ---
     {
         title: 'Officials',
         href: '/admin/officials',
         icon: User2,
     },
     {
-        title: 'GAD',
-        href: '/admin/gad/events',
-        icon: Activity,
-    },
-    {
-        title: 'Event Proposals',
-        href: '/admin/organization/events',
-        icon: Activity,
-    },
-    {
-        title: 'Data Analytics',
-        href: '/admin/analytics',
-        icon: ChartLine,
+        title: 'System Users',
+        href: '/admin/system-users',
+        icon: CircleUser,
     },
     {
         title: 'Audit Logs',
@@ -82,45 +101,45 @@ const mainNavItems: NavItem[] = [
         href: '/admin/settings',
         icon: Settings,
     },
-
 ];
 
-const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Repository',
-    //     href: 'https://github.com/laravel/react-starter-kit',
-    //     icon: Folder,
-    // },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#react',
-    //     icon: BookOpen,
-    // },
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
     const { auth } = usePage<any>().props;
 
     // Filter Navigation based on Roles
-    const filteredNavItems = mainNavItems.filter(item => {
+    const filteredNavItems = mainNavItems.filter((item) => {
         const role = auth.user.role;
 
-        // Settings and Audit Logs are strictly Admin ONLY
-        if ((item.title === 'Settings' || item.title === 'Audit Logs') && role !== 'admin') {
+        // Settings is strictly Admin ONLY
+        if (item.title === 'Settings' && role !== 'admin') {
             return false;
         }
 
-        // Presidents see Event Proposals, not the admin GAD menu
-        if (item.title === 'Event Proposals' && role !== 'president') return false;
+        // Audit Logs: Admin and Head see system-wide. President sees only their own (Scoped in Controller).
+        if (item.title === 'Audit Logs' && !['admin', 'head', 'president'].includes(role)) {
+            return false;
+        }
+
+        // Presidents see Org Proposals, not the admin GAD menu
+        if (item.title === 'Org Proposals' && role !== 'president') return false;
 
         if (role === 'president') {
-            const hiddenFromPresident = ['Cases', 'Users', 'Officials', 'Data Analytics', 'Audit Logs', 'Settings', 'GAD'];
+            const hiddenFromPresident = [
+                'VAWC/BCPC Cases',
+                'System Users',
+                'Officials',
+                'Data Analytics',
+                'Settings',
+                'GAD Programs',
+            ];
             if (hiddenFromPresident.includes(item.title)) return false;
         }
 
         // Head Committee visibility
         if (role === 'head') {
-            const hiddenFromHead = ['Users', 'Settings', 'Audit Logs'];
+            const hiddenFromHead = ['System Users', 'Settings'];
             if (hiddenFromHead.includes(item.title)) {
                 return false;
             }

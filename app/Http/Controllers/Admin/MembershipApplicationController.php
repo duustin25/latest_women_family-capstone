@@ -72,6 +72,13 @@ class MembershipApplicationController extends Controller
     // Inside MembershipApplicationController.php
     public function show(MembershipApplication $application)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isPresident() && $user->organization_id !== $application->organization_id) {
+            abort(403, 'Unauthorized. This application belongs to another organization.');
+        }
+
         $application->load('organization');
 
         // All applications now use the unified dynamic review page
@@ -90,6 +97,13 @@ class MembershipApplicationController extends Controller
      */
     public function updateStatus(Request $request, MembershipApplication $application)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        if ($user->isPresident() && $user->organization_id !== $application->organization_id) {
+            abort(403, 'Unauthorized to update this application.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:Approved,Disapproved',
         ]);
@@ -118,6 +132,13 @@ class MembershipApplicationController extends Controller
      */
     public function print(MembershipApplication $application)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isPresident() && $user->organization_id !== $application->organization_id) {
+            abort(403, 'Unauthorized to print this application.');
+        }
+
         $application->load(['organization']);
 
         return Inertia::render('Admin/Applications/Print', [
@@ -131,6 +152,13 @@ class MembershipApplicationController extends Controller
      */
     public function edit(MembershipApplication $application)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->isPresident() && $user->organization_id !== $application->organization_id) {
+            abort(403, 'Unauthorized to edit this application.');
+        }
+
         $application->load('organization');
 
         // Use generic edit form for all
@@ -145,6 +173,13 @@ class MembershipApplicationController extends Controller
      */
     public function update(Request $request, MembershipApplication $application)
     {
+        // RBAC: President check
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        if ($user->isPresident() && $user->organization_id !== $application->organization_id) {
+            abort(403, 'Unauthorized to update this application.');
+        }
+
         // 1. Validate Basic Info
         $validated = $request->validate([
             'fullname' => 'required|string|max:255',
