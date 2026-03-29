@@ -34,16 +34,27 @@ class AnalyticsService
 
         $slaRate = $totalBpos > 0 ? round(($compliantBpos / $totalBpos) * 100, 1) : 100.0;
 
-        // Active cases (not yet closed/resolved)
-        $activeCases = VawcCase::whereNotIn('status', ['Closed', 'Resolved', 'Case Closed'])
-            ->whereYear('created_at', $year)
+        // Resolution Rate (Resolved + Closed / Total)
+        $resolvedCount = VawcCase::whereYear('created_at', $year)
+            ->whereIn('status', ['Resolved', 'Closed', 'Case Closed'])
+            ->count();
+        $resolutionRate = $totalVawc > 0 ? round(($resolvedCount / $totalVawc) * 100, 1) : 0.0;
+
+        // Children Involved (Real-time: Child victims + recorded dependents)
+        $childVictims = CaseReport::whereYear('created_at', $year)
+            ->where('victim_age', '<', 18)
             ->count();
 
+        $additionalChildren = VawcCase::whereYear('created_at', $year)
+            ->sum('children_count') ?: 0;
+
+        $childrenInvolved = $childVictims + $additionalChildren;
+
         return [
-            'totalVawc'   => $totalVawc,
-            'totalBpos'   => $totalBpos,
-            'slaRate'     => $slaRate,
-            'activeCases' => $activeCases,
+            'totalVawc'        => $totalVawc,
+            'resolutionRate'   => $resolutionRate,
+            'childrenInvolved' => (int) $childrenInvolved,
+            'slaRate'          => $slaRate,
         ];
     }
 
@@ -52,21 +63,52 @@ class AnalyticsService
      */
     public function getSystemStats(?\App\Models\User $user = null): array
     {
+        // 1. Calculations for Admin/Head
+        $year = now()->year;
+
+        // Children at Risk (Real-time: Reports < 18 + dependents)
+        $childVictims = CaseReport::whereYear('created_at', $year)->where('victim_age', '<', 18)->count();
+        $vawcCases = VawcCase::whereYear('created_at', $year)->get();
+        $totalChildren = $childVictims + ($vawcCases->sum('children_count') ?: 0);
+
+        // Case Resolution Rate
+        $totalVawc = $vawcCases->count();
+        $resolvedCount = $vawcCases->whereIn('status', ['Resolved', 'Closed'])->count();
+        $resolutionRate = $totalVawc > 0 ? round(($resolvedCount / $totalVawc) * 100, 1) : 0.0;
+
+        // SLA Compliance
+        $totalBpos = DB::table('vawc_protection_orders')->where('type', 'BPO')->whereYear('created_at', $year)->count();
+        $compliantBpos = DB::table('vawc_protection_orders')
+            ->where('type', 'BPO')
+            ->where('is_sla_breached', false)
+            ->whereNotNull('issued_datetime')
+            ->whereYear('created_at', $year)
+            ->count();
+        $slaRate = $totalBpos > 0 ? round(($compliantBpos / $totalBpos) * 100, 1) : 100;
+
         $baseStats = [
-            'totalCases'  => CaseReport::count(),
-            'totalOrgs'   => \App\Models\Organization::count(),
-            'totalUsers'  => \App\Models\User::count(),
-            'pendingApps' => MembershipApplication::where('status', 'Pending')->count()
+            'totalCases'        => CaseReport::count(),
+            'totalOrgs'         => \App\Models\Organization::count(),
+            'totalUsers'        => \App\Models\User::count(),
+            'pendingApps'       => MembershipApplication::where('status', 'Pending')->count(),
+            'slaRate'           => $slaRate,
+            'childrenInvolved'  => (int) $totalChildren,
+            'resolutionRate'    => $resolutionRate,
         ];
 
-        // RBAC: Presidents see stats only for their organization
+        // 2. RBAC: Presidents see stats only for their organization
         if ($user && $user->isPresident()) {
             return [
-                'totalCases'  => 0, // Org Presidents don't see cases
-                'totalOrgs'   => 1,
-                'totalUsers'  => \App\Models\User::where('organization_id', $user->organization_id)->count(),
-                'pendingApps' => MembershipApplication::where('organization_id', $user->organization_id)
-                    ->where('status', 'Pending')->count()
+                'totalCases'        => 0, // Org Presidents don't see cases
+                'totalOrgs'         => 1,
+                'totalUsers'        => \App\Models\User::where('organization_id', $user->organization_id)->count(),
+                'pendingApps'       => MembershipApplication::where('organization_id', $user->organization_id)
+                    ->where('status', 'Pending')->count(),
+                'verifiedMembers'   => \App\Models\User::where('organization_id', $user->organization_id)
+                    ->whereNotNull('email_verified_at')->count(),
+                'slaRate'           => null,
+                'childrenInvolved'  => null,
+                'resolutionRate'    => null,
             ];
         }
 
@@ -140,20 +182,12 @@ class AnalyticsService
         })->map(fn($group) => count($group));
 
         $statusColors = [
-            'New'            => '#f43f5e',
-            'Ongoing'        => '#3b82f6',
-            'Referred'       => '#a855f7',
+            'Intake'         => '#f59e0b',
+            'BPO Processing' => '#a855f7',
+            'Monitoring'     => '#0ea5e9',
+            'Escalated'      => '#ef4444',
             'Resolved'       => '#10b981',
             'Closed'         => '#64748b',
-            'Dismissed'      => '#ef4444',
-            'Unknown'        => '#94a3b8',
-            // VAWC Specific fallbacks
-            'Intake'         => '#3b82f6',
-            'Assessment'     => '#eab308',
-            'BPO Processing' => '#a855f7',
-            'Escalated'      => '#ef4444',
-            'Active'         => '#0ea5e9',
-            'Monitoring'     => '#06b6d4',
         ];
 
         $stats = [];
@@ -161,7 +195,7 @@ class AnalyticsService
             $stats[] = [
                 'name'  => $statusName,
                 'value' => $count,
-                'fill'  => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF))
+                'fill'  => $statusColors[$statusName] ?? '#94a3b8'
             ];
         }
 
@@ -176,7 +210,14 @@ class AnalyticsService
         $vawcCases = VawcCase::whereYear('created_at', $year)->get();
 
         $totalCases    = $vawcCases->count();
-        $totalChildren = $vawcCases->sum('children_count');
+
+        // Children at Risk (Real-time: Child victims + recorded dependents)
+        $childVictims = CaseReport::whereYear('created_at', $year)
+            ->where('victim_age', '<', 18)
+            ->count();
+        $additionalChildren = $vawcCases->sum('children_count') ?: 0;
+        $totalChildren = $childVictims + $additionalChildren;
+
         $repeatCases   = $vawcCases->where('is_repeat_offense', true)->count();
 
         // SLA Compliance: BPOs issued on the same day
@@ -402,12 +443,12 @@ class AnalyticsService
     public function getVawcStatusBreakdown(int $year): array
     {
         $colors = [
-            'Intake'    => '#f59e0b',
-            'Active'    => '#3b82f6',
-            'Referred'  => '#a855f7',
-            'Escalated' => '#ef4444',
-            'Resolved'  => '#10b981',
-            'Closed'    => '#64748b',
+            'Intake'         => '#f59e0b',
+            'BPO Processing' => '#a855f7',
+            'Monitoring'     => '#0ea5e9',
+            'Escalated'      => '#ef4444',
+            'Resolved'       => '#10b981',
+            'Closed'         => '#64748b',
         ];
 
         return VawcCase::select('status', DB::raw('count(*) as total'))

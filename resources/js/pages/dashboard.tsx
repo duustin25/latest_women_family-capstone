@@ -29,22 +29,45 @@ export default function Dashboard({
     recentCases,
     recentApplications,
     membershipStats,
-    caseResolutionStats
+    caseResolutionStats,
+    auth
 }: {
     analyticsData: any[],
     chartConfig: any[],
-    systemStats: { totalCases: number, totalUsers: number, totalOrgs: number, pendingApps: number },
+    systemStats: {
+        totalCases: number,
+        totalUsers: number,
+        totalOrgs: number,
+        pendingApps: number,
+        slaRate?: number,
+        childrenInvolved?: number,
+        resolutionRate?: number,
+        verifiedMembers?: number
+    },
     recentCases: any[],
     recentApplications: any[],
     membershipStats: any,
-    caseResolutionStats: any[]
+    caseResolutionStats: any[],
+    auth: any
 }) {
-    const stats = [
-        { label: 'Active Case Files', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-        { label: 'Pending Review', value: systemStats.pendingApps, icon: UserPlus, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-        { label: 'Partner Orgs', value: systemStats.totalOrgs, icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-        { label: 'Registered Users', value: systemStats.totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    ];
+    const isPresident = auth.user.role === 'Org President';
+
+    // Construct Stats Ribbon based on Role
+    const stats = isPresident
+        ? [
+            { label: 'Verified Members', value: systemStats.verifiedMembers, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+            { label: 'Pending Apps', value: systemStats.pendingApps, icon: UserPlus, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+            { label: 'Total Registry', value: systemStats.totalUsers, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+            { label: 'Org Status', value: 'Active', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+        ]
+        : [
+            { label: 'Case Volume', value: systemStats.totalCases, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
+            { label: 'SLA Compliance', value: `${systemStats.slaRate}%`, icon: Clock, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+            { label: 'Children Protected', value: systemStats.childrenInvolved, icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+            { label: 'Resolution Rate', value: `${systemStats.resolutionRate}%`, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+            { label: 'Pending Review', value: systemStats.pendingApps, icon: UserPlus, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+            { label: 'Partner Orgs', value: systemStats.totalOrgs, icon: Building2, color: 'text-slate-600', bg: 'bg-slate-50 dark:bg-slate-900/20' },
+        ];
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -84,7 +107,7 @@ export default function Dashboard({
                 </div>
 
                 {/* 2. Stat Cards Grid */}
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className={`grid gap-4 grid-cols-2 ${isPresident ? 'md:grid-cols-4' : 'md:grid-cols-3 lg:grid-cols-6'}`}>
                     {stats.map((stat, i) => (
                         <div key={i} className="border  p-6 rounded-xl shadow-sm transition-all">
                             <div className="flex justify-between items-start">
@@ -111,16 +134,16 @@ export default function Dashboard({
                     <div className="lg:col-span-2 flex flex-col gap-6">
 
                         {/* Recent Cases Table */}
-                        <div className="border rounded-xl shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+                        <div className="border rounded-xl shadow-sm overflow-hidden">
                             <div className="p-6 border-b flex justify-between items-center">
                                 <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
-                                    <Activity className="w-4 h-4 text-blue-600" /> Recent Case Reports
+                                    Recent Case Reports
                                 </h3>
                                 <Button variant="ghost" onClick={() => router.visit('/admin/cases')} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
                             </div>
                             <div className="overflow-x-auto min-h-[150px]">
                                 <table className="w-full text-left">
-                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-slate-800">
+                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-neutral-800">
                                         <tr>
                                             <th className="px-6 py-4">Case No.</th>
                                             <th className="px-6 py-4">Classification</th>
@@ -128,13 +151,13 @@ export default function Dashboard({
                                             <th className="px-6 py-4">Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                                    <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-neutral-300">
                                         {recentCases.length === 0 ? (
                                             <tr>
                                                 <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No cases reported yet.</td>
                                             </tr>
                                         ) : recentCases.map(c => (
-                                            <tr key={c.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 dark:border-slate-800 transition-colors">
+                                            <tr key={c.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-neutral-800/50 dark:border-neutral-800 transition-colors">
                                                 <td className="px-6 py-4">{c.case_number}</td>
                                                 <td className={`px-6 py-4 ${c.type === 'VAWC' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
                                                     {c.type} / {c.subType}
@@ -153,16 +176,16 @@ export default function Dashboard({
                         </div>
 
                         {/* Recent Apps Table */}
-                        <div className="border rounded-xl shadow-sm overflow-hidden bg-white dark:bg-slate-900">
+                        <div className="border rounded-xl shadow-sm overflow-hidden">
                             <div className="p-6 border-b flex justify-between items-center">
-                                <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
-                                    <UserPlus className="w-4 h-4 text-emerald-500" /> Recent Membership Apps
+                                <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 text-neutral-900 dark:text-white">
+                                    Recent Membership Apps
                                 </h3>
                                 <Button variant="ghost" onClick={() => router.visit('/admin/applications')} className="text-[10px] font-black uppercase dark:text-slate-400">View All</Button>
                             </div>
                             <div className="overflow-x-auto min-h-[150px]">
                                 <table className="w-full text-left">
-                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-slate-800">
+                                    <thead className="text-[10px] font-black uppercase text-slate-400 tracking-widest border-b dark:border-neutral-800">
                                         <tr>
                                             <th className="px-6 py-4">Applicant</th>
                                             <th className="px-6 py-4">Organization</th>
@@ -170,9 +193,9 @@ export default function Dashboard({
                                             <th className="px-6 py-4">Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                                    <tbody className="text-xs font-bold uppercase text-neutral-700 dark:text-neutral-300">
                                         {recentApplications.map(app => (
-                                            <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-slate-800/50 dark:border-slate-800 transition-colors">
+                                            <tr key={app.id} className="border-b last:border-0 hover:bg-gray-50/50 dark:hover:bg-neutral-800/50 dark:border-neutral-800 transition-colors">
                                                 <td className="px-6 py-4">{app.name}</td>
                                                 <td className="px-6 py-4 text-slate-500">{app.organization}</td>
                                                 <td className="px-6 py-4">
@@ -180,12 +203,12 @@ export default function Dashboard({
                                                         {app.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-400">{app.date}</td>
+                                                <td className="px-6 py-4 text-neutral-400">{app.date}</td>
                                             </tr>
                                         ))}
                                         {recentApplications.length === 0 && (
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No applications received yet.</td>
+                                                <td colSpan={4} className="px-6 py-8 text-center text-neutral-400">No applications received yet.</td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -196,9 +219,9 @@ export default function Dashboard({
                     </div>
 
                     {/* Quick Tasks -> Replaced by: Case Status Resolution (Pie Chart) */}
-                    <div className="border rounded-xl shadow-sm p-6 bg-white dark:bg-slate-900">
+                    <div className="border rounded-xl shadow-sm p-6">
                         <h3 className="font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-2 text-slate-900 dark:text-white">
-                            <Activity className="w-4 h-4 text-emerald-500" /> Case Resolution Rates
+                            Case Resolution Rates
                         </h3>
                         <p className="text-[10px] text-slate-500 uppercase font-bold mb-4">Breakdown of current VAWC/BCPC cases</p>
 
@@ -240,11 +263,11 @@ export default function Dashboard({
 
 
                     {/* 4. Comparison Chart Section (Integrated from Analytics) */}
-                    <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-1 gap-6">
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="uppercase tracking-widest text-sm font-black text-[#ce1126]">Vulnerable Demographic Activity</CardTitle>
+                                <CardTitle className="uppercase tracking-widest text-sm font-black text-[#ce1126]">Rates of Women Abuse by month</CardTitle>
                                 <CardDescription>
                                     Incidence metrics categorized by official abuse classification.
                                 </CardDescription>
@@ -254,48 +277,10 @@ export default function Dashboard({
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="uppercase tracking-widest text-sm font-black text-blue-600">Citizen Participation Matrix</CardTitle>
-                                <CardDescription>
-                                    Holistic growth in community membership ({membershipStats?.total_this_year} new registry updates)
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="pl-0 pb-6 pr-6 pt-4 h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={membershipStats?.monthly_growth || []}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                        <XAxis
-                                            dataKey="month"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 10, fill: '#64748b' }}
-                                            dy={10}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fontSize: 10, fill: '#64748b' }}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                                            labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="count"
-                                            name="New Members"
-                                            stroke="#2563eb"
-                                            strokeWidth={3}
-                                            dot={{ r: 4, strokeWidth: 2 }}
-                                            activeDot={{ r: 6 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-
                     </div>
+
+
+
                 </div>
             </div>
         </AppLayout >

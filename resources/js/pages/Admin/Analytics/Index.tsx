@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
     TrendingUp, Users, AlertTriangle, Activity, FileText, Baby,
-    Shield, CheckCircle, Clock, Gavel
+    Shield, CheckCircle, Clock, Gavel, ShieldAlert
 } from 'lucide-react';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -17,9 +17,9 @@ import { cn } from '@/lib/utils';
 
 interface Stats {
     totalVawc: number;
-    totalBpos: number;
+    resolutionRate: number;
+    childrenInvolved: number;
     slaRate: number;
-    activeCases: number;
 }
 
 interface ChartData {
@@ -53,30 +53,36 @@ export default function Index({
     locationDemographics, zoneDistribution, bpoTrends, vawcStatusBreakdown
 }: PageProps) {
 
+    const ribbonStats = [
+        { label: 'Total RA 9262 Reports', value: stats.totalVawc.toString(), icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20', desc: `RA 9262 Volume (${currentYear})` },
+        { label: 'Case Resolution Rate', value: `${stats.resolutionRate}%`, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', desc: 'Resolved vs. Total cases' },
+        { label: 'Children Protected', value: stats.childrenInvolved.toString(), icon: Baby, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', desc: 'Minors involved in cases' },
+        { label: 'BPO SLA Compliance', value: `${stats.slaRate}%`, icon: CheckCircle, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20', desc: 'Issued within 24-hr SLA' },
+    ];
+
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Analytics', href: '#' }]}>
             <Head title="Analytics" />
 
-            <div className="p-6 max-w-7xl mx-auto space-y-8">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
 
-                {/* ── HEADER ─────────────────────────────────────── */}
+                {/* ── HEADER (Dashboard Style) ─────────────────────────── */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+                    <div>
+                        <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                             <Activity className="w-6 h-6 text-[#ce1126]" />
                             OFFICIAL REPORTING DASHBOARD
                         </h1>
-                        <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
-                            Real-time statistical reports and situational case intelligence.
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                            Real-time structural intelligence • RA 9262 Data Monitoring
                         </p>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Year Filter */}
                         <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-md px-3 py-1.5 dark:bg-slate-900 dark:border-slate-700">
-                            <span className="text-xs font-bold text-slate-500 text-nowrap">Filter Year:</span>
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Filter Year:</span>
                             <select
-                                className="border-none text-sm font-bold text-slate-900 dark:text-white focus:ring-0 p-0 cursor-pointer bg-transparent"
+                                className="border-none text-xs font-black text-slate-900 dark:text-white focus:ring-0 p-0 cursor-pointer bg-transparent"
                                 value={currentYear}
                                 onChange={(e) => { window.location.href = `?year=${e.target.value}`; }}
                             >
@@ -85,60 +91,36 @@ export default function Index({
                                 ))}
                             </select>
                         </div>
-                        {/* Print Button */}
                         <a href={`/admin/analytics/print?year=${currentYear}`} target="_blank" rel="noopener noreferrer">
-                            <Button className="bg-[#ce1126] hover:bg-red-700 text-white font-bold uppercase tracking-widest gap-2">
+                            <Button className="bg-[#ce1126] hover:bg-red-700 h-9 px-4 text-[10px] font-black uppercase tracking-widest gap-2">
                                 <FileText className="w-4 h-4" /> Print Report
                             </Button>
                         </a>
                     </div>
                 </div>
 
-                {/* ── RIBBON: 4 Key Metrics ────────────────────────── */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card className="border-l-4 border-l-[#ce1126]">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs font-black uppercase tracking-widest text-[#ce1126]">Total VAWC Cases</CardTitle>
-                            <AlertTriangle className="h-4 w-4 text-[#ce1126]" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.totalVawc}</div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">RA 9262 Reports in {currentYear}</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-l-4 border-l-amber-500">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs font-black uppercase tracking-widest text-amber-600">Active Cases</CardTitle>
-                            <Clock className="h-4 w-4 text-amber-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.activeCases}</div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Ongoing and pending action</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-l-4 border-l-violet-500">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs font-black uppercase tracking-widest text-violet-600">BPOs Issued</CardTitle>
-                            <Shield className="h-4 w-4 text-violet-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.totalBpos}</div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Barangay protection orders</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-l-4 border-l-emerald-500">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-600">BPO SLA Rate</CardTitle>
-                            <CheckCircle className="h-4 w-4 text-emerald-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white">{stats.slaRate}%</div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Issued within 24-hr SLA</p>
-                        </CardContent>
-                    </Card>
+                {/* ── RIBBON: 4 Key Metrics (Simplified Dashboard Cards) ── */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {ribbonStats.map((stat, i) => (
+                        <div key={i} className="border p-6 rounded-xl shadow-sm bg-white dark:bg-slate-900 transition-all">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">
+                                        {stat.label}
+                                    </p>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white">
+                                        {stat.value}
+                                    </h3>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                                        {stat.desc}
+                                    </p>
+                                </div>
+                                <div className={cn("p-3 rounded-xl", stat.bg, stat.color)}>
+                                    <stat.icon size={22} className="stroke-[2.5]" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* ── CORE TREND: Women's Abuse Rates by Month + VAWC Status ── */}
@@ -167,7 +149,7 @@ export default function Index({
 
                     {/* VAWC Case Status Donut */}
                     <Card className="shadow-sm border overflow-hidden flex flex-col">
-                        <CardHeader className="border-b bg-gray-50/50 dark:bg-slate-900/50">
+                        <CardHeader>
                             <CardTitle className="uppercase tracking-widest text-sm font-black text-violet-600">VAWC Case Status</CardTitle>
                             <CardDescription className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">
                                 Lifecycle Stage Distribution
@@ -268,7 +250,7 @@ export default function Index({
                         Demographic Statistical Reports
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
 
                         {/* Victim Age Demographics */}
                         <Card className="shadow-sm border">
@@ -312,53 +294,6 @@ export default function Index({
                                         <Bar dataKey="count" fill="#f97316" radius={[0, 4, 4, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-
-                        {/* Case Resolution Rates (lifecycle) */}
-                        <Card className="shadow-sm border flex flex-col">
-                            <CardHeader className="border-b bg-gray-50/50 dark:bg-slate-900/50">
-                                <CardTitle className="uppercase tracking-widest text-xs font-black text-emerald-600">Case Resolution Rates</CardTitle>
-                                <CardDescription className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">
-                                    Current Lifecycle Status
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="p-6 flex-1 flex flex-col justify-center">
-                                <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={caseResolutionStats}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={55}
-                                                outerRadius={90}
-                                                paddingAngle={2}
-                                                dataKey="value"
-                                                label={({ name, percent }: any) => percent > 0 ? `${(percent * 100).toFixed(0)}%` : ''}
-                                                labelLine={false}
-                                            >
-                                                {caseResolutionStats.map((entry: any, index: number) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                formatter={(value) => [`${value} Cases`, 'Total']}
-                                                contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', padding: '8px 12px', fontSize: '12px', fontWeight: 'bold' }}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="grid grid-cols-2 gap-y-3 gap-x-2 mt-4">
-                                    {caseResolutionStats.map((stat: any, i: number) => (
-                                        <div key={i} className="flex items-center gap-2" title={`${stat.value} total cases`}>
-                                            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: stat.fill }}></div>
-                                            <span className="text-[10px] uppercase font-black text-slate-700 dark:text-slate-300 truncate tracking-widest">
-                                                {stat.name} <span className="text-slate-400 font-bold ml-1">({stat.value})</span>
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
                             </CardContent>
                         </Card>
 

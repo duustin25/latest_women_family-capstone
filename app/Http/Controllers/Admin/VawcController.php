@@ -23,9 +23,9 @@ class VawcController extends Controller
     protected $analyticsService;
 
     public function __construct(
-        VawcCaseService $vawcService, 
-        VawcBpoService $bpoService, 
-        VawcComplianceService $complianceService, 
+        VawcCaseService $vawcService,
+        VawcBpoService $bpoService,
+        VawcComplianceService $complianceService,
         VawcLegalService $legalService,
         \App\Services\AnalyticsService $analyticsService
     ) {
@@ -313,9 +313,10 @@ class VawcController extends Controller
                 $this->analyticsService->getVawcSpecificStats($currentYear),
                 [
                     'monthly_trends' => $this->analyticsService->getVawcMonthlyTrend($currentYear),
+                    'bpoTrends'      => $this->analyticsService->getVawcBpoTrends($currentYear),
                     'analyticsData'  => $this->analyticsService->getMonthlyCaseAnalytics(
-                        'VAWC', 
-                        $currentYear, 
+                        'VAWC',
+                        $currentYear,
                         \App\Models\CaseAbuseType::where('is_active', true)->whereIn('category', ['VAWC', 'Both'])->get()
                     ),
                     'chartConfig'    => $this->analyticsService->getVawcChartConfig(),

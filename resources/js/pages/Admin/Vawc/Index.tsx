@@ -25,13 +25,13 @@ export default function Index({ cases, filters }: Props) {
     const debouncedSearch = useDebounce(search, 300);
 
     const getStatusVariant = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'served': return 'default';
-            case 'issued': return 'secondary';
-            case 'applied': return 'outline';
-            case 'intake': return 'outline';
-            case 'monitoring': return 'secondary';
-            case 'escalated': return 'destructive';
+        switch (status) {
+            case 'Intake': return 'outline';
+            case 'BPO Processing': return 'default';
+            case 'Monitoring': return 'secondary';
+            case 'Escalated': return 'destructive';
+            case 'Resolved': return 'default';
+            case 'Closed': return 'secondary';
             default: return 'secondary';
         }
     };
@@ -95,12 +95,11 @@ export default function Index({ cases, filters }: Props) {
                         <SelectContent>
                             <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="Intake">Intake</SelectItem>
-                            <SelectItem value="Assessment">Assessment</SelectItem>
-                            <SelectItem value="Applied">BPO Applied</SelectItem>
-                            <SelectItem value="Issued">BPO Issued</SelectItem>
-                            <SelectItem value="Served">BPO Served</SelectItem>
+                            <SelectItem value="BPO Processing">BPO Processing</SelectItem>
                             <SelectItem value="Monitoring">Monitoring</SelectItem>
                             <SelectItem value="Escalated">Escalated</SelectItem>
+                            <SelectItem value="Resolved">Resolved</SelectItem>
+                            <SelectItem value="Closed">Closed</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
