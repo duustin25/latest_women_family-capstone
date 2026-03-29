@@ -9,6 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { CheckCircle2, ChevronRight, Gavel, Printer, Search, ShieldCheck, MapPin, ClipboardList, Info } from 'lucide-react';
 
 interface Props {
     case: any;
@@ -17,7 +18,9 @@ interface Props {
 export default function Show({ case: vawcCase }: Props) {
     const victim = vawcCase.involved_parties.find((p: any) => p.role === 'Victim');
     const respondent = vawcCase.involved_parties.find((p: any) => p.role === 'Respondent');
+    const activeBpo = vawcCase.protection_orders.find((o: any) => ['Applied', 'Issued', 'Served'].includes(o.status));
 
+    // Form Hooks
     const bpoForm = useForm<any>({ type: 'BPO' });
     const issuanceForm = useForm<any>({});
     const serviceForm = useForm<any>({
@@ -40,300 +43,334 @@ export default function Show({ case: vawcCase }: Props) {
         violation_description: '',
     });
 
-    const handleApplyBpo = () => { if (confirm('File Application for BPO?')) bpoForm.post(route('admin.vawc.apply-bpo', vawcCase.id)); };
-    const handleIssueBpo = () => { if (confirm('Confirm Issuance?')) issuanceForm.post(route('admin.vawc.issue-bpo', vawcCase.id)); };
+    // Handlers
+    const handleApplyBpo = () => { if (confirm('File Official Application for BPO?')) bpoForm.post(route('admin.vawc.apply-bpo', vawcCase.id)); };
+    const handleIssueBpo = () => { if (confirm('Confirm Official BPO Issuance? (RA 9262 Mandate)')) issuanceForm.post(route('admin.vawc.issue-bpo', vawcCase.id)); };
     const handleRecordService = (e: React.FormEvent) => { e.preventDefault(); serviceForm.post(route('admin.vawc.record-service', vawcCase.id)); };
     const handleLogCompliance = (e: React.FormEvent) => { e.preventDefault(); complianceForm.post(route('admin.vawc.log-compliance', vawcCase.id), { onSuccess: () => complianceForm.reset() }); };
     const handleEscalate = (e: React.FormEvent) => { e.preventDefault(); escalationForm.post(route('admin.vawc.escalate', vawcCase.id)); };
 
-    const activeBpo = vawcCase.protection_orders.find((o: any) => ['Applied', 'Issued', 'Served'].includes(o.status));
-    const issuedBpo = vawcCase.protection_orders.find((o: any) => o.status === 'Issued');
+    // Workflow Logic
+    const currentStep = () => {
+        if (vawcCase.status === 'Escalated') return 6; // Legal/External Agency Referral
+        if (vawcCase.protection_orders.length === 0) return 2; // BPO Application
+        if (activeBpo?.status === 'Applied') return 3; // BPO Issuance
+        if (activeBpo?.status === 'Issued') return 4; // Recording Service
+        return 5; // Monitoring/Finalization
+    };
+
+    const stepNum = currentStep();
 
     return (
-        <AppLayout>
-            <Head title={`VAWC Case: ${vawcCase.case_report.case_number}`} />
+        <AppLayout breadcrumbs={[{ title: 'Case Registry', href: route('admin.vawc.index') }, { title: vawcCase.case_report.case_number, href: '#' }]}>
+            <Head title={`Case Workflow: ${vawcCase.case_report.case_number}`} />
 
-            <div className="p-6 space-y-6 max-w-7xl mx-auto">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={route('admin.vawc.index')}>← Back</Link>
-                        </Button>
-                        <div>
-                            <h1 className="text-2xl font-bold font-mono">{vawcCase.case_report.case_number}</h1>
-                            <Badge variant="outline">{vawcCase.status.toUpperCase()}</Badge>
+            <div className="p-6 space-y-8 max-w-5xl mx-auto">
+                {/* 🩺 PHASE TRACKER */}
+                <div className="grid grid-cols-6 gap-2 px-1">
+                    {[1, 2, 3, 4, 5, 6].map((s) => (
+                        <div key={s} className="flex flex-col gap-2">
+                            <div className={`h-1.5 rounded-full ${s < stepNum ? 'bg-primary' : (s === stepNum ? 'bg-primary animate-pulse' : 'bg-muted')}`} />
+                            <span className={`text-[9px] uppercase font-bold tracking-tight text-center ${s === stepNum ? 'text-primary' : 'text-muted-foreground'}`}>
+                                {s === 1 ? 'Intake' : s === 2 ? 'Apply' : s === 3 ? 'Issue' : s === 4 ? 'Serve' : s === 5 ? 'Monitor' : 'Referral'}
+                            </span>
                         </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm">[PHASE 5: LOG COMPLIANCE]</Button>
-                    </div>
+                    ))}
                 </div>
 
-                {/* BPO CONTROL CENTER */}
-                <Card className="border-primary/20 bg-primary/5">
-                    <CardHeader>
-                        <CardTitle className="text-lg">BPO Workflow Control Center</CardTitle>
-                        <CardDescription>Legal Protection Lifecycle & SLA Monitor</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {vawcCase.protection_orders.length === 0 ? (
-                            <div className="text-center py-4 border-2 border-dashed rounded-lg bg-background/50">
-                                <p className="text-muted-foreground text-sm">No Protection Order filed for this case yet.</p>
-                                <Button onClick={handleApplyBpo} disabled={bpoForm.processing} className="mt-2">
-                                    [1] File BPO Application (RA 9262)
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {vawcCase.protection_orders.map((order: any) => (
-                                    <Alert key={order.id} variant={order.is_sla_breached ? "destructive" : "default"}>
-                                        <AlertTitle className="font-bold uppercase">
-                                            {order.status} - {order.type} {order.is_sla_breached ? "(SLA BREACHED)" : ""}
-                                        </AlertTitle>
-                                        <AlertDescription className="grid grid-cols-2 gap-2 mt-2">
-                                            <div>
-                                                <p className="text-xs opacity-70">Application Timestamp</p>
-                                                <p>{new Date(order.application_datetime).toLocaleString()}</p>
-                                            </div>
-                                            {order.issued_datetime && (
-                                                <div>
-                                                    <p className="text-xs opacity-70">Issuance Timestamp</p>
-                                                    <p>{new Date(order.issued_datetime).toLocaleString()}</p>
-                                                </div>
-                                            )}
-                                        </AlertDescription>
-                                    </Alert>
-                                ))}
+                {/* 🚨 CRITICAL RISK ALERTS */}
+                {(vawcCase.is_repeat_offense || vawcCase.has_weapon_involved) && (
+                    <Alert variant="destructive" className="bg-destructive/5 border-destructive/50 animate-in fade-in slide-in-from-top-4">
+                        <Gavel className="w-5 h-5 text-destructive" />
+                        <AlertTitle className="text-destructive font-black uppercase tracking-tighter">High-Risk Case Detected</AlertTitle>
+                        <AlertDescription className="text-destructive/80 font-medium">
+                            {vawcCase.is_repeat_offense && "• REPORTED REPEAT OFFENSE (HISTORY OF ABUSE) "}
+                            {vawcCase.has_weapon_involved && "• WEAPONS/ARMS WERE INVOLVED AT THE SCENE"}
+                            <p className="mt-1 text-[10px] uppercase underline">Immediate BPO Issuance strongly recommended per RA 9262 Guidelines.</p>
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-                                <div className="flex flex-wrap gap-2">
-                                    {vawcCase.protection_orders.some((o: any) => o.status === 'Applied') && (
-                                        <Button onClick={handleIssueBpo} disabled={issuanceForm.processing} variant="secondary">
-                                            [2] Finalize & Issue BPO (Verify SLA)
-                                        </Button>
-                                    )}
-                                    {issuedBpo && (
-                                        <Card className="w-full mt-4 bg-background">
-                                            <CardHeader className="py-4">
-                                                <CardTitle className="text-sm">Step 3: Service of Order</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <form onSubmit={handleRecordService} className="flex flex-col md:flex-row items-end gap-4">
-                                                    <div className="flex-1 space-y-2">
-                                                        <Label className="text-xs">Service Method</Label>
-                                                        <select
-                                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                                            value={serviceForm.data.service_method}
-                                                            onChange={e => serviceForm.setData('service_method', e.target.value)}
-                                                        >
-                                                            <option value="Personally Received">Personally Received</option>
-                                                            <option value="Left at Residence">Left at Residence (Substituted)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="flex-1 space-y-2">
-                                                        <Label className="text-xs">Service Date/Time</Label>
-                                                        <Input type="datetime-local" value={serviceForm.data.served_datetime} onChange={e => serviceForm.setData('served_datetime', e.target.value)} />
-                                                        {serviceForm.errors.served_datetime && <p className="text-xs text-destructive">{serviceForm.errors.served_datetime}</p>}
-                                                    </div>
-                                                    <div className="flex-1 space-y-2">
-                                                        <Label className="text-xs">Received By</Label>
-                                                        <Input placeholder="Full Name" value={serviceForm.data.receiver_name} onChange={e => serviceForm.setData('receiver_name', e.target.value)} />
-                                                    </div>
-                                                    <Button type="submit" disabled={serviceForm.processing}>
-                                                        [3] Log Service
-                                                    </Button>
-                                                </form>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                    {(activeBpo?.status === 'Issued' || activeBpo?.status === 'Served') && (
-                                        <Button variant="outline" className="w-full" asChild>
-                                            <a href={route('admin.vawc.pnp-transmittal', vawcCase.id)} target="_blank" rel="noreferrer">
-                                                [4] Print PNP Transmittal Letter (Section 14)
-                                            </a>
-                                        </Button>
-                                    )}
+                {/* 🚀 PRIMARY GUIDED ACTION CARD */}
+                <Card className="border-primary/30 shadow-lg ring-4 ring-primary/5">
+                    <CardHeader className="bg-primary/5 pb-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <Badge className="mb-2 bg-primary/90">STEP {stepNum}: CURRENT PHASE</Badge>
+                                <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                                    {stepNum === 2 && "File Application for BPO"}
+                                    {stepNum === 3 && "Barangay Head: Issue the BPO"}
+                                    {stepNum === 4 && "Print & Serve the Official BPO"}
+                                    {stepNum === 5 && "Ongoing Monitoring & Compliance"}
+                                    {stepNum === 6 && "Case Referred to Higher Authorities"}
+                                </CardTitle>
+                                <CardDescription className="text-base mt-2">
+                                    {stepNum === 2 && "The resident has reported the case. Click below to officially open the 15-day Protection Order application."}
+                                    {stepNum === 3 && "The application is filed. Now, the Punong Barangay must review and 'Confirm Issuance' to make it a legal document."}
+                                    {stepNum === 4 && "The BPO is Issued! DO THIS NEXT: (1) Print the BPO below, (2) Get it signed, (3) Deliver it (Serve) to the respondent, then (4) Record the service status in the form below."}
+                                    {stepNum === 5 && "Documentation is complete. Use this phase to record regular check-ins with the victim and monitor for any violations."}
+                                    {stepNum === 6 && "This case is no longer under Barangay Jurisdiction alone. It has been officially referred for external legal action/investigation."}
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-6 border-t">
+                        {/* ACTION CONTENT BY STEP */}
+                        {stepNum === 2 && (
+                            <div className="flex flex-col items-center justify-center py-8 gap-4">
+                                <ShieldCheck className="w-16 h-16 text-primary/20" />
+                                <Button size="lg" onClick={handleApplyBpo} disabled={bpoForm.processing} className="h-14 px-12 text-lg font-bold shadow-xl hover:scale-105 transition-transform">
+                                    [STEP 2] Click to File BPO Application
+                                </Button>
+                                <p className="text-xs text-muted-foreground italic font-mono uppercase tracking-widest text-center">Reference: RA 9262 - Section 14</p>
+                            </div>
+                        )}
+
+                        {stepNum === 3 && (
+                            <div className="space-y-6 text-center py-4">
+                                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg inline-block mx-auto">
+                                    <p className="text-amber-700 text-sm font-bold flex items-center gap-2">
+                                        <Info className="w-4 h-4" /> ACTION REQUIRED FROM HEAD COMMITTEE
+                                    </p>
+                                    <p className="text-amber-800 text-xs mt-1">Legally, the BPO must be officially issued on the same day it was reported.</p>
+                                </div>
+                                <div className="flex justify-center gap-2">
+                                    <Button size="lg" variant="secondary" onClick={handleIssueBpo} disabled={issuanceForm.processing} className="h-14 px-12 border-2 border-primary/20 shadow-md">
+                                        [STEP 3] Confirm BPO Issuance
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {stepNum === 4 && (
+                            <div className="space-y-8">
+                                {/* SUB-STEP: PRINTING */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Button variant="outline" className="h-12 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex items-center gap-2" asChild>
+                                        <a href={route('admin.vawc.print-bpo', vawcCase.id)} target="_blank" rel="noreferrer">
+                                            <Printer className="w-4 h-4" /> (1) Print Official BPO Document
+                                        </a>
+                                    </Button>
+                                    <Button variant="outline" className="h-12 flex items-center gap-2 border-slate-300" asChild>
+                                        <a href={route('admin.vawc.pnp-transmittal', vawcCase.id)} target="_blank" rel="noreferrer">
+                                            <Info className="w-4 h-4" /> (2) Print PNP Transmittal
+                                        </a>
+                                    </Button>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="absolute inset-x-0 top-0 flex items-center" aria-hidden="true">
+                                        <div className="w-full border-t border-slate-200"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <span className="bg-background px-2 text-xs text-muted-foreground uppercase font-bold">Then, Record Service Status</span>
+                                    </div>
+                                </div>
+
+                                {/* SUB-STEP: RECORDING */}
+                                <form onSubmit={handleRecordService} className="grid grid-cols-1 md:grid-cols-4 items-end gap-6 border-2 border-primary/10 p-6 rounded-xl bg-muted/5">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground mr-1">Method</Label>
+                                        <select
+                                            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                                            value={serviceForm.data.service_method}
+                                            onChange={e => serviceForm.setData('service_method', e.target.value)}
+                                        >
+                                            <option value="Personally Received">Personally Received</option>
+                                            <option value="Left at Residence">Left at Residence (Substituted)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Date Served</Label>
+                                        <Input type="datetime-local" className="h-11" value={serviceForm.data.served_datetime} onChange={e => serviceForm.setData('served_datetime', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Received By</Label>
+                                        <Input placeholder="Full Name" className="h-11" value={serviceForm.data.receiver_name} onChange={e => serviceForm.setData('receiver_name', e.target.value)} />
+                                    </div>
+                                    <Button type="submit" size="lg" disabled={serviceForm.processing} className="h-11 text-sm font-bold uppercase tracking-wider bg-primary">
+                                        [STEP 4] Save Service Record
+                                    </Button>
+                                </form>
+                            </div>
+                        )}
+
+                        {stepNum === 5 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Button variant="outline" className="h-16 flex flex-col items-center bg-blue-50/50 border-blue-200 text-blue-700 hover:bg-blue-100" asChild>
+                                    <a href={route('admin.vawc.print-bpo', vawcCase.id)} target="_blank" rel="noreferrer">
+                                        <Printer className="w-5 h-5 mb-1" />
+                                        <span className="text-xs font-bold uppercase tracking-widest">Print Formal BPO Document</span>
+                                    </a>
+                                </Button>
+                                <Button variant="outline" className="h-16 flex flex-col items-center border-slate-300 text-slate-700 hover:bg-slate-50" asChild>
+                                    <a href={route('admin.vawc.pnp-transmittal', vawcCase.id)} target="_blank" rel="noreferrer">
+                                        <Info className="w-5 h-5 mb-1" />
+                                        <span className="text-xs font-bold uppercase tracking-widest">Print PNP Transmittal</span>
+                                    </a>
+                                </Button>
+                                <Alert className="md:col-span-2 border-green-200 bg-green-50">
+                                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                    <AlertTitle className="text-green-800 font-bold uppercase text-[10px] tracking-widest">Status: Monitoring Mode</AlertTitle>
+                                    <AlertDescription className="text-green-700 text-sm">
+                                        All legal documents have been generated. Your primary task now is to log compliance sessions and ensure victim safety.
+                                    </AlertDescription>
+                                </Alert>
+                            </div>
+                        )}
+                        {stepNum === 6 && (
+                            <div className="space-y-4 py-4 text-center">
+                                <Alert className="border-red-600 bg-red-50 ring-4 ring-red-100 mb-6">
+                                    <Gavel className="w-5 h-5 text-red-600" />
+                                    <AlertTitle className="text-red-800 font-black uppercase text-xs tracking-widest">Official Escalation Notice</AlertTitle>
+                                    <AlertDescription className="text-red-700 text-sm">
+                                        This case has been referred to higher legal authorities (PNP/Court) due to a BPO violation or high-risk classification. 
+                                        Barangay responsibilities now focus on assisting with technical coordination and victim safety.
+                                    </AlertDescription>
+                                </Alert>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                                    <Button variant="outline" className="h-14 font-bold border-red-200" onClick={() => stepNum === 6 && alert('Detailed referral report printing is being generated...')}>
+                                        Print Referral Dossier
+                                    </Button>
+                                    <Button variant="outline" className="h-14 font-bold border-red-200" asChild>
+                                        <a href={route('admin.vawc.complaint-form', vawcCase.id)} target="_blank">View Court Complaint Template</a>
+                                    </Button>
                                 </div>
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
-                {/* INFO GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Victim Information</CardTitle></CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Name:</span> <span>{victim?.name}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Age/Gender:</span> <span>{victim?.age} / {victim?.gender}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Minority Status:</span> <span>{victim?.is_minor ? 'Minor' : 'Adult'}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Contact:</span> <span className="p-1 bg-muted rounded">ENCRYPTED</span></div>
+                {/* 📋 REFERRAL HISTORY (Only if Step 6 reached) */}
+                {stepNum === 6 && (
+                    <Card className="border-red-200">
+                        <CardHeader className="border-b pb-4 bg-red-50/30">
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Search className="w-4 h-4" /> Legal Referral History
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <div className="space-y-4">
+                                {vawcCase.escalations.map((esc: any) => (
+                                    <div key={esc.id} className="p-4 border border-red-100 rounded-lg bg-red-50/20 flex flex-col gap-2">
+                                        <div className="flex justify-between items-center">
+                                            <Badge variant="destructive" className="text-[9px] uppercase tracking-widest">{esc.referral_target}</Badge>
+                                            <span className="text-[10px] text-muted-foreground font-mono italic">Case Prepared on {new Date(esc.created_at).toLocaleDateString()}</span>
+                                        </div>
+                                        <p className="text-xs font-bold text-slate-800">Reason for Escalation:</p>
+                                        <p className="text-xs italic text-slate-600">"{esc.violation_description}"</p>
+                                    </div>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
+                )}
 
-                    <Card>
-                        <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Respondent Information</CardTitle></CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Name:</span> <span>{respondent?.name || '[NOT RECORDED]'}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Age/Gender:</span> <span>{respondent?.age || '?'} / {respondent?.gender || '?'}</span></div>
-                            <div className="flex justify-between border-t pt-2 mt-4"><span className="text-muted-foreground">Warrantless Arrest:</span> <span>{vawcCase.warrantless_arrest_made ? 'Yes' : 'No'}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Weapons Seized:</span> <span>{vawcCase.weapons_confiscated ? 'Yes' : 'No'}</span></div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="md:col-span-2">
-                        <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Step 12: Legal Assistance & Court Escalation</CardTitle></CardHeader>
-                        <CardContent className="space-y-6">
-                            {vawcCase.escalations.length > 0 ? (
-                                <Alert variant="default" className="border-orange-500 bg-orange-50/50">
-                                    <AlertTitle className="text-orange-700 font-bold">CASE ESCALATED TO AUTHORITIES</AlertTitle>
-                                    <AlertDescription className="mt-2 space-y-2">
-                                        <p>This case has been officially referred for BPO Violation/Formal Prosecution.</p>
-                                        <div className="flex gap-4 text-xs font-mono uppercase opacity-70">
-                                            <span>Target: {vawcCase.escalations[0].referral_target}</span>
-                                            <span>Status: {vawcCase.escalations[0].status}</span>
-                                        </div>
-                                        <Button asChild size="sm" variant="outline" className="mt-2 bg-white">
-                                            <a href={route('admin.vawc.complaint-form', vawcCase.id)} target="_blank" rel="noreferrer">
-                                                [PRINTER] Court Complaint Assistance Form
-                                            </a>
-                                        </Button>
-                                    </AlertDescription>
-                                </Alert>
-                            ) : (
-                                <form onSubmit={handleEscalate} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Escalation Date</Label>
-                                            <Input type="datetime-local" value={escalationForm.data.violation_datetime} onChange={e => escalationForm.setData('violation_datetime', e.target.value)} />
-                                            {escalationForm.errors.violation_datetime && <p className="text-xs text-destructive">{escalationForm.errors.violation_datetime}</p>}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs">Referral Authority</Label>
-                                            <select 
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors"
-                                                value={escalationForm.data.referral_target}
-                                                onChange={e => escalationForm.setData('referral_target', e.target.value)}
-                                            >
-                                                <option value="PNP Women and Children Protection">PNP (Violation of Order)</option>
-                                                <option value="Municipal Trial Court">Court (Legal Assistance)</option>
-                                                <option value="Prosecutor's Office">Office of the Prosecutor</option>
-                                            </select>
-                                            {escalationForm.errors.referral_target && <p className="text-xs text-destructive">{escalationForm.errors.referral_target}</p>}
-                                        </div>
+                {/* 📋 MONITORING & COMPLIANCE (Phase 5 & 6) */}
+                {stepNum >= 5 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Card className="md:col-span-2">
+                            <CardHeader className="border-b pb-4"><CardTitle className="text-sm font-bold uppercase tracking-widest">Steps 8-11: Compliance & Counseling Log</CardTitle></CardHeader>
+                            <CardContent className="pt-6 space-y-6">
+                                <form onSubmit={handleLogCompliance} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold uppercase">Date</Label>
+                                        <Input type="datetime-local" value={complianceForm.data.monitor_date} onChange={e => complianceForm.setData('monitor_date', e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-xs">Violation Narrative / Assistance Details</Label>
-                                        <Textarea 
-                                            placeholder="Describe the violation or assistance provided to the victim..."
-                                            value={escalationForm.data.violation_description} 
-                                            onChange={e => escalationForm.setData('violation_description', e.target.value)} 
-                                        />
-                                        {escalationForm.errors.violation_description && <p className="text-xs text-destructive">{escalationForm.errors.violation_description}</p>}
+                                        <Label className="text-xs font-bold uppercase">Status</Label>
+                                        <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" value={complianceForm.data.is_compliant ? 'true' : 'false'} onChange={e => complianceForm.setData('is_compliant', e.target.value === 'true')}>
+                                            <option value="true">Compliant (Following BPO)</option>
+                                            <option value="false">Non-Compliant (VIOLATION)</option>
+                                        </select>
                                     </div>
-                                    <div className="flex items-center gap-2 italic text-xs">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={escalationForm.data.escorted_by_pb} 
-                                            onChange={e => escalationForm.setData('escorted_by_pb', e.target.checked)} 
-                                        />
-                                        <span>PB/Kagawad Escorted Victim? (RA 9262 Mandate)</span>
-                                    </div>
-                                    <Button type="submit" variant="destructive" size="sm" disabled={escalationForm.processing}>
-                                        Flag BPO Violation & Escalate Case
-                                    </Button>
-                                </form>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="md:col-span-2">
-                        <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Compliance Monitoring & Counseling (Steps 8-11)</CardTitle></CardHeader>
-                        <CardContent className="space-y-6">
-                            {vawcCase.compliance_logs.length > 0 && (
-                                <div className="space-y-4">
-                                    {vawcCase.compliance_logs.map((log: any) => (
-                                        <div key={log.id} className="p-3 border rounded-lg bg-muted/20 text-sm">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <Badge variant={log.is_compliant ? "default" : "destructive"}>
-                                                    {log.is_compliant ? "COMPLIANT" : "VIOLATION"}
-                                                </Badge>
-                                                <span className="text-xs text-muted-foreground">{new Date(log.monitor_date).toLocaleDateString()}</span>
+                                    {stepNum === 5 && (
+                                        <>
+                                            <div className="md:col-span-2 space-y-2">
+                                                <Label className="text-xs font-bold uppercase">Incident/Session Notes</Label>
+                                                <Input placeholder="Enter brief notes about the victim's situation..." value={complianceForm.data.notes} onChange={e => complianceForm.setData('notes', e.target.value)} />
                                             </div>
-                                            <p className="italic">"{log.notes}"</p>
-                                            {log.referral_type && (
-                                                <div className="mt-2 text-xs font-semibold text-primary uppercase">
-                                                    Action: {log.referral_type}
-                                                </div>
-                                            )}
+                                            <Button type="submit" variant="outline" className="w-full bg-slate-50 border-slate-300 font-bold uppercase tracking-widest text-[10px]" disabled={complianceForm.processing}>Save Monitoring Log</Button>
+                                        </>
+                                    )}
+                                </form>
+                                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                                    {vawcCase.compliance_logs.map((log: any) => (
+                                        <div key={log.id} className="p-4 border border-slate-100 rounded-lg bg-slate-50/50 flex flex-col gap-2">
+                                            <div className="flex justify-between items-center">
+                                                <Badge variant={log.is_compliant ? "outline" : "destructive"} className="text-[9px] uppercase tracking-widest">{log.is_compliant ? "Compliance OK" : "VIOLATION LOGGED"}</Badge>
+                                                <span className="text-[10px] text-muted-foreground font-mono">{new Date(log.monitor_date).toLocaleDateString()}</span>
+                                            </div>
+                                            <p className="text-xs italic text-slate-600">"{log.notes}"</p>
                                         </div>
                                     ))}
                                 </div>
-                            )}
+                            </CardContent>
+                        </Card>
 
-                            <div className="border-t pt-4">
-                                <Label className="text-xs font-bold mb-4 block">Log New Monitoring Session</Label>
-                                <form onSubmit={handleLogCompliance} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-2">
-                                            <Label className="text-xs">Monitoring Date/Time</Label>
-                                            <Input type="datetime-local" value={complianceForm.data.monitor_date} onChange={e => complianceForm.setData('monitor_date', e.target.value)} />
-                                            {complianceForm.errors.monitor_date && <p className="text-xs text-destructive">{complianceForm.errors.monitor_date}</p>}
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <Label className="text-xs">Respondent Status</Label>
-                                            <select
-                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors"
-                                                value={complianceForm.data.is_compliant ? 'true' : 'false'}
-                                                onChange={e => complianceForm.setData('is_compliant', e.target.value === 'true')}
-                                            >
-                                                <option value="true">Compliant (Observing BPO)</option>
-                                                <option value="false">Non-Compliant (VIOLATION)</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-2 pt-6 italic text-xs">
-                                            <input
-                                                type="checkbox"
-                                                checked={complianceForm.data.needs_counseling}
-                                                onChange={e => complianceForm.setData('needs_counseling', e.target.checked)}
-                                            />
-                                            <span>Recommend Counseling? (DSWD Referral)</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-xs">Monitoring Notes / Narrative</Label>
-                                        <Input
-                                            placeholder="Detail the respondent behavior or survivor needs..."
-                                            value={complianceForm.data.notes}
-                                            onChange={e => complianceForm.setData('notes', e.target.value)}
-                                        />
-                                        {complianceForm.errors.notes && <p className="text-xs text-destructive">{complianceForm.errors.notes}</p>}
-                                    </div>
-                                    <Button type="submit" size="sm" disabled={complianceForm.processing}>
-                                        Save Compliance Log
-                                    </Button>
-                                </form>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        {/* LEGAL ACTION (VIOLATION) - Only show form if not already escalated */}
+                        {stepNum === 5 && (
+                            <Card className="border-destructive/20 bg-destructive/5 self-start">
+                                <CardHeader><CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2"><Gavel className="w-4 h-4" /> BPO Violation?</CardTitle></CardHeader>
+                                <CardContent>
+                                    <p className="text-xs text-muted-foreground mb-4">If the respondent violates any part of the BPO, escalate immediately to the PNP/Court.</p>
+                                    <form onSubmit={handleEscalate} className="space-y-4">
+                                        <select className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs" value={escalationForm.data.referral_target} onChange={e => escalationForm.setData('referral_target', e.target.value)}>
+                                            <option value="PNP Women and Children Protection">Escalate to PNP (Violation)</option>
+                                            <option value="Prosecutor's Office">Refer to Prosecutor</option>
+                                        </select>
+                                        <Textarea placeholder="Briefly describe the violation..." className="h-20 text-xs" value={escalationForm.data.violation_description} onChange={e => escalationForm.setData('violation_description', e.target.value)} />
+                                        <Button type="submit" variant="destructive" className="w-full font-bold uppercase tracking-widest text-[10px]" disabled={escalationForm.processing}>Send Referral / Escalate</Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                )}
 
-                    <Card className="md:col-span-2">
-                        <CardHeader><CardTitle className="text-sm uppercase tracking-wider">Incident & Assessment Summary</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm border-b pb-4">
-                                <div><p className="text-muted-foreground text-xs uppercase">Intake Type</p><p className="font-semibold">{vawcCase.intake_type}</p></div>
-                                <div><p className="text-muted-foreground text-xs uppercase">Abuse Type</p><p className="font-semibold">{vawcCase.case_report.abuse_type?.name || 'N/A'}</p></div>
-                                <div><p className="text-muted-foreground text-xs uppercase">Medical Referral</p><Badge variant={vawcCase.assessment?.requires_medical ? 'destructive' : 'outline'}>{vawcCase.assessment?.requires_medical ? 'Urgent' : 'None'}</Badge></div>
-                                <div><p className="text-muted-foreground text-xs uppercase">Housing/Shelter</p><Badge variant={vawcCase.assessment?.requires_alternative_housing ? 'destructive' : 'outline'}>{vawcCase.assessment?.requires_alternative_housing ? 'Required' : 'None'}</Badge></div>
+                {/* 📂 CASE CONTEXT & INFORMATION (Collapsible/Secondary) */}
+                <Card className="border-muted bg-muted/5">
+                    <CardHeader className="border-b py-3 flex flex-row justify-between items-center">
+                        <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 mr-1">
+                            <Info className="w-3 h-3" /> Case Background Information
+                        </CardTitle>
+                        <Badge variant="outline" className="font-mono text-[9px]">{vawcCase.case_report.case_number}</Badge>
+                    </CardHeader>
+                    <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Survivor Details</p>
+                            <div className="space-y-1 text-sm border-l-2 pl-3 border-primary/20">
+                                <p className="font-bold">{victim?.name}</p>
+                                <p className="text-muted-foreground">{victim?.age} Years / {victim?.gender}</p>
+                                {respondent?.relationship_to_victim && (
+                                    <p className="text-primary font-medium text-[10px] uppercase tracking-wider bg-primary/5 px-2 py-0.5 rounded-full inline-block mt-1">
+                                        Partner Type: {respondent.relationship_to_victim}
+                                    </p>
+                                )}
+                                <p className="text-[10px] text-muted-foreground mt-2 uppercase">Contact: [ENCRYPTED]</p>
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-xs uppercase opacity-70">Narrative Description</Label>
-                                <div className="p-4 rounded-lg bg-muted text-sm leading-relaxed max-h-48 overflow-y-auto italic">
-                                    "{vawcCase.case_report.description}"
-                                </div>
+                        </div>
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 flex items-center gap-1"><Search className="w-3 h-3" /> Incident Context</p>
+                            <div className="space-y-1 text-sm border-l-2 pl-3 border-amber-200">
+                                <p className="font-bold">{vawcCase.case_report.abuse_type?.name}</p>
+                                <p className="text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {vawcCase.incident_location} (Zone {vawcCase.case_report.zone_id})</p>
+                                {vawcCase.children_count > 0 && (
+                                    <p className="text-destructive font-bold text-[10px] uppercase flex items-center gap-1">
+                                        <Info className="w-3 h-3" /> {vawcCase.children_count} Minor(s) Involved/Present
+                                    </p>
+                                )}
+                                <p className="text-muted-foreground flex items-center gap-1 text-[10px] uppercase font-mono mt-1 tracking-tighter">Reported: {new Date(vawcCase.created_at).toLocaleString()}</p>
                             </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                        <div>
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2 flex items-center gap-1"><ClipboardList className="w-3 h-3" /> Intake Notes</p>
+                            <div className="p-3 bg-white border border-slate-200 rounded-lg text-xs italic leading-relaxed line-clamp-4">
+                                "{vawcCase.case_report.description}"
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </AppLayout>
     );

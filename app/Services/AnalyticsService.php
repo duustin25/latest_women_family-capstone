@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class AnalyticsService
 {
     /**
-     * Get statistics for the dashboard ribbon.
+     * Get statistics for the dashboard ribbon (official analytics view).
      */
     public function getRibbonStats(int $year): array
     {
@@ -48,6 +48,172 @@ class AnalyticsService
     }
 
     /**
+     * Get high-level system counts for the general dashboard.
+     */
+    public function getSystemStats(): array
+    {
+        return [
+            'totalCases'  => CaseReport::count(),
+            'totalOrgs'   => \App\Models\Organization::count(),
+            'totalUsers'  => \App\Models\User::count(),
+            'pendingApps' => MembershipApplication::where('status', 'Pending')->count()
+        ];
+    }
+
+    /**
+     * Get recent case reports.
+     */
+    public function getRecentCases(int $limit = 5): Collection
+    {
+        return CaseReport::with(['abuseType', 'vawcCase'])
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get()
+            ->map(fn($case) => [
+                'id'          => $case->id,
+                'case_number' => $case->case_number,
+                'type'        => $case->type,
+                'subType'     => $case->abuseType ? $case->abuseType->name : 'N/A',
+                'status'      => $case->vawcCase ? $case->vawcCase->status : ($case->lifecycle_status ?: 'New'),
+                'date'        => $case->incident_date ? $case->incident_date->format('M d, Y') : $case->created_at->format('M d, Y'),
+            ]);
+    }
+
+    /**
+     * Get recent membership applications.
+     */
+    public function getRecentApplications(int $limit = 5): Collection
+    {
+        return MembershipApplication::with(['organization'])
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get()
+            ->map(fn($app) => [
+                'id'           => $app->id,
+                'name'         => $app->fullname,
+                'organization' => $app->organization ? $app->organization->name : 'N/A',
+                'status'       => $app->status,
+                'date'         => $app->created_at->format('M d, Y'),
+            ]);
+    }
+
+    /**
+     * Get distribution of case resolution statuses.
+     */
+    public function getCaseResolutionStats(int $year): array
+    {
+        $cases = CaseReport::with('vawcCase')
+            ->whereYear('created_at', $year)
+            ->get();
+
+        $caseResolutionsRaw = $cases->groupBy(function ($case) {
+            return $case->vawcCase ? $case->vawcCase->status : ($case->lifecycle_status ?: 'New');
+        })->map(fn($group) => count($group));
+
+        $statusColors = [
+            'New'            => '#f43f5e',
+            'Ongoing'        => '#3b82f6',
+            'Referred'       => '#a855f7',
+            'Resolved'       => '#10b981',
+            'Closed'         => '#64748b',
+            'Dismissed'      => '#ef4444',
+            'Unknown'        => '#94a3b8',
+            // VAWC Specific fallbacks
+            'Intake'         => '#3b82f6',
+            'Assessment'     => '#eab308',
+            'BPO Processing' => '#a855f7',
+            'Escalated'      => '#ef4444',
+            'Active'         => '#0ea5e9',
+            'Monitoring'     => '#06b6d4',
+        ];
+
+        $stats = [];
+        foreach ($caseResolutionsRaw as $statusName => $count) {
+            $stats[] = [
+                'name'  => $statusName,
+                'value' => $count,
+                'fill'  => $statusColors[$statusName] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF))
+            ];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get VAWC-specific analytics for the VAWC command dashboard.
+     */
+    public function getVawcSpecificStats(int $year): array
+    {
+        $vawcCases = VawcCase::whereYear('created_at', $year)->get();
+
+        $totalCases    = $vawcCases->count();
+        $totalChildren = $vawcCases->sum('children_count');
+        $repeatCases   = $vawcCases->where('is_repeat_offense', true)->count();
+
+        // SLA Compliance: BPOs issued on the same day
+        $totalBpos = DB::table('vawc_protection_orders')->where('type', 'BPO')->whereYear('created_at', $year)->count();
+        $compliantBpos = DB::table('vawc_protection_orders')
+            ->where('type', 'BPO')
+            ->where('is_sla_breached', false)
+            ->whereNotNull('issued_datetime')
+            ->whereYear('created_at', $year)
+            ->count();
+
+        $slaRate = $totalBpos > 0 ? round(($compliantBpos / $totalBpos) * 100, 1) : 100;
+
+        // Distributions (Use the raw collection for efficiency)
+        $status_distribution = $vawcCases->groupBy('status')->map(fn($g) => ['status' => $g->first()->status, 'count' => $g->count()])->values();
+        $intake_distribution = $vawcCases->groupBy('intake_type')->map(fn($g) => ['intake_type' => $g->first()->intake_type, 'count' => $g->count()])->values();
+
+        // Join with CaseReports for Abuse Type and Zone stats
+        $abuse_distribution = DB::table('vawc_cases')
+            ->join('case_reports', 'vawc_cases.case_report_id', '=', 'case_reports.id')
+            ->leftJoin('case_types', 'case_reports.abuse_type_id', '=', 'case_types.id')
+            ->whereYear('vawc_cases.created_at', $year)
+            ->select(DB::raw('COALESCE(case_types.name, "Uncategorized") as name'), DB::raw('count(*) as count'))
+            ->groupBy('name')
+            ->get();
+
+        $zone_distribution = DB::table('vawc_cases')
+            ->join('case_reports', 'vawc_cases.case_report_id', '=', 'case_reports.id')
+            ->leftJoin('zones', 'case_reports.zone_id', '=', 'zones.id')
+            ->whereYear('vawc_cases.created_at', $year)
+            ->select(DB::raw('COALESCE(zones.name, "Unknown Zone") as name'), DB::raw('count(*) as count'))
+            ->groupBy('name')
+            ->get();
+
+        return [
+            'total_cases'         => $totalCases,
+            'total_children'      => $totalChildren,
+            'repeat_cases'        => $repeatCases,
+            'status_distribution' => $status_distribution,
+            'intake_distribution' => $intake_distribution,
+            'abuse_distribution'  => $abuse_distribution,
+            'zone_distribution'   => $zone_distribution,
+            'sla_compliance'      => [
+                'total'     => $totalBpos,
+                'compliant' => $compliantBpos,
+                'rate'      => $slaRate
+            ]
+        ];
+    }
+
+    /**
+     * Get VAWC-specific chart configuration.
+     */
+    public function getVawcChartConfig(): Collection
+    {
+        return \App\Models\CaseAbuseType::where('is_active', true)
+            ->whereIn('category', ['VAWC', 'Both'])
+            ->get()
+            ->map(fn($t) => [
+                'key'   => strtolower($t->name),
+                'label' => $t->name,
+                'color' => $t->color ?? '#ce1126'
+            ]);
+    }
+
+    /**
      * Get case counts grouped by month and abuse type.
      */
     public function getMonthlyCaseAnalytics(string $type, int $year, Collection $abuseTypes): array
@@ -66,6 +232,34 @@ class AnalyticsService
     }
 
     /**
+     * Get simple monthly trend for VAWC cases.
+     */
+    public function getVawcMonthlyTrend(int $year): array
+    {
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+        $trends = VawcCase::select(
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('count(*) as count')
+        )
+            ->whereYear('created_at', $year)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->keyBy('month');
+
+        $data = [];
+        foreach ($months as $index => $monthName) {
+            $monthNum = $index + 1;
+            $data[] = [
+                'month' => $monthName,
+                'count' => $trends->has($monthNum) ? $trends->get($monthNum)->count : 0
+            ];
+        }
+        return $data;
+    }
+
+    /**
      * Get demographic breakdown by age.
      */
     public function getAgeDemographics(int $year): array
@@ -76,11 +270,11 @@ class AnalyticsService
             ->get();
 
         $ageCategories = [
-            '0-12 yrs (Child)' => 0,
-            '13-17 yrs (Teen)' => 0,
+            '0-12 yrs (Child)'        => 0,
+            '13-17 yrs (Teen)'        => 0,
             '18-35 yrs (Young Adult)' => 0,
-            '36-50 yrs (Adult)' => 0,
-            '51+ yrs (Senior)' => 0,
+            '36-50 yrs (Adult)'       => 0,
+            '51+ yrs (Senior)'        => 0,
         ];
 
         foreach ($casesWithAge as $case) {
@@ -105,11 +299,37 @@ class AnalyticsService
         }])
             ->get()
             ->map(fn($zone) => [
-                'name' => $zone->name,
+                'name'  => $zone->name,
                 'count' => $zone->case_reports_count,
                 'color' => $zone->color_code,
             ])
             ->toArray();
+    }
+
+    /**
+     * Get distribution of cases by Location (Raw String).
+     */
+    public function getLocationDemographics(int $year, int $limit = 8): array
+    {
+        $locationRaw = CaseReport::select('incident_location')
+            ->whereNotNull('incident_location')
+            ->whereYear('created_at', $year)
+            ->get()
+            ->groupBy('incident_location')
+            ->map(fn($group) => count($group))
+            ->sortByDesc(fn($count) => $count)
+            ->take($limit);
+
+        $locationDemographics = [];
+        foreach ($locationRaw as $location => $count) {
+            $shortLoc = strlen($location) > 20 ? substr($location, 0, 20) . '...' : $location;
+            $locationDemographics[] = [
+                'name' => $shortLoc,
+                'count' => $count,
+                'fullName' => $location
+            ];
+        }
+        return $locationDemographics;
     }
 
     /**
@@ -153,12 +373,12 @@ class AnalyticsService
     public function getVawcStatusBreakdown(int $year): array
     {
         $colors = [
-            'Intake'     => '#f59e0b',
-            'Active'     => '#3b82f6',
-            'Referred'   => '#a855f7',
-            'Escalated'  => '#ef4444',
-            'Resolved'   => '#10b981',
-            'Closed'     => '#64748b',
+            'Intake'    => '#f59e0b',
+            'Active'    => '#3b82f6',
+            'Referred'  => '#a855f7',
+            'Escalated' => '#ef4444',
+            'Resolved'  => '#10b981',
+            'Closed'    => '#64748b',
         ];
 
         return VawcCase::select('status', DB::raw('count(*) as total'))
@@ -207,8 +427,8 @@ class AnalyticsService
         }
 
         return [
-            'total' => $totalThisYear,
-            'growth' => $growth,
+            'total'   => $totalThisYear,
+            'growth'  => $growth,
             'monthly' => $data,
         ];
     }

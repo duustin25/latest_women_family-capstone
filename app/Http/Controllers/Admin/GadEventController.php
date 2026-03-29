@@ -18,8 +18,10 @@ class GadEventController extends Controller
         $query = GadEvent::query()->with('organization');
 
         if ($search = $request->input('search')) {
-            $query->where('title', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
+            });
         }
 
         if ($status = $request->input('status')) {
@@ -123,14 +125,40 @@ class GadEventController extends Controller
             'reject_reason' => $validated['reject_reason'] ?? null,
         ]);
 
-        $message = match($validated['status']) {
+        $message = match ($validated['status']) {
             'approved'              => 'Event approved and published to the Global Public Calendar.',
             'reschedule_requested'  => 'Reschedule request sent to the organization.',
             default                 => 'Event rejected.',
         };
 
-        // Broadcast the status change
-        event(new \App\Events\GadEventStatusChanged($event));
+        // BROADCAST ENGINE: Automated Organizational Messaging Hub
+        // If approved, notify the organization members
+        if ($validated['status'] === 'approved') {
+            $memberQuery = \App\Models\Member::where('status', 'Active')->whereNotNull('email');
+
+            // If it's an organization-specific event, target their members
+            if ($event->organization_id) {
+                $memberQuery->where('organization_id', $event->organization_id);
+            }
+
+            $members = $memberQuery->get();
+
+            foreach ($members as $member) {
+                \Illuminate\Support\Facades\Mail::to($member->email)->send(new \App\Mail\EventInvitation($event));
+
+                // Audit Trail
+                \App\Models\MemberCommunication::create([
+                    'member_id' => $member->id,
+                    'sent_by' => \Illuminate\Support\Facades\Auth::id(),
+                    'subject' => 'Official Event Invitation: ' . $event->title,
+                    'body' => $event->description,
+                    'type' => 'Bulk',
+                    'status' => 'Sent'
+                ]);
+            }
+
+            $message = 'Event approved and dispatched to ' . $members->count() . ' members via Messaging Hub.';
+        }
 
         return redirect()->back()->with('success', $message);
     }

@@ -68,29 +68,31 @@ class AnnouncementController extends Controller
         $announcement = Announcement::create($validated);
 
         // BROADCAST ENGINE: Automated Organizational Messaging Hub
+        // Logic: Targeted broadcast if organization_id exists, Global broadcast if NULL (Admin)
+        $memberQuery = Member::where('status', 'Active')->whereNotNull('email');
+
         if ($announcement->organization_id) {
-            $members = Member::where('organization_id', $announcement->organization_id)
-                ->where('status', 'Active')
-                ->whereNotNull('email')
-                ->get();
-
-            foreach ($members as $member) {
-                // Dispatching notification
-                Mail::to($member->email)->send(new AnnouncementBroadcast($announcement));
-
-                // Audit Trail: Log every communication in the hub
-                \App\Models\MemberCommunication::create([
-                    'member_id' => $member->id,
-                    'sent_by' => Auth::id(),
-                    'subject' => 'Official Announcement: ' . $announcement->title,
-                    'body' => $announcement->excerpt, // Log excerpt as body
-                    'type' => 'Bulk',
-                    'status' => 'Sent'
-                ]);
-            }
+            $memberQuery->where('organization_id', $announcement->organization_id);
         }
 
-        return redirect()->back()->with('message', 'Announcement Published & Dispatched to ' . (isset($members) ? $members->count() : 0) . ' members via Secure Messaging Hub.');
+        $members = $memberQuery->get();
+
+        foreach ($members as $member) {
+            // Dispatching notification
+            Mail::to($member->email)->send(new AnnouncementBroadcast($announcement));
+
+            // Audit Trail: Log every communication in the hub
+            \App\Models\MemberCommunication::create([
+                'member_id' => $member->id,
+                'sent_by' => Auth::id(),
+                'subject' => ($announcement->organization_id ? 'Organization Update: ' : 'Brgy. 183 Official Announcement: ') . $announcement->title,
+                'body' => $announcement->excerpt,
+                'type' => 'Bulk',
+                'status' => 'Sent'
+            ]);
+        }
+
+        return redirect()->route('admin.announcements.index')->with('message', 'Announcement Published & Dispatched to ' . $members->count() . ' members via Secure Messaging Hub.');
     }
 
     public function edit(Announcement $announcement)
@@ -122,7 +124,7 @@ class AnnouncementController extends Controller
 
         // We update everything except the ID
         $announcement->update($validated);
-        return redirect()->back()->with('success', 'Announcement Updated!');
+        return redirect()->route('admin.announcements.index')->with('success', 'Announcement Updated!');
     }
 
     public function destroy(Announcement $announcement)
@@ -132,6 +134,6 @@ class AnnouncementController extends Controller
         }
 
         $announcement->delete();
-        return redirect()->back()->with('success', 'Post deleted.');
+        return redirect()->route('admin.announcements.index')->with('success', 'Post deleted.');
     }
 }

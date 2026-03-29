@@ -54,6 +54,12 @@ export default function Dashboard({
             case 'Resolved': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500';
             case 'Closed': return 'bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-400';
             case 'Dismissed': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500';
+            case 'Intake': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-500';
+            case 'Assessment': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-500';
+            case 'BPO Processing': return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-500';
+            case 'Escalated': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-500';
+            case 'Active': return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-500';
+            case 'Monitoring': return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-500';
             default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-400';
         }
     };

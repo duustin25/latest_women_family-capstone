@@ -10,16 +10,21 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid,
     BarChart, Bar, Legend
 } from 'recharts';
-import { Activity, ShieldCheck, AlertTriangle, MapPin, TrendingUp } from 'lucide-react';
+import { Activity, ShieldCheck, AlertTriangle, MapPin, TrendingUp, Search } from 'lucide-react';
+import AnalyticsChart from '@/components/Admin/AnalyticsChart';
 
 interface Props {
     stats: {
         total_cases: number;
+        total_children: number;
+        repeat_cases: number;
         status_distribution: any[];
         intake_distribution: any[];
         abuse_distribution: any[];
         zone_distribution: any[];
         monthly_trends: any[];
+        analyticsData: any[];
+        chartConfig: any[];
         sla_compliance: {
             total: number;
             compliant: number;
@@ -117,28 +122,28 @@ export default function Dashboard({ stats }: Props) {
 
                     <Card className="border-l-4 border-l-rose-500 shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Legal Escalations</CardTitle>
+                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Repeat Offense Alert</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="text-4xl font-black tracking-tighter text-rose-600">
-                                {stats.status_distribution?.find((s: any) => s.status === 'Escalated')?.count || 0}
+                                {stats.repeat_cases || 0}
                             </div>
                             <div className="flex items-center gap-1 text-[9px] text-rose-600/70 mt-1 uppercase font-black">
-                                <AlertTriangle className="w-3 h-3" /> REFERRED TO PROSECUTOR
+                                <AlertTriangle className="w-3 h-3" /> High Risk Recurrence
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-shadow">
+                    <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Monitoring</CardTitle>
+                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Children At Risk</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-4xl font-black tracking-tighter text-blue-600">
-                                {stats.status_distribution?.find((s: any) => s.status === 'Monitoring')?.count || 0}
+                            <div className="text-4xl font-black tracking-tighter text-orange-600">
+                                {stats.total_children || 0}
                             </div>
-                            <div className="flex items-center gap-1 text-[9px] text-blue-600/70 mt-1 uppercase font-black">
-                                <Activity className="w-3 h-3" /> BPOs being tracked
+                            <div className="flex items-center gap-1 text-[9px] text-orange-600/70 mt-1 uppercase font-black">
+                                <Activity className="w-3 h-3" /> Total Impacted Minors
                             </div>
                         </CardContent>
                     </Card>
@@ -151,8 +156,8 @@ export default function Dashboard({ stats }: Props) {
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4 text-[#ce1126]" />
                                 <div>
-                                    <CardTitle className="text-xs font-black uppercase tracking-widest">Temporal Incident Velocity</CardTitle>
-                                    <CardDescription className="text-[9px] uppercase font-bold">Case reporting frequency over the current calendar year</CardDescription>
+                                    <CardTitle className="text-xs font-black uppercase tracking-widest">Women Rates of Abuse (Monthly)</CardTitle>
+                                    <CardDescription className="text-[9px] uppercase font-bold">Incidence reporting rate per month for the current year</CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
@@ -232,36 +237,14 @@ export default function Dashboard({ stats }: Props) {
                         </CardContent>
                     </Card>
 
-                    {/* Abuse Types Bar Chart */}
+                    {/* Vulnerable Demographic Activity (Advanced Analytics) */}
                     <Card className="lg:col-span-2 border-2">
                         <CardHeader className="border-b bg-muted/10">
-                            <CardTitle className="text-xs font-black uppercase tracking-widest text-[#fcd116]">Incident Hotspots (By Category)</CardTitle>
-                            <CardDescription className="text-[9px] uppercase font-bold">Concentration of abuse types reported</CardDescription>
+                            <CardTitle className="text-xs font-black uppercase tracking-widest text-[#ce1126]">Vulnerable Demographic Activity</CardTitle>
+                            <CardDescription className="text-[9px] uppercase font-bold">Incidence metrics categorized by official abuse classification</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-6 h-[250px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={barData} layout="vertical" margin={{ left: 40 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
-                                    <XAxis type="number" hide />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 9, fill: '#64748b', fontWeight: 'black', width: 100 }}
-                                        width={100}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                        cursor={{ fill: 'transparent' }}
-                                    />
-                                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
-                                        {barData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                        <CardContent className="pt-6 h-[300px]">
+                            <AnalyticsChart data={stats.analyticsData} config={stats.chartConfig} />
                         </CardContent>
                     </Card>
 
@@ -273,7 +256,7 @@ export default function Dashboard({ stats }: Props) {
                                 <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-700">Geographic Density</CardTitle>
                             </div>
                         </CardHeader>
-                        <CardContent className="pt-4 max-h-[250px] overflow-y-auto">
+                        <CardContent className="pt-4 max-h-[300px] overflow-y-auto">
                             <div className="space-y-3">
                                 {(stats.zone_distribution || []).sort((a, b) => b.count - a.count).map((item: any) => (
                                     <div key={item.name} className="flex flex-col gap-1">
@@ -293,6 +276,39 @@ export default function Dashboard({ stats }: Props) {
                                     <p className="text-[10px] italic text-muted-foreground uppercase py-10 text-center">No zone data recorded</p>
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Abuse Types Bar Chart (Full Width in this row) */}
+                    <Card className="lg:col-span-3 border-2">
+                        <CardHeader className="border-b bg-muted/10">
+                            <CardTitle className="text-xs font-black uppercase tracking-widest text-[#fcd116]">Incident Category Distribution Summary</CardTitle>
+                            <CardDescription className="text-[9px] uppercase font-bold">Lifetime concentration of specific abuse types reported</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6 h-[250px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={barData} layout="vertical" margin={{ left: 40 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'black', width: 120 }}
+                                        width={120}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                        cursor={{ fill: 'transparent' }}
+                                    />
+                                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
+                                        {barData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
                         </CardContent>
                     </Card>
                 </div>

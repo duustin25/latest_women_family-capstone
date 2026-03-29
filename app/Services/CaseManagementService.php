@@ -42,6 +42,7 @@ class CaseManagementService
 
         // 2. Initial Status
         $reportData['lifecycle_status'] = 'New';
+        $reportData['user_id'] = \Illuminate\Support\Facades\Auth::id();
 
         return CaseReport::create($reportData);
     }

@@ -44,6 +44,9 @@ class VawcCaseService
             $vawcCase = VawcCase::create([
                 'case_report_id' => $caseReport->id,
                 'intake_type' => $data['intake_type'] ?? 'Direct',
+                'children_count' => $data['children_count'] ?? 0,
+                'is_repeat_offense' => $data['is_repeat_offense'] ?? false,
+                'has_weapon_involved' => $data['has_weapon_involved'] ?? $data['weapons_confiscated'] ?? false,
                 'incident_veracity' => $data['incident_veracity'] ?? false,
                 'perpetrator_present' => $data['perpetrator_present'] ?? false,
                 'warrantless_arrest_made' => $data['warrantless_arrest_made'] ?? false,
@@ -69,6 +72,7 @@ class VawcCaseService
                 VawcInvolvedParty::create([
                     'vawc_case_id' => $vawcCase->id,
                     'role' => 'Respondent',
+                    'relationship_to_victim' => $data['respondent']['relationship'] ?? null,
                     'name' => $data['respondent']['name'],
                     'age' => $data['respondent']['age'] ?? null,
                     'gender' => $data['respondent']['gender'] ?? 'Male',

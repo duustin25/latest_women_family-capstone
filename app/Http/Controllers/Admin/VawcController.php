@@ -20,26 +20,52 @@ class VawcController extends Controller
     protected $bpoService;
     protected $complianceService;
     protected $legalService;
+    protected $analyticsService;
 
-    public function __construct(VawcCaseService $vawcService, VawcBpoService $bpoService, VawcComplianceService $complianceService, VawcLegalService $legalService)
-    {
+    public function __construct(
+        VawcCaseService $vawcService, 
+        VawcBpoService $bpoService, 
+        VawcComplianceService $complianceService, 
+        VawcLegalService $legalService,
+        \App\Services\AnalyticsService $analyticsService
+    ) {
         $this->vawcService = $vawcService;
         $this->bpoService = $bpoService;
         $this->complianceService = $complianceService;
         $this->legalService = $legalService;
+        $this->analyticsService = $analyticsService;
     }
 
     /**
      * Display a listing of VAWC cases.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cases = VawcCase::with(['caseReport.abuseType', 'involvedParties'])
-            ->orderByDesc('created_at')
-            ->get();
+        $query = VawcCase::with(['caseReport.abuseType', 'involvedParties']);
+
+        // Filter by Search (Case Number or Victim Name)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('caseReport', function ($cq) use ($search) {
+                    $cq->where('case_number', 'LIKE', "%{$search}%")
+                        ->orWhere('victim_name', 'LIKE', "%{$search}%");
+                })->orWhereHas('involvedParties', function ($pq) use ($search) {
+                    $pq->where('name', 'LIKE', "%{$search}%");
+                });
+            });
+        }
+
+        // Filter by Status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $cases = $query->orderByDesc('created_at')->get();
 
         return Inertia::render('Admin/Vawc/Index', [
-            'cases' => $cases
+            'cases' => $cases,
+            'filters' => $request->only(['search', 'status'])
         ]);
     }
 
@@ -90,6 +116,11 @@ class VawcController extends Controller
             'description' => 'required|string',
             'abuse_type' => 'required|string',
             'zone_id' => 'required|exists:zones,id',
+
+            'children_count' => 'nullable|integer',
+            'is_repeat_offense' => 'boolean',
+            'has_weapon_involved' => 'boolean',
+            'respondent.relationship' => 'nullable|string',
 
             'incident_veracity' => 'boolean',
             'perpetrator_present' => 'boolean',
@@ -167,6 +198,27 @@ class VawcController extends Controller
         $this->bpoService->recordService($order, $request->all());
 
         return redirect()->back()->with('success', 'BPO Service recorded.');
+    }
+
+    /**
+     * Generate a printable Barangay Protection Order document.
+     */
+    public function printBpo($id)
+    {
+        $case = VawcCase::with(['caseReport', 'involvedParties'])
+            ->findOrFail($id);
+
+        /** @var \App\Models\VawcProtectionOrder $order */
+        $order = $case->protectionOrders()
+            ->whereIn('status', ['Issued', 'Served'])
+            ->latest()
+            ->firstOrFail();
+
+        return Inertia::render('Admin/Vawc/PrintBpo', [
+            'case' => $case,
+            'order' => $order,
+            'officer' => \Illuminate\Support\Facades\Auth::user()
+        ]);
     }
 
     /**
@@ -254,80 +306,21 @@ class VawcController extends Controller
      */
     public function dashboard()
     {
-        $totalCases = VawcCase::count();
-
-        $casesByStatus = VawcCase::select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->get();
-
-        $casesByIntake = VawcCase::select('intake_type', DB::raw('count(*) as count'))
-            ->groupBy('intake_type')
-            ->get();
-
-        // Join with CaseReports to get Abuse Type stats
-        $casesByAbuseType = DB::table('vawc_cases')
-            ->join('case_reports', 'vawc_cases.case_report_id', '=', 'case_reports.id')
-            ->leftJoin('case_types', 'case_reports.abuse_type_id', '=', 'case_types.id')
-            ->select(DB::raw('COALESCE(case_types.name, "Uncategorized") as name'), DB::raw('count(*) as count'))
-            ->groupBy('name')
-            ->get();
-
-        // SLA Compliance: BPOs issued on the same day
-        $totalBpos = DB::table('vawc_protection_orders')->where('type', 'BPO')->count();
-        $compliantBpos = DB::table('vawc_protection_orders')
-            ->where('type', 'BPO')
-            ->where('is_sla_breached', false)
-            ->whereNotNull('issued_datetime')
-            ->count();
-
-        $slaRate = $totalBpos > 0 ? round(($compliantBpos / $totalBpos) * 100, 1) : 100;
-
-        // Cases by Zone
-        $casesByZone = DB::table('vawc_cases')
-            ->join('case_reports', 'vawc_cases.case_report_id', '=', 'case_reports.id')
-            ->leftJoin('zones', 'case_reports.zone_id', '=', 'zones.id')
-            ->select(DB::raw('COALESCE(zones.name, "Unknown Zone") as name'), DB::raw('count(*) as count'))
-            ->groupBy('name')
-            ->get();
-
-        return Inertia::render('Admin/Vawc/Dashboard', [
-            'stats' => [
-                'total_cases' => $totalCases,
-                'status_distribution' => $casesByStatus,
-                'intake_distribution' => $casesByIntake,
-                'abuse_distribution' => $casesByAbuseType,
-                'zone_distribution' => $casesByZone,
-                'monthly_trends' => $this->getMonthlyTrends(),
-                'sla_compliance' => [
-                    'total' => $totalBpos,
-                    'compliant' => $compliantBpos,
-                    'rate' => $slaRate
-                ]
-            ]
-        ]);
-    }
-
-    private function getMonthlyTrends()
-    {
-        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $currentYear = now()->year;
 
-        $trends = VawcCase::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('count(*) as count')
-        )
-            ->whereYear('created_at', $currentYear)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get()
-            ->keyBy('month');
-
-        return collect($months)->map(function ($name, $index) use ($trends) {
-            $monthNum = $index + 1;
-            return [
-                'month' => $name,
-                'count' => $trends->has($monthNum) ? $trends->get($monthNum)->count : 0
-            ];
-        })->values();
+        return Inertia::render('Admin/Vawc/Dashboard', [
+            'stats' => array_merge(
+                $this->analyticsService->getVawcSpecificStats($currentYear),
+                [
+                    'monthly_trends' => $this->analyticsService->getVawcMonthlyTrend($currentYear),
+                    'analyticsData'  => $this->analyticsService->getMonthlyCaseAnalytics(
+                        'VAWC', 
+                        $currentYear, 
+                        \App\Models\CaseAbuseType::where('is_active', true)->whereIn('category', ['VAWC', 'Both'])->get()
+                    ),
+                    'chartConfig'    => $this->analyticsService->getVawcChartConfig(),
+                ]
+            )
+        ]);
     }
 }

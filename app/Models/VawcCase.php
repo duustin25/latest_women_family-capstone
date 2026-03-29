@@ -17,6 +17,9 @@ class VawcCase extends Model
     protected $fillable = [
         'case_report_id',
         'intake_type',
+        'children_count',
+        'is_repeat_offense',
+        'has_weapon_involved',
         'incident_veracity',
         'perpetrator_present',
         'warrantless_arrest_made',
@@ -25,6 +28,8 @@ class VawcCase extends Model
     ];
 
     protected $casts = [
+        'is_repeat_offense' => 'boolean',
+        'has_weapon_involved' => 'boolean',
         'incident_veracity' => 'boolean',
         'perpetrator_present' => 'boolean',
         'warrantless_arrest_made' => 'boolean',

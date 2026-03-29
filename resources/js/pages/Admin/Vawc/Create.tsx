@@ -19,12 +19,15 @@ export default function Create({ abuseTypes, zones }: Props) {
         intake_type: 'Direct',
         victim: { name: '', age: '', gender: 'Female', contact: '', address: '' },
         complainant: { name: '', contact: '' },
-        respondent: { name: '', age: '', gender: 'Male', contact: '', address: '' },
+        respondent: { name: '', age: '', gender: 'Male', contact: '', address: '', relationship: '' },
         incident_date: '',
         incident_location: '',
         description: '',
         abuse_type: '',
         zone_id: '',
+        children_count: 0,
+        is_repeat_offense: false,
+        has_weapon_involved: false,
         incident_veracity: false,
         perpetrator_present: false,
         warrantless_arrest_made: false,
@@ -142,6 +145,23 @@ export default function Create({ abuseTypes, zones }: Props) {
                                     <Label htmlFor="r_name">Full Name</Label>
                                     <Input id="r_name" value={data.respondent.name} onChange={e => setData('respondent', { ...data.respondent, name: e.target.value })} />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label>Relationship to Victim</Label>
+                                    <select
+                                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                                        value={data.respondent.relationship}
+                                        onChange={e => setData('respondent', { ...data.respondent, relationship: e.target.value })}
+                                    >
+                                        <option value="">Select Relationship...</option>
+                                        <option value="Husband">Husband</option>
+                                        <option value="Ex-Husband">Ex-Husband</option>
+                                        <option value="Live-in Partner">Live-in Partner</option>
+                                        <option value="Ex-Partner">Ex-Partner</option>
+                                        <option value="Father of Child">Father of Child</option>
+                                        <option value="Dating Partner">Dating Partner</option>
+                                        <option value="Other Family Member">Other Family Member</option>
+                                    </select>
+                                </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="perpetrator_present"
@@ -163,9 +183,21 @@ export default function Create({ abuseTypes, zones }: Props) {
                                         <Checkbox
                                             id="weapons"
                                             checked={data.weapons_confiscated}
-                                            onCheckedChange={(checked) => setData('weapons_confiscated', !!checked)}
+                                            onCheckedChange={(checked) => {
+                                                setData(d => ({ ...d, weapons_confiscated: !!checked, has_weapon_involved: !!checked }));
+                                            }}
                                         />
                                         <Label htmlFor="weapons">Weapons/Arms Confiscated?</Label>
+                                    </div>
+                                </div>
+                                <div className="pt-2 border-t mt-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="repeat"
+                                            checked={data.is_repeat_offense}
+                                            onCheckedChange={(checked) => setData('is_repeat_offense', !!checked)}
+                                        />
+                                        <Label htmlFor="repeat" className="text-destructive font-bold">Repeat Offense / History of Abuse?</Label>
                                     </div>
                                 </div>
                             </CardContent>
@@ -215,6 +247,11 @@ export default function Create({ abuseTypes, zones }: Props) {
                                         <Label>Incident Location (Specific Address)</Label>
                                         <Input value={data.incident_location} onChange={e => setData('incident_location', e.target.value)} />
                                         {errors.incident_location && <p className="text-xs text-destructive">{errors.incident_location}</p>}
+                                    </div>
+                                    <div className="space-y-2 col-span-2">
+                                        <Label>Children Involved / Present at Scene</Label>
+                                        <Input type="number" min="0" value={data.children_count} onChange={e => setData('children_count', parseInt(e.target.value) || 0)} />
+                                        <p className="text-[10px] text-muted-foreground uppercase mt-1">Legally critical for DSWD social work referrals.</p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">

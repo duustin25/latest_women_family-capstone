@@ -18,6 +18,12 @@ return new class extends Migration {
             $table->time('event_time')->nullable();
             $table->string('location');
             $table->string('image_path')->nullable();
+
+            // New Organizational Columns
+            $table->foreignId('organization_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('status')->default('pending');
+            $table->text('reject_reason')->nullable();
+
             $table->timestamps();
         });
     }

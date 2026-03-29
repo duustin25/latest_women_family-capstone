@@ -1,10 +1,14 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Lock } from 'lucide-react';
 
 export default function Index() {
+    const { auth } = usePage<any>().props;
+    const isPresident = auth.user.role === 'president';
+
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Case Registry', href: '#' }]}>
             <Head title="Case Registry" />
@@ -20,17 +24,26 @@ export default function Index() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Card className="border-destructive/20 shadow-sm relative overflow-hidden">
                         <CardHeader>
-                            <CardTitle className="text-destructive flex items-center gap-2">
-                                RA 9262: VAWC Module
-                            </CardTitle>
+                            <div className="flex justify-between items-start">
+                                <CardTitle className="text-destructive flex items-center gap-2">
+                                    RA 9262: VAWC Module
+                                </CardTitle>
+                                {isPresident && <Badge variant="destructive" className="uppercase text-[10px]"><Lock className="w-3 h-3 mr-1" /> Confidential</Badge>}
+                            </div>
                             <CardDescription>
                                 Specialized lifecycle tracking for Violence Against Women and Children, including BPO issuance.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Button className="w-full" asChild>
-                                <Link href="/admin/vawc/cases">Open VAWC System</Link>
-                            </Button>
+                            {isPresident ? (
+                                <Button variant="outline" className="w-full text-destructive border-destructive/50 cursor-not-allowed" onClick={(e) => e.preventDefault()}>
+                                    <Lock className="w-4 h-4 mr-2" /> Unauthorized Access
+                                </Button>
+                            ) : (
+                                <Button className="w-full" asChild>
+                                    <Link href="/admin/vawc/cases">Open VAWC System</Link>
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
 

@@ -15,6 +15,7 @@ class VawcInvolvedParty extends Model
     protected $fillable = [
         'vawc_case_id',
         'role',
+        'relationship_to_victim',
         'name',
         'age',
         'gender',

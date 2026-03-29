@@ -1,10 +1,9 @@
 import PublicLayout from '@/layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
-import { ShieldCheck, FileText, Phone, Gavel, Lock, ArrowRight, BookOpen, AlertCircle, HeartHandshake, Scale } from "lucide-react";
+import { ShieldCheck, FileText, Phone, Gavel, Lock, ArrowRight, BookOpen, AlertCircle, HeartHandshake, Scale, Clock, Activity, FileWarning, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { route } from 'ziggy-js';
 
 export default function VawcIndex() {
 
@@ -18,6 +17,7 @@ export default function VawcIndex() {
     return (
         <PublicLayout>
             <Head title="VAWC Support - Brgy 183 Villamor" />
+
             {/* FIXED BACKGROUND LOGO */}
             <div className="fixed inset-0 flex justify-center items-center pointer-events-none z-0">
                 <img
@@ -29,8 +29,8 @@ export default function VawcIndex() {
 
             <div className="min-h-screen bg-white dark:bg-neutral-950 font-sans text-slate-800 dark:text-slate-200 transition-colors">
 
-                {/* HERO SECTION - Streamlined for Direct Access */}
-                <section className="bg-slate-900 border-b-4 border-rose-600 relative overflow-hidden">
+                {/* HERO SECTION - BCPC THEME */}
+                <section className="bg-slate-900 border-b-4 border-rose-500 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-rose-900/30 to-slate-900 z-0"></div>
                     <div className="container mx-auto px-6 py-12 md:py-16 relative z-10 text-center lg:text-left">
                         <div className="max-w-5xl mx-auto lg:mx-0">
@@ -46,7 +46,7 @@ export default function VawcIndex() {
                                     className="bg-rose-600 hover:bg-rose-700 text-white font-black uppercase px-8 py-6 text-xs tracking-widest rounded-md shadow-xl transition-all active:scale-95 cursor-pointer h-14"
                                     onClick={() => scrollToSection('filing-process')}
                                 >
-                                    How to File a Case <ArrowRight className="ml-2 w-5 h-5" />
+                                    The 12-Step Pathway <ArrowRight className="ml-2 w-5 h-5" />
                                 </Button>
                             </div>
                         </div>
@@ -72,16 +72,16 @@ export default function VawcIndex() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-white dark:bg-neutral-900 border-t-4 border-t-blue-500 shadow-sm hover:shadow-md transition-shadow dark:border-neutral-800">
+                            <Card className="bg-white dark:bg-neutral-900 border-t-4 border-t-amber-500 shadow-sm hover:shadow-md transition-shadow dark:border-neutral-800">
                                 <CardHeader>
-                                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                                        <Gavel className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center mb-4">
+                                        <Gavel className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                                     </div>
                                     <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Legal Assistance</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed">
-                                        Free legal counseling and assistance in filing cases, partnered with local authorities and NGOs.
+                                        Free legal counseling and assistance in filing cases, partnered with local authorities and PNP.
                                     </p>
                                 </CardContent>
                             </Card>
@@ -91,30 +91,30 @@ export default function VawcIndex() {
                                     <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4">
                                         <HeartHandshake className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                                     </div>
-                                    <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Counseling & Rescue</CardTitle>
+                                    <CardTitle className="uppercase font-black text-lg text-slate-900 dark:text-white">Active Monitoring</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed">
-                                        24/7 rescue operations and psychosocial counseling support for women and children in distress.
+                                        Daily compliance checks and counseling referrals to ensure long-term safety and recovery.
                                     </p>
                                 </CardContent>
                             </Card>
                         </div>
                     </section>
 
-                    {/* --- FILING PROCESS --- */}
+                    {/* --- THE 12-STEP FILING PROCESS --- */}
                     <section id="filing-process" className="bg-slate-50 dark:bg-neutral-900 rounded-2xl p-8 md:p-12 border border-slate-200 dark:border-neutral-800">
                         <div className="flex items-center gap-3 mb-10">
-                            <FileText className="text-rose-600 w-8 h-8" />
-                            <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">How to File a Case</h2>
+                            <Scale className="text-rose-600 w-8 h-8" />
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">The 12-Step Legal Pathway</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             {[
-                                { step: "01", title: "Incident Report", desc: "Visit the Barangay Hall or use our online form to report the incident. Secure a police blotter if possible." },
-                                { step: "02", title: "Assessment", desc: "The VAWC Desk Officer will interview you and assess the situation for immediate needs (medical/safety)." },
-                                { step: "03", title: "BPO Issuance", desc: "If applicable, a Barangay Protection Order will be issued within 24 hours to ensure your safety." },
-                                { step: "04", title: "Legal Action", desc: "We will assist you in filing appropriate cases in court if you choose to pursue legal action." }
+                                { step: "01", title: "Intake", desc: "Formal documenting of the incident and personal details of all parties." },
+                                { step: "02", title: "Assessment", desc: "Confidential interview to identify immediate medical or shelter needs." },
+                                { step: "03-04", title: "BPO Issuance", desc: "Application filing and same-day signature by the Punong Barangay." },
+                                { step: "05-12", title: "Monitoring & Legal", desc: "Compliance checks and assistance in filing formal criminal complaints." }
                             ].map((item, index) => (
                                 <div key={index} className="relative pl-8 md:pl-0 pt-0 md:pt-12 group">
                                     <div className="hidden md:block absolute top-0 left-0 w-full h-1 bg-slate-200 dark:bg-neutral-700 group-hover:bg-rose-400 transition-colors"></div>
@@ -127,6 +127,11 @@ export default function VawcIndex() {
                                 </div>
                             ))}
                         </div>
+                        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-neutral-800">
+                            <p className="text-sm font-black uppercase tracking-widest text-rose-600 flex items-center gap-2">
+                                <Clock className="w-4 h-4" /> RA 9262 Mandate: BPO must be issued within the same day of application.
+                            </p>
+                        </div>
                     </section>
 
                     {/* --- REQUIREMENTS & LAWS --- */}
@@ -135,22 +140,24 @@ export default function VawcIndex() {
                         {/* REQUIREMENTS */}
                         <section>
                             <div className="flex items-center gap-2 mb-6">
-                                <AlertCircle className="text-rose-600 w-6 h-6" />
-                                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Requirements for BPO</h2>
+                                <AlertCircle className="text-amber-600 w-6 h-6" />
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Requirements (Brgy 183 Office)</h2>
                             </div>
                             <ul className="space-y-4">
                                 {[
-                                    "Personal Appearance of the victim-survivor (or guardian for minors)",
-                                    "Valid Government ID of the complainant",
-                                    "Barangay Blotter or Incident Report",
-                                    "Medical Certificate (Medico-Legal) if with physical injuries",
-                                    "Photos/Videos as evidence (optional but recommended)"
+                                    { title: "Personal Appearance", desc: "Victim-survivor must visit the office for the formal intake." },
+                                    { title: "Identification", desc: "Valid Government ID of the complainant." },
+                                    { title: "Incident Details", desc: "Specific location, date, and narrative of the abuse." },
+                                    { title: "Respondent Info", desc: "Full name and address of the perpetrator." }
                                 ].map((req, i) => (
-                                    <li key={i} className="flex items-start gap-4 p-4 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-lg shadow-sm hover:border-rose-200 dark:hover:border-rose-900 transition-colors">
-                                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shrink-0 mt-0.5">
-                                            <span className="text-rose-700 dark:text-rose-400 font-bold text-sm">{i + 1}</span>
+                                    <li key={i} className="flex items-start gap-4 p-4 bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 rounded-lg shadow-sm hover:border-amber-200 dark:hover:border-amber-900 transition-colors">
+                                        <div className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 mt-0.5">
+                                            <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                                         </div>
-                                        <span className="text-slate-800 dark:text-slate-200 font-bold text-base">{req}</span>
+                                        <div>
+                                            <strong className="block text-slate-900 dark:text-white font-black text-sm uppercase mb-1">{req.title}</strong>
+                                            <span className="text-slate-700 dark:text-slate-300 text-base leading-snug font-medium">{req.desc}</span>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -159,39 +166,37 @@ export default function VawcIndex() {
                         {/* KNOW YOUR RIGHTS (ACCORDION) */}
                         <section>
                             <div className="flex items-center gap-2 mb-6">
-                                <BookOpen className="text-blue-600 w-6 h-6" />
-                                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Know Your Rights (RA 9262)</h2>
+                                <BookOpen className="text-rose-600 w-6 h-6" />
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Legal FAQs (RA 9262)</h2>
                             </div>
                             <Accordion type="single" collapsible className="w-full">
                                 <AccordionItem value="item-1" className="border-b-slate-200 dark:border-b-neutral-800">
                                     <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">What acts are considered violence?</AccordionTrigger>
-                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Use of physical force, sexual acts without consent, psychological violence (threats, harassment), and economic abuse (withdrawal of financial support).
+                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                        Physical force, sexual acts without consent, psychological violence (threats, harassment), and economic abuse.
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="item-2" className="border-b-slate-200 dark:border-b-neutral-800">
-                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">Who is protected under the law?</AccordionTrigger>
-                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Women and their children, including wives, former wives, women with whom the offender has or had a sexual or dating relationship, and their children (legitimate or illegitimate).
+                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">How long is a BPO valid?</AccordionTrigger>
+                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                        A Barangay Protection Order (BPO) is valid for 15 days. For long-term protection, we assist in filing for TPO/PPO in Court.
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="item-3" className="border-b-slate-200 dark:border-b-neutral-800">
-                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">What is a Protection Order?</AccordionTrigger>
-                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        An order issued by the Barangay (BPO) or Court (TPO/PPO) to prevent the offender from committing further acts of violence against the woman or her child.
+                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">Is this service free?</AccordionTrigger>
+                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                        Yes. All services provided by the Barangay 183 Women's Desk are free of charge.
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="item-4" className="border-b-slate-200 dark:border-b-neutral-800">
-                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">Is VAWC a criminal offense?</AccordionTrigger>
-                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Yes. Violation of RA 9262 is a criminal offense. Perpetrators can face imprisonment and fines depending on the severity of the act.
+                                    <AccordionTrigger className="uppercase font-bold text-sm hover:text-rose-600 text-slate-900 dark:text-slate-200">What if the BPO is violated?</AccordionTrigger>
+                                    <AccordionContent className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                        Violation of a BPO is a criminal offense. We will immediately escalate the case to the PNP and the Prosecutor.
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
                         </section>
-
                     </div>
-
                 </div>
 
                 {/* --- CALL TO ACTION --- */}
@@ -202,9 +207,9 @@ export default function VawcIndex() {
                                 <Phone className="w-8 h-8 text-white" />
                             </div>
                         </div>
-                        <h2 className="text-slate-900 dark:text-slate-200 text-3xl font-black uppercase mb-4">Emergency Hotline</h2>
-                        <p className="text-rose-400 font-bold text-5xl tracking-tighter mb-4">(02) 8111-VAWC</p>
-                        <p className="text-slate-900 dark:text-slate-200 uppercase tracking-widest text-sm mb-8">Barangay 183 Villamor VAWC Desk • 24/7 Active</p>
+                        <h2 className="text-slate-900 dark:text-slate-200 text-3xl font-black uppercase mb-4">VAWC HOTLINE</h2>
+                        <p className="text-rose-400 font-bold text-5xl tracking-tighter mb-4">(02) 8-183-SAFE</p>
+                        <p className="text-slate-900 dark:text-slate-200 uppercase tracking-widest text-sm mb-8">Barangay 183 Villamor Women's Desk • 24/7 Monitoring</p>
                     </div>
                 </section>
 

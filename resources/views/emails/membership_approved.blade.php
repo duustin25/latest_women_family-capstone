@@ -19,7 +19,7 @@ Please keep this email for your records. You may be asked to present your Member
 **Sustainability Note:** This digital ID replaces physical cards, saving resources while ensuring your data is always accessible.
 
 <x-mail::button :url="config('app.url')">
-Log In To Member Hub
+View Our Official Hub
 </x-mail::button>
 
 Sincerely,<br>
