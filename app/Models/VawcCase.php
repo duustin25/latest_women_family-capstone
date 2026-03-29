@@ -25,6 +25,9 @@ class VawcCase extends Model
         'warrantless_arrest_made',
         'weapons_confiscated',
         'status',
+        'closure_reason',
+        'closure_remarks',
+        'closed_at',
     ];
 
     protected $casts = [
@@ -34,6 +37,7 @@ class VawcCase extends Model
         'perpetrator_present' => 'boolean',
         'warrantless_arrest_made' => 'boolean',
         'weapons_confiscated' => 'boolean',
+        'closed_at' => 'datetime',
     ];
 
     /**

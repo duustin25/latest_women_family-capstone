@@ -158,6 +158,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'v
     Route::post('vawc/cases/{id}/log-compliance', [\App\Http\Controllers\Admin\VawcController::class, 'logCompliance'])->name('vawc.log-compliance');
     Route::post('vawc/cases/{id}/escalate', [\App\Http\Controllers\Admin\VawcController::class, 'escalate'])->name('vawc.escalate');
     Route::get('vawc/cases/{id}/complaint-form', [\App\Http\Controllers\Admin\VawcController::class, 'complaintForm'])->name('vawc.complaint-form');
+    Route::post('vawc/cases/{id}/close', [\App\Http\Controllers\Admin\VawcController::class, 'closeCase'])->name('vawc.close');
     // ------------------------------------------------------------
 });
 

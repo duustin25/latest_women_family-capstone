@@ -56,16 +56,23 @@ class VawcController extends Controller
             });
         }
 
-        // Filter by Status
+        // Filter by Status (If an exact sub-status is chosen)
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
+        }
+
+        // The "Archived vs Active" Strategy Pattern Separation
+        if ($request->input('archived') === '1') {
+            $query->where('status', 'Closed'); // Only show the Historical records
+        } else {
+            $query->where('status', '!=', 'Closed'); // Only show Active Worklist
         }
 
         $cases = $query->orderByDesc('created_at')->get();
 
         return Inertia::render('Admin/Vawc/Index', [
             'cases' => $cases,
-            'filters' => $request->only(['search', 'status'])
+            'filters' => $request->only(['search', 'status', 'archived'])
         ]);
     }
 
@@ -300,6 +307,24 @@ class VawcController extends Controller
             'officer' => \Illuminate\Support\Facades\Auth::user()
         ]);
     }
+
+    /**
+     * Closes/Archives a VAWC Case.
+     */
+    public function closeCase($id, Request $request)
+    {
+        $case = VawcCase::findOrFail($id);
+
+        $request->validate([
+            'closure_reason' => 'required|string',
+            'closure_remarks' => 'nullable|string'
+        ]);
+
+        $this->legalService->closeCase($case, $request->all());
+
+        return redirect()->back()->with('success', 'Case safely closed and archived.');
+    }
+
 
     /**
      * Display the VAWC Management Dashboard with Analytics.

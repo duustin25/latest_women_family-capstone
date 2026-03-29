@@ -16,12 +16,14 @@ interface Props {
     filters: {
         search?: string;
         status?: string;
+        archived?: string;
     };
 }
 
 export default function Index({ cases, filters }: Props) {
     const [search, setSearch] = useState(filters?.search || '');
     const [status, setStatus] = useState(filters?.status || 'all');
+    const [archived, setArchived] = useState(filters?.archived || '0');
     const debouncedSearch = useDebounce(search, 300);
 
     const getStatusVariant = (status: string) => {
@@ -40,12 +42,13 @@ export default function Index({ cases, filters }: Props) {
     useEffect(() => {
         router.get(route('admin.vawc.index'), {
             search: debouncedSearch,
-            status: status
+            status: status,
+            archived: archived
         }, {
             preserveState: true,
             replace: true
         });
-    }, [debouncedSearch, status]);
+    }, [debouncedSearch, status, archived]);
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'VAWC Cases', href: '#' }]}>
@@ -65,62 +68,79 @@ export default function Index({ cases, filters }: Props) {
                                 Analytics Dashboard
                             </Link>
                         </Button>
-                        <Button asChild size="sm" className="flex items-center gap-2 h-9 px-4">
+                        <Button asChild size="sm" className="flex items-center gap-2">
                             <Link href={route('admin.vawc.create')}>
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4" />
                                 New Intake
                             </Link>
                         </Button>
                     </div>
                 </div>
 
-                {/* FILTERS & SEARCH */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-3 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search Case #, Participant Name..."
-                            className="pl-9 h-11"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                    <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger className="h-11">
-                            <div className="flex items-center gap-2">
-                                <Filter className="w-4 h-4 text-muted-foreground" />
-                                <SelectValue placeholder="All Status" />
-                            </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="Intake">Intake</SelectItem>
-                            <SelectItem value="BPO Processing">BPO Processing</SelectItem>
-                            <SelectItem value="Monitoring">Monitoring</SelectItem>
-                            <SelectItem value="Escalated">Escalated</SelectItem>
-                            <SelectItem value="Resolved">Resolved</SelectItem>
-                            <SelectItem value="Closed">Closed</SelectItem>
-                        </SelectContent>
-                    </Select>
+                {/* WORKFLOW MODE SWITCHER */}
+                <div className="flex bg-neutral-100 p-1 rounded-xl max-w-md">
+                    <button
+                        className={`flex-1 text-xs font-black uppercase tracking-widest py-3 rounded-lg transition-all ${archived === '0' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-slate-200/50 hover:text-slate-700'}`}
+                        onClick={() => { setArchived('0'); setStatus('all'); }}
+                    >
+                        Active Registry
+                    </button>
+                    <button
+                        className={`flex-1 text-xs font-black uppercase tracking-widest py-3 rounded-lg transition-all ${archived === '1' ? 'bg-slate-600 text-white shadow-md' : 'text-muted-foreground hover:bg-slate-200/50 hover:text-slate-700'}`}
+                        onClick={() => { setArchived('1'); setStatus('all'); }}
+                    >
+                        Closed Records
+                    </button>
                 </div>
 
-                <Card className="border-muted shadow-sm overflow-hidden">
-                    <CardHeader className="pb-3 border-b bg-muted/5 flex flex-row items-center justify-between">
-                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                            Case Logbook
-                        </CardTitle>
-                        <Badge variant="secondary" className="h-5">{cases.length} result(s)</Badge>
+                {/* FILTERS & SEARCH */}
+                <Card className="border-muted shadow-md overflow-hidden">
+                    <CardHeader className={`pb-3 border-b bg-muted/5 flex flex-row items-center justify-between text-right ${archived === '1'}`}>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <CardTitle className={`text-sm font-semibold flex items-center gap-2 whitespace-nowrap ${archived === '1'}`}>
+                                {archived === '1' ? 'Closed & Archived Cases' : 'Active Case Logbook'}
+                                <Badge variant="secondary" className="ml-2 h-5">{cases.length}</Badge>
+                            </CardTitle>
+
+                            <div className="flex flex-1 flex-col sm:flex-row items-center justify-end gap-2 w-full">
+                                <Select value={status} onValueChange={setStatus} disabled={archived === '1'}>
+                                    <SelectTrigger className="h-9 w-full sm:w-[180px]">
+                                        <div className="flex items-center gap-2">
+                                            <Filter className="w-4 h-4 text-muted-foreground" />
+                                            <SelectValue placeholder="All Status" />
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="Intake">Intake</SelectItem>
+                                        <SelectItem value="BPO Processing">BPO Processing</SelectItem>
+                                        <SelectItem value="Monitoring">Monitoring</SelectItem>
+                                        <SelectItem value="Escalated">Escalated</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search Name/Case #"
+                                        className="pl-9 h-9 w-full"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent className="p-0">
                         <Table>
                             <TableHeader className="bg-muted/10">
                                 <TableRow>
-                                    <TableHead className="font-mono font-bold py-4 pl-6 uppercase text-[10px] tracking-wide">Case Number</TableHead>
-                                    <TableHead className="font-bold uppercase text-[10px] tracking-wide">Victim</TableHead>
-                                    <TableHead className="font-bold uppercase text-[10px] tracking-wide text-center">Status</TableHead>
-                                    <TableHead className="font-bold uppercase text-[10px] tracking-wide">Involved Parties</TableHead>
-                                    <TableHead className="font-bold uppercase text-[10px] tracking-wide">Date Reported</TableHead>
-                                    <TableHead className="text-right font-bold pr-6 font-mono text-[10px] uppercase">Registry</TableHead>
+                                    <TableHead className="w-[300px] font-bold py-4">Case Number</TableHead>
+                                    <TableHead className="font-bold">Victim</TableHead>
+                                    <TableHead className="font-bold text-center">Status</TableHead>
+                                    <TableHead className="font-bold">Involved Parties</TableHead>
+                                    <TableHead className="font-bold">Date Reported</TableHead>
+                                    <TableHead className="text-right font-bold pr-6">Registry</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -132,7 +152,7 @@ export default function Index({ cases, filters }: Props) {
                                     </TableRow>
                                 )}
                                 {cases.map((vawc: any) => (
-                                    <TableRow key={vawc.id} className="hover:bg-muted/5 group">
+                                    <TableRow key={vawc.id} className="hover:bg-muted/5">
                                         <TableCell className="font-mono font-bold text-sm pl-6 text-primary">
                                             {vawc.case_report.case_number}
                                         </TableCell>

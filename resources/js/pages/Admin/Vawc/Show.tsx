@@ -9,7 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, ChevronRight, Gavel, Printer, Search, ShieldCheck, MapPin, ClipboardList, Info } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Gavel, Printer, Search, ShieldCheck, MapPin, ClipboardList, Info, ArchiveX, Lock } from 'lucide-react';
 
 interface Props {
     case: any;
@@ -43,15 +43,25 @@ export default function Show({ case: vawcCase }: Props) {
         violation_description: '',
     });
 
+    const closeForm = useForm<any>({
+        closure_reason: '',
+        closure_remarks: '',
+    });
+
+    // Modal State
+    const [showCloseModal, setShowCloseModal] = React.useState(false);
+
     // Handlers
     const handleApplyBpo = () => { if (confirm('File Official Application for BPO?')) bpoForm.post(route('admin.vawc.apply-bpo', vawcCase.id)); };
     const handleIssueBpo = () => { if (confirm('Confirm Official BPO Issuance? (RA 9262 Mandate)')) issuanceForm.post(route('admin.vawc.issue-bpo', vawcCase.id)); };
     const handleRecordService = (e: React.FormEvent) => { e.preventDefault(); serviceForm.post(route('admin.vawc.record-service', vawcCase.id)); };
     const handleLogCompliance = (e: React.FormEvent) => { e.preventDefault(); complianceForm.post(route('admin.vawc.log-compliance', vawcCase.id), { onSuccess: () => complianceForm.reset() }); };
     const handleEscalate = (e: React.FormEvent) => { e.preventDefault(); escalationForm.post(route('admin.vawc.escalate', vawcCase.id)); };
+    const handleCloseCase = (e: React.FormEvent) => { e.preventDefault(); closeForm.post(route('admin.vawc.close', vawcCase.id), { onSuccess: () => setShowCloseModal(false) }); };
 
     // Workflow Logic
     const currentStep = () => {
+        if (vawcCase.status === 'Closed') return 7; // Case Archival / Closed
         if (vawcCase.status === 'Escalated') return 6; // Legal/External Agency Referral
         if (vawcCase.protection_orders.length === 0) return 2; // BPO Application
         if (activeBpo?.status === 'Applied') return 3; // BPO Issuance
@@ -67,12 +77,12 @@ export default function Show({ case: vawcCase }: Props) {
 
             <div className="p-6 space-y-8 max-w-5xl mx-auto">
                 {/* 🩺 PHASE TRACKER */}
-                <div className="grid grid-cols-6 gap-2 px-1">
-                    {[1, 2, 3, 4, 5, 6].map((s) => (
+                <div className="grid grid-cols-7 gap-2 px-1">
+                    {[1, 2, 3, 4, 5, 6, 7].map((s) => (
                         <div key={s} className="flex flex-col gap-2">
-                            <div className={`h-1.5 rounded-full ${s < stepNum ? 'bg-primary' : (s === stepNum ? 'bg-primary animate-pulse' : 'bg-muted')}`} />
-                            <span className={`text-[9px] uppercase font-bold tracking-tight text-center ${s === stepNum ? 'text-primary' : 'text-muted-foreground'}`}>
-                                {s === 1 ? 'Intake' : s === 2 ? 'Apply' : s === 3 ? 'Issue' : s === 4 ? 'Serve' : s === 5 ? 'Monitor' : 'Referral'}
+                            <div className={`h-1.5 rounded-full ${s < stepNum ? 'bg-primary' : (s === stepNum ? (s === 7 ? 'bg-slate-500' : 'bg-primary animate-pulse') : 'bg-muted')}`} />
+                            <span className={`text-[9px] uppercase font-bold tracking-tight text-center ${s === stepNum ? (s === 7 ? 'text-slate-600' : 'text-primary') : 'text-muted-foreground'}`}>
+                                {s === 1 ? 'Intake' : s === 2 ? 'Apply' : s === 3 ? 'Issue' : s === 4 ? 'Serve' : s === 5 ? 'Monitor' : s === 6 ? 'Referral' : 'Archive'}
                             </span>
                         </div>
                     ))}
@@ -92,24 +102,33 @@ export default function Show({ case: vawcCase }: Props) {
                 )}
 
                 {/* 🚀 PRIMARY GUIDED ACTION CARD */}
-                <Card className="border-primary/30 shadow-lg ring-4 ring-primary/5">
-                    <CardHeader className="bg-primary/5 pb-6">
+                <Card className={`shadow-lg ring-4 ${stepNum === 7 ? 'border-slate-300 ring-slate-100' : 'border-primary/30 ring-primary/5'}`}>
+                    <CardHeader className={`${stepNum === 7 ? 'bg-slate-50' : 'bg-primary/5'} pb-6`}>
                         <div className="flex justify-between items-start">
-                            <div>
-                                <Badge className="mb-2 bg-primary/90">STEP {stepNum}: CURRENT PHASE</Badge>
-                                <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                                    {stepNum === 2 && "File Application for BPO"}
-                                    {stepNum === 3 && "Barangay Head: Issue the BPO"}
-                                    {stepNum === 4 && "Print & Serve the Official BPO"}
-                                    {stepNum === 5 && "Ongoing Monitoring & Compliance"}
-                                    {stepNum === 6 && "Case Referred to Higher Authorities"}
-                                </CardTitle>
+                            <div className="w-full">
+                                <Badge className={`mb-2 ${stepNum === 7 ? 'bg-slate-600' : 'bg-primary/90'}`}>STEP {stepNum}: CURRENT PHASE</Badge>
+                                <div className="flex justify-between items-center w-full">
+                                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                                        {stepNum === 2 && "File Application for BPO"}
+                                        {stepNum === 3 && "Barangay Head: Issue the BPO"}
+                                        {stepNum === 4 && "Print & Serve the Official BPO"}
+                                        {stepNum === 5 && "Ongoing Monitoring & Compliance"}
+                                        {stepNum === 6 && "Case Referred to Higher Authorities"}
+                                        {stepNum === 7 && <><Lock className="w-5 h-5" /> Case Closed & Archived</>}
+                                    </CardTitle>
+                                    {(stepNum === 5 || stepNum === 6) && (
+                                        <Button variant="outline" className={`h-8 text-[10px] font-black uppercase tracking-widest border-2 hover:bg-slate-100`} onClick={() => setShowCloseModal(true)}>
+                                            <ArchiveX className="w-3 h-3 mr-1" /> Close Case File
+                                        </Button>
+                                    )}
+                                </div>
                                 <CardDescription className="text-base mt-2">
                                     {stepNum === 2 && "The resident has reported the case. Click below to officially open the 15-day Protection Order application."}
                                     {stepNum === 3 && "The application is filed. Now, the Punong Barangay must review and 'Confirm Issuance' to make it a legal document."}
                                     {stepNum === 4 && "The BPO is Issued! DO THIS NEXT: (1) Print the BPO below, (2) Get it signed, (3) Deliver it (Serve) to the respondent, then (4) Record the service status in the form below."}
                                     {stepNum === 5 && "Documentation is complete. Use this phase to record regular check-ins with the victim and monitor for any violations."}
                                     {stepNum === 6 && "This case is no longer under Barangay Jurisdiction alone. It has been officially referred for external legal action/investigation."}
+                                    {stepNum === 7 && "This record is now locked in adherence to RA 9262 standards. It has reached its legal conclusion and is preserved for historical and audit purposes."}
                                 </CardDescription>
                             </div>
                         </div>
@@ -224,7 +243,7 @@ export default function Show({ case: vawcCase }: Props) {
                                     <Gavel className="w-5 h-5 text-red-600" />
                                     <AlertTitle className="text-red-800 font-black uppercase text-xs tracking-widest">Official Escalation Notice</AlertTitle>
                                     <AlertDescription className="text-red-700 text-sm">
-                                        This case has been referred to higher legal authorities (PNP/Court) due to a BPO violation or high-risk classification. 
+                                        This case has been referred to higher legal authorities (PNP/Court) due to a BPO violation or high-risk classification.
                                         Barangay responsibilities now focus on assisting with technical coordination and victim safety.
                                     </AlertDescription>
                                 </Alert>
@@ -236,6 +255,29 @@ export default function Show({ case: vawcCase }: Props) {
                                         <a href={route('admin.vawc.complaint-form', vawcCase.id)} target="_blank">View Court Complaint Template</a>
                                     </Button>
                                 </div>
+                            </div>
+                        )}
+
+                        {stepNum === 7 && (
+                            <div className="space-y-4 py-8 text-center max-w-xl mx-auto">
+                                <Alert className="border-slate-300 bg-slate-100 text-left">
+                                    <ArchiveX className="w-5 h-5 text-slate-700 mt-1" />
+                                    <AlertTitle className="text-slate-800 font-black uppercase text-xs tracking-widest">Case Conclusion Record</AlertTitle>
+                                    <AlertDescription className="text-slate-600 space-y-2 mt-2">
+                                        <div className="grid grid-cols-[120px_1fr] text-sm">
+                                            <span className="font-bold">Date Closed:</span>
+                                            <span>{new Date(vawcCase.closed_at).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="grid grid-cols-[120px_1fr] text-sm">
+                                            <span className="font-bold">Legal Reason:</span>
+                                            <span className="font-mono text-[10px] uppercase font-bold tracking-tight bg-slate-200 px-1 py-0.5 rounded inline-block">{vawcCase.closure_reason}</span>
+                                        </div>
+                                        <div className="grid grid-cols-[120px_1fr] text-sm mt-2 border-t border-slate-200 pt-2">
+                                            <span className="font-bold text-xs uppercase text-slate-400">Archival Remarks:</span>
+                                            <span className="italic text-slate-700 bg-slate-50 p-2 rounded-md block">"{vawcCase.closure_remarks || 'No additional remarks provided.'}"</span>
+                                        </div>
+                                    </AlertDescription>
+                                </Alert>
                             </div>
                         )}
                     </CardContent>
@@ -266,8 +308,8 @@ export default function Show({ case: vawcCase }: Props) {
                     </Card>
                 )}
 
-                {/* 📋 MONITORING & COMPLIANCE (Phase 5 & 6) */}
-                {stepNum >= 5 && (
+                {/* 📋 MONITORING & COMPLIANCE (Phase 5 & 6 Only, hidden if Closed) */}
+                {(stepNum === 5 || stepNum === 6) && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Card className="md:col-span-2">
                             <CardHeader className="border-b pb-4"><CardTitle className="text-sm font-bold uppercase tracking-widest">Steps 8-11: Compliance & Counseling Log</CardTitle></CardHeader>
@@ -372,6 +414,65 @@ export default function Show({ case: vawcCase }: Props) {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* CLOSURE MODAL OVERLAY */}
+            {showCloseModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95">
+                        <CardHeader className="border-b bg-slate-50 pb-4">
+                            <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                                <ArchiveX className="w-4 h-4 text-slate-600" /> Close & Archive Case File
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                                Archiving this case locks the record and removes it from active monitoring. Provide the legal justification for concluding the barangay's role in this case.
+                            </CardDescription>
+                        </CardHeader>
+                        <form onSubmit={handleCloseCase}>
+                            <CardContent className="space-y-4 pt-6">
+                                <div className="space-y-2">
+                                    <Label className="uppercase text-xs font-bold text-muted-foreground">Legal Conclusion Reason</Label>
+                                    <select
+                                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm font-bold"
+                                        required
+                                        value={closeForm.data.closure_reason}
+                                        onChange={e => closeForm.setData('closure_reason', e.target.value)}
+                                    >
+                                        <option value="" disabled>Select Reason...</option>
+                                        {vawcCase.status === 'Monitoring' ? (
+                                            <>
+                                                <option value="15-Day BPO Lapsed Successfully (No Violation)">15-Day BPO Lapsed Successfully (No Violation)</option>
+                                                <option value="Referred to DSWD for Sustained Intervention (Monitoring Complete)">Referred to DSWD for Sustained Intervention (Monitoring Complete)</option>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <option value="Court Issued Permanent Protection Order (PPO)">Court Issued Permanent Protection Order (PPO)</option>
+                                                <option value="Case Dismissed by Prosecutor">Case Dismissed by Prosecutor</option>
+                                                <option value="Court/Legal Action Finalized (General Closure)">Court/Legal Action Finalized (General Closure)</option>
+                                            </>
+                                        )}
+                                        <option value="Victim Withdrew / Relocated out of Jurisdiction">Victim Withdrew / Relocated out of Jurisdiction</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="uppercase text-xs font-bold text-muted-foreground">Archival Remarks (Optional)</Label>
+                                    <Textarea
+                                        placeholder="Add any final notes for the historical audit log..."
+                                        rows={4}
+                                        value={closeForm.data.closure_remarks}
+                                        onChange={e => closeForm.setData('closure_remarks', e.target.value)}
+                                    />
+                                </div>
+                            </CardContent>
+                            <CardFooter className="border-t bg-slate-50 pt-4 flex justify-end gap-2">
+                                <Button type="button" variant="ghost" onClick={() => setShowCloseModal(false)}>Cancel</Button>
+                                <Button type="submit" disabled={closeForm.processing} className="font-black uppercase tracking-widest bg-slate-800 text-white hover:bg-black">
+                                    [STEP 7] Confirm Archival
+                                </Button>
+                            </CardFooter>
+                        </form>
+                    </Card>
+                </div>
+            )}
         </AppLayout>
     );
 }
