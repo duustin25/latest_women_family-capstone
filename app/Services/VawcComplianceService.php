@@ -21,7 +21,7 @@ class VawcComplianceService
         // YES -> Counseling -> Referral to DSWD
         if (!$isCompliant) {
             $referralType = 'PNP/Prosecutor (Violation)';
-            $case->update(['status' => 'Violation Flagged']);
+            $case->update(['status' => 'Escalated']);
         } else {
             if (!empty($data['needs_counseling'])) {
                 $referralType = 'DSWD (Counseling)';

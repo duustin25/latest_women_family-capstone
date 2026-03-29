@@ -22,10 +22,12 @@ export default function Show({ case: vawcCase }: Props) {
     const issuanceForm = useForm<any>({});
     const serviceForm = useForm<any>({
         service_method: 'Personally Received',
+        served_datetime: new Date().toISOString().slice(0, 16),
         receiver_name: ''
     });
 
     const complianceForm = useForm<any>({
+        monitor_date: new Date().toISOString().slice(0, 16),
         is_compliant: true,
         notes: '',
         needs_counseling: false,
@@ -128,6 +130,11 @@ export default function Show({ case: vawcCase }: Props) {
                                                         </select>
                                                     </div>
                                                     <div className="flex-1 space-y-2">
+                                                        <Label className="text-xs">Service Date/Time</Label>
+                                                        <Input type="datetime-local" value={serviceForm.data.served_datetime} onChange={e => serviceForm.setData('served_datetime', e.target.value)} />
+                                                        {serviceForm.errors.served_datetime && <p className="text-xs text-destructive">{serviceForm.errors.served_datetime}</p>}
+                                                    </div>
+                                                    <div className="flex-1 space-y-2">
                                                         <Label className="text-xs">Received By</Label>
                                                         <Input placeholder="Full Name" value={serviceForm.data.receiver_name} onChange={e => serviceForm.setData('receiver_name', e.target.value)} />
                                                     </div>
@@ -198,6 +205,7 @@ export default function Show({ case: vawcCase }: Props) {
                                         <div className="space-y-2">
                                             <Label className="text-xs">Escalation Date</Label>
                                             <Input type="datetime-local" value={escalationForm.data.violation_datetime} onChange={e => escalationForm.setData('violation_datetime', e.target.value)} />
+                                            {escalationForm.errors.violation_datetime && <p className="text-xs text-destructive">{escalationForm.errors.violation_datetime}</p>}
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-xs">Referral Authority</Label>
@@ -210,6 +218,7 @@ export default function Show({ case: vawcCase }: Props) {
                                                 <option value="Municipal Trial Court">Court (Legal Assistance)</option>
                                                 <option value="Prosecutor's Office">Office of the Prosecutor</option>
                                             </select>
+                                            {escalationForm.errors.referral_target && <p className="text-xs text-destructive">{escalationForm.errors.referral_target}</p>}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
@@ -219,6 +228,7 @@ export default function Show({ case: vawcCase }: Props) {
                                             value={escalationForm.data.violation_description} 
                                             onChange={e => escalationForm.setData('violation_description', e.target.value)} 
                                         />
+                                        {escalationForm.errors.violation_description && <p className="text-xs text-destructive">{escalationForm.errors.violation_description}</p>}
                                     </div>
                                     <div className="flex items-center gap-2 italic text-xs">
                                         <input 
@@ -265,6 +275,11 @@ export default function Show({ case: vawcCase }: Props) {
                                 <form onSubmit={handleLogCompliance} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-2">
+                                            <Label className="text-xs">Monitoring Date/Time</Label>
+                                            <Input type="datetime-local" value={complianceForm.data.monitor_date} onChange={e => complianceForm.setData('monitor_date', e.target.value)} />
+                                            {complianceForm.errors.monitor_date && <p className="text-xs text-destructive">{complianceForm.errors.monitor_date}</p>}
+                                        </div>
+                                        <div className="flex flex-col gap-2">
                                             <Label className="text-xs">Respondent Status</Label>
                                             <select
                                                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors"
@@ -291,6 +306,7 @@ export default function Show({ case: vawcCase }: Props) {
                                             value={complianceForm.data.notes}
                                             onChange={e => complianceForm.setData('notes', e.target.value)}
                                         />
+                                        {complianceForm.errors.notes && <p className="text-xs text-destructive">{complianceForm.errors.notes}</p>}
                                     </div>
                                     <Button type="submit" size="sm" disabled={complianceForm.processing}>
                                         Save Compliance Log

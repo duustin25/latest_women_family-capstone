@@ -158,6 +158,12 @@ class VawcController extends Controller
             ->latest()
             ->firstOrFail();
 
+        $request->validate([
+            'service_method' => 'required|string',
+            'served_datetime' => 'required',
+            'receiver_name' => 'nullable|string'
+        ]);
+
         $this->bpoService->recordService($order, $request->all());
 
         return redirect()->back()->with('success', 'BPO Service recorded.');
@@ -197,8 +203,9 @@ class VawcController extends Controller
         $case = VawcCase::findOrFail($id);
 
         $request->validate([
+            'monitor_date' => 'required',
             'is_compliant' => 'required|boolean',
-            'notes' => 'nullable|string',
+            'notes' => 'required|string',
             'needs_counseling' => 'boolean',
             'referral_type' => 'nullable|string',
             'referral_details' => 'nullable|string',
@@ -218,7 +225,7 @@ class VawcController extends Controller
 
         $request->validate([
             'referral_target' => 'required|string',
-            'violation_datetime' => 'required|date',
+            'violation_datetime' => 'required',
             'escorted_by_pb' => 'boolean',
             'violation_description' => 'required|string',
         ]);
@@ -290,6 +297,7 @@ class VawcController extends Controller
                 'intake_distribution' => $casesByIntake,
                 'abuse_distribution' => $casesByAbuseType,
                 'zone_distribution' => $casesByZone,
+                'monthly_trends' => $this->getMonthlyTrends(),
                 'sla_compliance' => [
                     'total' => $totalBpos,
                     'compliant' => $compliantBpos,
@@ -297,5 +305,29 @@ class VawcController extends Controller
                 ]
             ]
         ]);
+    }
+
+    private function getMonthlyTrends()
+    {
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $currentYear = now()->year;
+
+        $trends = VawcCase::select(
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('count(*) as count')
+        )
+            ->whereYear('created_at', $currentYear)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->keyBy('month');
+
+        return collect($months)->map(function ($name, $index) use ($trends) {
+            $monthNum = $index + 1;
+            return [
+                'month' => $name,
+                'count' => $trends->has($monthNum) ? $trends->get($monthNum)->count : 0
+            ];
+        })->values();
     }
 }

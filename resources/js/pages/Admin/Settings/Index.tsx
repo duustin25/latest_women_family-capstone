@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 
 // Import Partials
 import AbuseTypesTable from './Partials/AbuseTypesTable';
-import ReferralAgenciesTable from './Partials/ReferralAgenciesTable';
-import StatusesTable from './Partials/StatusesTable';
 import AppearanceSettings from './Partials/AppearanceSettings';
 import ZonesTable from './Partials/ZonesTable';
 
@@ -64,9 +62,7 @@ export default function Index({ abuseTypes, referralPartners, caseStatuses, zone
                         {activeTab === 'case_categories' && (
                             <div className="space-y-6">
                                 <AbuseTypesTable caseAbuseTypes={abuseTypes || []} />
-                                <StatusesTable statuses={caseStatuses || []} />
                                 <ZonesTable zones={zones || []} />
-                                <ReferralAgenciesTable caseReferralAgencies={referralPartners || []} />
                             </div>
                         )}
 

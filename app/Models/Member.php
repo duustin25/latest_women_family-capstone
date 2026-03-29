@@ -42,12 +42,4 @@ class Member extends Model
     {
         return $this->hasMany(BeneficiaryDispatch::class);
     }
-
-    /**
-     * Get the magic portal link for the member.
-     */
-    public function getPortalLinkAttribute(): string
-    {
-        return config('app.url') . '/member/view/' . $this->secure_token;
-    }
 }

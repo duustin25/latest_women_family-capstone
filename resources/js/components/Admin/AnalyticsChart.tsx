@@ -59,7 +59,7 @@ export default function AnalyticsChart({ data, config }: Props) {
                         <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }} />
 
                         {/* Dynamically render Bars based on Config */}
-                        {activeConfig.map((item) => (
+                        { (activeConfig || []).map((item) => (
                             <Bar
                                 key={item.key}
                                 dataKey={item.key}

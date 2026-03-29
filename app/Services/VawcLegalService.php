@@ -13,7 +13,7 @@ class VawcLegalService
      */
     public function escalateCase(VawcCase $case, array $data): VawcLegalEscalation
     {
-        $case->update(['status' => 'Legal Escalation']);
+        $case->update(['status' => 'Escalated']);
 
         return VawcLegalEscalation::create([
             'vawc_case_id' => $case->id,

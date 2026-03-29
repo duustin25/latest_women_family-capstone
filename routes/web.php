@@ -43,7 +43,7 @@ Route::prefix('announcements')->group(function () {
 });
 
 
-// 3. Public Organizations Routes (New)
+// Public Organization Routes
 Route::prefix('organizations')->group(function () {
     Route::get('/', [PublicOrganizationController::class, 'index'])->name('public.organizations.index');
     Route::get('/{organization}', [PublicOrganizationController::class, 'show'])->name('public.organizations.show');
@@ -57,12 +57,6 @@ Route::prefix('organizations')->group(function () {
     Route::get('/{organization}/apply/{application}/print', [MembershipController::class, 'print'])
         ->name('public.organizations.print');
 });
-
-// Public Secure Member Portals (Login-less)
-Route::get('/member/view/{token}', [MemberPortalController::class, 'show'])->name('public.member.portal');
-Route::post('/member/view/{token}/claim/{dispatch}', [MemberPortalController::class, 'claimBenefit'])->name('public.member.claim');
-Route::get('/verify', [MemberVerificationController::class, 'index'])->name('public.member.verify.index');
-Route::get('/verify/{token}', [MemberVerificationController::class, 'verify'])->name('public.member.verify');
 
 
 
@@ -165,12 +159,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'v
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/case-abuse-types', [\App\Http\Controllers\Admin\SettingsController::class, 'storeAbuseType'])->name('settings.case-abuse-types.store');
     Route::patch('/settings/case-abuse-types/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateAbuseType'])->name('settings.case-abuse-types.update');
-    Route::post('/settings/case-referral-agencies', [\App\Http\Controllers\Admin\SettingsController::class, 'storeReferralPartner'])->name('settings.case-referral-agencies.store');
-    Route::patch('/settings/case-referral-agencies/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateReferralPartner'])->name('settings.case-referral-agencies.update');
-
-    // Case Statuses Settings Routes
-    Route::post('/settings/case-statuses', [\App\Http\Controllers\Admin\SettingsController::class, 'storeCaseStatus'])->name('settings.case-statuses.store');
-    Route::patch('/settings/case-statuses/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateCaseStatus'])->name('settings.case-statuses.update');
 
     // Zones Settings Routes
     Route::post('/settings/zones', [\App\Http\Controllers\Admin\SettingsController::class, 'storeZone'])->name('settings.zones.store');

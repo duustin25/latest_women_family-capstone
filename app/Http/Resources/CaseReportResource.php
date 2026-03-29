@@ -19,14 +19,15 @@ class CaseReportResource extends JsonResource
         $strategy = CaseStrategyFactory::make($this->type);
         $name = $strategy->getDisplayName($this->resource);
 
-        $latestReferral = $this->referrals->sortByDesc('created_at')->first();
+        $latestReferral = $this->relationLoaded('referrals') && $this->referrals ? $this->referrals->sortByDesc('created_at')->first() : null;
+        $statusModel = $this->relationLoaded('status') ? $this->status : null;
 
-        // Resolve Hybrid Status
+        // Resolve Hybrid Status (Safely)
         $uiStatus = $this->lifecycle_status;
-        if ($this->lifecycle_status === 'Ongoing' && $this->status) {
-            $uiStatus = 'Ongoing: ' . $this->status->name;
+        if ($this->lifecycle_status === 'Ongoing' && $statusModel) {
+            $uiStatus = 'Ongoing: ' . $statusModel->name;
         } elseif ($this->lifecycle_status === 'Referred' && $latestReferral && $latestReferral->agency) {
-            $uiStatus = 'Referred: ' . $latestReferral->agency->name;
+            $uiStatus = 'Referred: ' . ($latestReferral->agency->name ?? 'External Agency');
         }
 
         return [

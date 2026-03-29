@@ -145,20 +145,18 @@ class MembersController extends Controller
             'status' => 'Pending'
         ]);
 
-        // Optional: Email the member about the dispatch
+        // Official Branding via Mailable
         if ($member->email) {
-            $body = "Congratulations! You have been tagged for: {$validated['benefit_name']}.\n\nReference Number: {$referenceNumber}\nInstructions: " . ($validated['instructions'] ?? 'Present this email at the Barangay Hall.');
+            $subject = 'Benefit Notification: ' . $validated['benefit_name'];
+            $instructions = $validated['instructions'] ?? 'Present this Reference ID at the Barangay Hall.';
             
-            Mail::raw($body, function ($message) use ($member, $validated) {
-                $message->to($member->email)
-                        ->subject('Benefit Notification: ' . $validated['benefit_name']);
-            });
+            Mail::to($member->email)->send(new \App\Mail\BeneficiaryDispatchMail($member, $dispatch, $instructions));
 
             MemberCommunication::create([
                 'member_id' => $member->id,
                 'sent_by' => Auth::id(),
-                'subject' => 'Benefit Notification: ' . $validated['benefit_name'],
-                'body' => $body,
+                'subject' => $subject,
+                'body' => "Benefit Tagged: {$validated['benefit_name']}. Ref: {$referenceNumber}",
                 'type' => 'Beneficiary',
                 'status' => 'Sent'
             ]);

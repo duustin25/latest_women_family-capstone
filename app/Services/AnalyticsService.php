@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\CaseReport;
+use App\Models\VawcCase;
 use App\Models\MembershipApplication;
 use App\Models\Zone;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
@@ -15,11 +17,33 @@ class AnalyticsService
      */
     public function getRibbonStats(int $year): array
     {
+        $totalVawc = VawcCase::whereYear('created_at', $year)->count();
+
+        // BPO Stats from vawc_protection_orders
+        $totalBpos = DB::table('vawc_protection_orders')
+            ->where('type', 'BPO')
+            ->whereYear('created_at', $year)
+            ->count();
+
+        $compliantBpos = DB::table('vawc_protection_orders')
+            ->where('type', 'BPO')
+            ->where('is_sla_breached', false)
+            ->whereNotNull('issued_datetime')
+            ->whereYear('created_at', $year)
+            ->count();
+
+        $slaRate = $totalBpos > 0 ? round(($compliantBpos / $totalBpos) * 100, 1) : 100.0;
+
+        // Active cases (not yet closed/resolved)
+        $activeCases = VawcCase::whereNotIn('status', ['Closed', 'Resolved', 'Case Closed'])
+            ->whereYear('created_at', $year)
+            ->count();
+
         return [
-            'totalVawc' => CaseReport::where('type', 'VAWC')->whereYear('created_at', $year)->count(),
-            'totalBcpc' => CaseReport::where('type', 'BCPC')->whereYear('created_at', $year)->count(),
-            'activeReferrals' => \App\Models\CaseReferral::whereIn('status', ['Pending', 'Accepted'])->whereYear('created_at', $year)->count(),
-            'growth' => '+0%', // Future: Calculate actual growth
+            'totalVawc'   => $totalVawc,
+            'totalBpos'   => $totalBpos,
+            'slaRate'     => $slaRate,
+            'activeCases' => $activeCases,
         ];
     }
 
@@ -79,13 +103,75 @@ class AnalyticsService
         return Zone::withCount(['caseReports' => function ($query) use ($year) {
             $query->whereYear('created_at', $year);
         }])
-        ->get()
-        ->map(fn($zone) => [
-            'name' => $zone->name,
-            'count' => $zone->case_reports_count,
-            'color' => $zone->color_code,
-        ])
-        ->toArray();
+            ->get()
+            ->map(fn($zone) => [
+                'name' => $zone->name,
+                'count' => $zone->case_reports_count,
+                'color' => $zone->color_code,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Get monthly BPO application and issuance trends.
+     */
+    public function getVawcBpoTrends(int $year): array
+    {
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        $data = [];
+
+        $applied = DB::table('vawc_protection_orders')
+            ->select(DB::raw('MONTH(created_at) as month_num'), DB::raw('COUNT(*) as total'))
+            ->where('type', 'BPO')
+            ->whereYear('created_at', $year)
+            ->groupBy('month_num')
+            ->pluck('total', 'month_num');
+
+        $issued = DB::table('vawc_protection_orders')
+            ->select(DB::raw('MONTH(created_at) as month_num'), DB::raw('COUNT(*) as total'))
+            ->where('type', 'BPO')
+            ->whereNotNull('issued_datetime')
+            ->whereYear('created_at', $year)
+            ->groupBy('month_num')
+            ->pluck('total', 'month_num');
+
+        foreach ($months as $i => $name) {
+            $m = $i + 1;
+            $data[] = [
+                'month'   => $name,
+                'applied' => $applied->get($m, 0),
+                'issued'  => $issued->get($m, 0),
+            ];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get VAWC case status distribution for a donut chart.
+     */
+    public function getVawcStatusBreakdown(int $year): array
+    {
+        $colors = [
+            'Intake'     => '#f59e0b',
+            'Active'     => '#3b82f6',
+            'Referred'   => '#a855f7',
+            'Escalated'  => '#ef4444',
+            'Resolved'   => '#10b981',
+            'Closed'     => '#64748b',
+        ];
+
+        return VawcCase::select('status', DB::raw('count(*) as total'))
+            ->whereYear('created_at', $year)
+            ->groupBy('status')
+            ->get()
+            ->map(fn($row) => [
+                'name'  => $row->status,
+                'value' => $row->total,
+                'fill'  => $colors[$row->status] ?? '#94a3b8',
+            ])
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -111,7 +197,7 @@ class AnalyticsService
 
         $totalThisYear = MembershipApplication::where('status', 'Approved')->whereYear('created_at', $year)->count();
         $totalLastYear = MembershipApplication::where('status', 'Approved')->whereYear('created_at', $year - 1)->count();
-        
+
         $growth = '+0%';
         if ($totalLastYear > 0) {
             $percent = (($totalThisYear - $totalLastYear) / $totalLastYear) * 100;

@@ -2,21 +2,21 @@
 
 namespace App\Mail;
 
-use App\Models\Member;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class MembershipDisapproved extends Mailable
+class AnnouncementBroadcast extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(public Member $member)
+    public function __construct(public \App\Models\Announcement $announcement)
     {
         //
     }
@@ -27,7 +27,7 @@ class MembershipDisapproved extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Membership Disapproved - We are sorry to inform you that your membership application has been disapproved.',
+            subject: 'New Official Announcement: ' . $this->announcement->title,
         );
     }
 
@@ -37,7 +37,10 @@ class MembershipDisapproved extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.membership_disapproved',
+            markdown: 'emails.announcement_broadcast',
+            with: [
+                'announcement' => $this->announcement,
+            ],
         );
     }
 

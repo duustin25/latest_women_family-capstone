@@ -3,32 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrganizationalMember extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'position',
         'committee',
-        'image_path',
         'level',
         'display_order',
-        'is_active',
+        'is_active'
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'display_order' => 'integer',
-    ];
-
+    /**
+     * Relationship with the System User (Head Official).
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function getOfficialNameAttribute()
-    {
-        return $this->user ? $this->user->name : $this->name;
     }
 }

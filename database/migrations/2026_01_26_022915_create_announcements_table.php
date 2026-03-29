@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('announcements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // The admin who wrote it
+            $table->foreignId('organization_id')->nullable()->constrained()->onDelete('set null'); // The org it belongs to
             $table->string('title');
             $table->string('slug')->unique();
             $table->string('category'); // VAWC, GAD, etc.

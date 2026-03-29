@@ -13,14 +13,12 @@ class SettingsController extends Controller
     public function index()
     {
         $abuseTypes = CaseAbuseType::orderBy('category')->orderBy('name')->get();
-        $referralPartners = Agency::orderBy('category')->orderBy('name')->get();
-        $caseStatuses = \App\Models\CaseStatus::orderBy('name')->get();
         $zones = \App\Models\Zone::orderBy('name')->get();
 
         return Inertia::render('Admin/Settings/Index', [
             'abuseTypes' => $abuseTypes,
-            'referralPartners' => $referralPartners,
-            'caseStatuses' => $caseStatuses,
+            'referralPartners' => [], // Deprecated
+            'caseStatuses' => [], // Deprecated
             'zones' => $zones
         ]);
     }
@@ -56,64 +54,7 @@ class SettingsController extends Controller
         return back()->with('success', 'Abuse Type updated.');
     }
 
-    public function storeReferralPartner(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'category' => 'required|string|in:VAWC,BCPC,Both',
-            'contact_info' => 'nullable|string',
-        ]);
 
-        Agency::create($validated);
-
-        return back()->with('success', 'Partner added successfully.');
-    }
-
-    public function updateReferralPartner(Request $request, $id)
-    {
-        $partner = Agency::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string',
-            'category' => 'sometimes|required|string|in:VAWC,BCPC,Both',
-            'contact_info' => 'nullable|string',
-            'is_active' => 'boolean'
-        ]);
-
-        $partner->update($validated);
-
-        return back()->with('success', 'Partner updated.');
-    }
-
-    public function storeCaseStatus(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|unique:case_status,name',
-            'description' => 'nullable|string',
-            'type' => 'required|in:VAWC,BCPC,Both',
-            'is_active' => 'boolean'
-        ]);
-
-        \App\Models\CaseStatus::create($validated);
-
-        return back()->with('success', 'Status added successfully.');
-    }
-
-    public function updateCaseStatus(Request $request, $id)
-    {
-        $status = \App\Models\CaseStatus::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|unique:case_status,name,' . $id,
-            'description' => 'nullable|string',
-            'type' => 'required|in:VAWC,BCPC,Both',
-            'is_active' => 'boolean'
-        ]);
-
-        $status->update($validated);
-
-        return back()->with('success', 'Status updated.');
-    }
 
     public function storeZone(Request $request)
     {

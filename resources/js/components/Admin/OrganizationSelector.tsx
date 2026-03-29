@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShieldAlert } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Organization {
     id: number;
@@ -22,41 +23,43 @@ export function OrganizationSelector({
     onOrganizationChange,
     organizations,
     error,
-    description = "Presidents are restricted to view and manage only the members of their assigned organization."
+    description = "Presidents can be assigned to an organization now or later."
 }: OrganizationSelectorProps) {
     if (role !== 'president') {
         return null;
     }
 
     return (
-        <div className="p-8 bg-purple-50 dark:bg-purple-900/10 rounded-2xl border border-purple-100 dark:border-purple-900 animate-in fade-in slide-in-from-top-4">
-            <div className="space-y-4">
-                <h3 className="text-purple-900 dark:text-purple-300 font-black flex items-center gap-2 uppercase tracking-wide text-sm">
-                    <ShieldAlert className="w-5 h-5" /> Organization Assignment
-                </h3>
+        <Card className="border-muted shadow-sm bg-muted/5">
+            <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-wide">
+                    <Info className="w-4 h-4 text-blue-500" /> Organization Assignment
+                </CardTitle>
                 {description && (
-                    <p className="text-xs text-purple-700 dark:text-purple-400 font-medium">
+                    <p className="text-[11px] text-muted-foreground font-medium">
                         {description}
                     </p>
                 )}
-
-                <div className="pt-2">
-                    <Label htmlFor="org" className="text-xs font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider">Select Organization *</Label>
-                    <Select value={organizationId} onValueChange={onOrganizationChange}>
-                        <SelectTrigger className="w-full h-12 border-purple-200 focus:ring-purple-500 bg-white dark:bg-purple-900/20 dark:border-purple-800 mt-2 font-bold text-purple-900 dark:text-purple-100">
-                            <SelectValue placeholder="Select Organization to Manage" />
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-2">
+                    <Label htmlFor="org" className="text-xs font-semibold uppercase tracking-wider">Select Organization (Optional)</Label>
+                    <Select value={organizationId || "none"} onValueChange={(val) => onOrganizationChange(val === "none" ? "" : val)}>
+                        <SelectTrigger className="w-full h-11 bg-background">
+                            <SelectValue placeholder="None / Assign Later" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="none" className="font-medium italic text-muted-foreground">None / Assign Later</SelectItem>
                             {organizations.map((org) => (
-                                <SelectItem key={org.id} value={String(org.id)} className="font-bold">
+                                <SelectItem key={org.id} value={String(org.id)} className="font-medium">
                                     {org.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    {error && <p className="text-red-500 text-xs font-bold mt-1">{error}</p>}
+                    {error && <p className="text-destructive text-xs font-bold mt-1">{error}</p>}
                 </div>
-            </div>
-        </div>
+            </CardContent>
+        </Card>
     );
 }

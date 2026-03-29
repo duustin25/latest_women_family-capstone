@@ -72,6 +72,9 @@ class VawcBpoService
         ]);
 
         $order->update(['status' => 'Served']);
+        
+        // Advance parent case to Monitoring Phase
+        $order->vawcCase->update(['status' => 'Monitoring']);
 
         return $record;
     }

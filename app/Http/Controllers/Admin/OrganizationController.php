@@ -67,6 +67,7 @@ class OrganizationController extends Controller
             'right_logo' => 'nullable|image|max:2048',
             'requirements' => 'nullable|array', // Captured as an array for the JSON column
             'print_settings' => 'nullable|array',
+            'form_schema' => 'nullable|array',
         ], [
             // Custom student-friendly messages for the prof to see
             'name.required' => 'The organization must have a formal name.',

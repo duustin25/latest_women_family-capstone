@@ -4,52 +4,40 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('case_reports', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('type');
             $table->string('case_number')->unique();
-            $table->enum('type', ['VAWC', 'BCPC']); // Denotes the kind of case
-
-            // Victim Information
             $table->string('victim_name')->nullable();
-            $table->string('victim_age')->nullable();
+            $table->integer('victim_age')->nullable();
             $table->string('victim_gender')->nullable();
-
-            // Complainant/Informant Information
             $table->string('complainant_name')->nullable();
             $table->string('complainant_contact')->nullable();
-            $table->string('relation_to_victim')->nullable(); // For VAWC if different
+            $table->string('relation_to_victim')->nullable();
+            $table->timestamp('incident_date')->nullable();
+            $table->string('incident_location')->nullable();
+            $table->text('description')->nullable();
             $table->boolean('is_anonymous')->default(false);
-
-            // Incident Details
-            $table->dateTime('incident_date')->nullable();
-            $table->string('incident_location');
-            $table->text('description');
-
-            // Lifecycle State Machine
-            $table->enum('lifecycle_status', ['New', 'Ongoing', 'Referred', 'Resolved', 'Closed', 'Dismissed'])
-                ->default('New');
-
-            // Categorization and Status (Foreign Keys to Configuration Tables)
-            $table->foreignId('abuse_type_id')->nullable()->constrained('case_types')->nullOnDelete();
-            $table->foreignId('case_status_id')->nullable()->constrained('case_status')->nullOnDelete();
-            $table->foreignId('zone_id')->nullable()->constrained('zones')->nullOnDelete();
-
-            // Evidence
-            $table->string('evidence_path')->nullable(); // For uploaded files
-
-
-
-            // Accountability
-            $table->foreignId('handled_by_id')->nullable()->constrained('users')->nullOnDelete();
-
-            $table->timestamps();
+            $table->foreignId('zone_id')->nullable()->constrained();
+            $table->foreignId('abuse_type_id')->nullable()->constrained('case_types');
+            $table->string('lifecycle_status')->default('New');
+            $table->foreignId('handled_by_id')->nullable()->constrained('users');
             $table->softDeletes();
+            $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('case_reports');

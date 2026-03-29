@@ -2,23 +2,27 @@
 
 namespace App\Mail;
 
+use App\Models\BeneficiaryDispatch;
 use App\Models\Member;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class MembershipApproved extends Mailable
+class BeneficiaryDispatchMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(public Member $member)
-    {
-        //
+    public function __construct(
+        public Member $member,
+        public BeneficiaryDispatch $dispatch,
+        public ?string $instructions = null
+    ) {
     }
 
     /**
@@ -27,7 +31,7 @@ class MembershipApproved extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Membership Approved - Welcome to ' . $this->member->organization->name,
+            subject: 'Official Benefit Notification: ' . $this->dispatch->benefit_name,
         );
     }
 
@@ -37,7 +41,12 @@ class MembershipApproved extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.membership_approved',
+            markdown: 'emails.beneficiary_dispatch',
+            with: [
+                'member' => $this->member,
+                'dispatch' => $this->dispatch,
+                'instructions' => $this->instructions,
+            ],
         );
     }
 

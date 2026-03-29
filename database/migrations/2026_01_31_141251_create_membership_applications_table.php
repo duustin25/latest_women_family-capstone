@@ -16,6 +16,7 @@ return new class extends Migration {
             // Primary Indexing Fields
             $table->string('fullname');
             $table->string('address');
+            $table->string('email')->nullable();
             $table->string('status')->default('Pending'); // Pending, Approved, Disapproved
 
             // Dynamic JSON Storage (Form Builder Data)

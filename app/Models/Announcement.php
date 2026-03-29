@@ -9,9 +9,25 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class Announcement extends Model
 {
     protected $fillable = [
-        'user_id', 'title', 'slug', 'category', 
-        'content', 'excerpt', 'image_path', 'location', 'event_date'
+        'user_id',
+        'organization_id',
+        'title',
+        'slug',
+        'category',
+        'content',
+        'excerpt',
+        'image_path',
+        'location',
+        'event_date'
     ];
+
+    /**
+     * RELATIONSHIP: Announcement belongs to an organization (for targeted messaging)
+     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     // SOLID: Encapsulation - Model handles its own data types
     protected $casts = [
@@ -20,16 +36,18 @@ class Announcement extends Model
     ];
 
     // Automatically generate slug when title is set
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
-        static::creating(fn ($model) => $model->slug = Str::slug($model->title));
+        static::creating(fn($model) => $model->slug = Str::slug($model->title));
     }
 
     // Design Principle: Accessor for consistent Image URLs
-    protected function imageUrl(): Attribute {
+    protected function imageUrl(): Attribute
+    {
         return Attribute::make(
-            get: fn () => $this->image_path 
-                ? asset('storage/' . $this->image_path) 
+            get: fn() => $this->image_path
+                ? asset('storage/' . $this->image_path)
                 : asset('images/placeholder.jpg'),
         );
     }
@@ -42,6 +60,4 @@ class Announcement extends Model
     {
         return 'slug';
     }
-
-
 }

@@ -17,7 +17,7 @@ class CaseController extends Controller
      */
     public function print($id, Request $request)
     {
-        $case = CaseReport::with(['abuseType', 'status', 'referrals.agency'])->findOrFail($id);
+        $case = CaseReport::with(['abuseType'])->findOrFail($id);
 
         return Inertia::render('Admin/Cases/Print', [
             'caseData' => $case,
@@ -33,13 +33,11 @@ class CaseController extends Controller
         $query = CaseReport::query();
 
         // Fetch all cases directly from unified model
-        $cases = $query->with(['abuseType', 'status', 'referrals.agency'])->orderByDesc('created_at')->get();
-
-        $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
+        $cases = $query->with(['abuseType'])->orderByDesc('created_at')->get();
 
         return Inertia::render('Admin/Cases/Index', [
             'cases' => CaseReportResource::collection($cases),
-            'caseStatuses' => $caseStatuses,
+            'caseStatuses' => [], // Removed dynamic statuses
             'filters' => $request->only(['search', 'type', 'status'])
         ]);
     }
@@ -51,13 +49,11 @@ class CaseController extends Controller
     {
         $query = CaseReport::onlyTrashed();
 
-        $cases = $query->with(['abuseType', 'status', 'referrals.agency'])->orderByDesc('deleted_at')->get();
-
-        $caseStatuses = \App\Models\CaseStatus::where('is_active', true)->pluck('name');
+        $cases = $query->with(['abuseType'])->orderByDesc('deleted_at')->get();
 
         return Inertia::render('Admin/Cases/Archive', [
             'cases' => CaseReportResource::collection($cases),
-            'caseStatuses' => $caseStatuses,
+            'caseStatuses' => [], // Removed
             'filters' => $request->only(['search', 'type', 'status'])
         ]);
     }
@@ -99,7 +95,7 @@ class CaseController extends Controller
      */
     public function edit($id, Request $request)
     {
-        $case = CaseReport::with(['abuseType', 'status', 'referrals.agency'])->findOrFail($id);
+        $case = CaseReport::with(['abuseType'])->findOrFail($id);
 
         $abuseTypes = \App\Models\CaseAbuseType::where('is_active', true)
             ->where(function ($query) use ($case) {
@@ -107,25 +103,13 @@ class CaseController extends Controller
                     ->orWhere('category', 'Both');
             })->get();
 
-        $referralPartners = \App\Models\Agency::where('is_active', true)
-            ->where(function ($query) use ($case) {
-                $query->where('category', $case->type)
-                    ->orWhere('category', 'Both');
-            })->get();
-
-        $caseStatuses = \App\Models\CaseStatus::where('is_active', true)
-            ->where(function ($query) use ($case) {
-                $query->where('type', $case->type)
-                    ->orWhere('type', 'Both');
-            })->orderBy('name')->get();
-
         $zones = \App\Models\Zone::where('is_active', true)->get();
 
         return Inertia::render('Admin/Cases/Edit', [
             'caseData' => $case,
             'abuseTypes' => $abuseTypes,
-            'referralPartners' => $referralPartners,
-            'caseStatuses' => $caseStatuses,
+            'referralPartners' => [], // Removed
+            'caseStatuses' => [], // Removed
             'zones' => $zones
         ]);
     }

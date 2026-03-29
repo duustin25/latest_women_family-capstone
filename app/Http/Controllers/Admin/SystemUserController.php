@@ -64,8 +64,8 @@ class SystemUserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'role' => 'required|in:admin,head,president',
-            // Only require organization_id if role is President
-            'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
+            // Make organization_id optional to break circular dependency
+            'organization_id' => 'nullable|exists:organizations,id',
             'current_admin_password' => ['required', 'string', 'current_password'],
         ]);
 
@@ -88,7 +88,7 @@ class SystemUserController extends Controller
             'email' => 'required|email|unique:users,email,' . $system_user->id,
             'password' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
             'role' => 'required|in:admin,head,president',
-            'organization_id' => 'required_if:role,president|nullable|exists:organizations,id',
+            'organization_id' => 'nullable|exists:organizations,id',
             'current_admin_password' => ['required', 'string', 'current_password'],
         ]);
 

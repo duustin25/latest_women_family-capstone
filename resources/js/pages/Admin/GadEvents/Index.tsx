@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Pencil, MapPin, Calendar, Plus, X, Search, FileText, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AppLayout from '@/layouts/app-layout';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -29,28 +31,28 @@ interface PageProps {
 }
 
 const STATUS_CONFIG = {
-    pending:              { label: 'Pending',           className: 'bg-amber-100 text-amber-700 hover:bg-amber-100' },
-    approved:             { label: 'Approved',          className: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' },
-    rejected:             { label: 'Rejected',          className: 'bg-red-100 text-red-700 hover:bg-red-100' },
-    reschedule_requested: { label: 'Reschedule Req.',   className: 'bg-orange-100 text-orange-700 hover:bg-orange-100' },
+    pending: { label: 'Pending', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200' },
+    approved: { label: 'Approved', className: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200' },
+    rejected: { label: 'Rejected', className: 'bg-red-100 text-red-700 hover:bg-red-100 border-red-200' },
+    reschedule_requested: { label: 'Reschedule Req.', className: 'bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200' },
 };
 
 export default function Index({ events, filters }: PageProps) {
     const [searchQuery, setSearchQuery] = useState(filters?.search ?? '');
-    const [isModalOpen, setIsModalOpen]     = useState(false);
-    const [editingEvent, setEditingEvent]   = useState<GadEvent | null>(null);
-    const [statusModal, setStatusModal]     = useState(false);
-    const [actionEvent, setActionEvent]     = useState<GadEvent | null>(null);
-    const [actionType, setActionType]       = useState<'rejected' | 'reschedule_requested' | null>(null);
-    const [rejectReason, setRejectReason]   = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<GadEvent | null>(null);
+    const [statusModal, setStatusModal] = useState(false);
+    const [actionEvent, setActionEvent] = useState<GadEvent | null>(null);
+    const [actionType, setActionType] = useState<'rejected' | 'reschedule_requested' | null>(null);
+    const [rejectReason, setRejectReason] = useState('');
 
     const [formData, setFormData] = useState({
         title: '', description: '', event_date: '', event_time: '', location: '',
         image_path: null as File | null,
     });
 
-    const navigate = (params: object) =>
-        router.get('/admin/gad/events', params, { preserveState: true });
+    const navigate = (params: Record<string, any>) =>
+        router.get('/admin/gad/events', params, { preserveState: true, replace: true });
 
     const handleSearch = (term: string) => {
         setSearchQuery(term);
@@ -107,7 +109,7 @@ export default function Index({ events, filters }: PageProps) {
         return (
             <button
                 onClick={() => navigate({ search: searchQuery, status: value })}
-                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-white'}`}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all border ${active ? 'bg-primary text-primary-foreground border-primary' : 'bg-background hover:bg-muted text-muted-foreground border-transparent'}`}
             >{label}</button>
         );
     };
@@ -116,111 +118,159 @@ export default function Index({ events, filters }: PageProps) {
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'GAD Events', href: '#' }]}>
             <Head title="GAD Events Management" />
 
-            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10">
-                <div className="max-w-7xl mx-auto px-4 md:px-8">
-
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-                        <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-neutral-900 dark:text-white tracking-tighter uppercase leading-none">GAD Events</h2>
-                            <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg mt-1">Manage events and approve organization proposals.</p>
-                        </div>
-                        <Button onClick={openCreate} className="h-12 px-6 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white shadow-lg">
-                            <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                            <span className="font-bold uppercase tracking-wide text-xs">Add Event</span>
-                        </Button>
+            <div className="p-6 space-y-6">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">GAD Events</h1>
+                        <p className="text-muted-foreground text-sm">Manage events and approve organization proposals.</p>
                     </div>
+                    <Button size="sm" onClick={openCreate} className="flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Event
+                    </Button>
+                </div>
 
-                    {/* Control bar */}
-                    <div className="sticky top-4 z-30 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-3 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row items-center gap-4 mb-8">
-                        <div className="bg-neutral-100 dark:bg-neutral-950 px-3 h-10 rounded-lg flex items-center gap-2 w-full md:max-w-[280px]">
-                            <Search size={14} className="text-neutral-400 shrink-0" />
-                            <input placeholder="SEARCH EVENTS..." className="bg-transparent border-none focus:ring-0 text-xs font-bold w-full uppercase placeholder:text-neutral-400 text-neutral-900 dark:text-white h-full"
-                                value={searchQuery} onChange={e => handleSearch(e.target.value)} autoComplete="off" />
-                            {filters?.search && <button onClick={() => { setSearchQuery(''); navigate({}); }} className="text-neutral-400 hover:text-red-500"><X size={12} /></button>}
-                        </div>
-                        <div className="flex items-center gap-1 border border-neutral-200 dark:border-neutral-800 rounded-full px-2 py-1">
-                            {filterTab('All', undefined)}
-                            {filterTab('Pending', 'pending')}
-                            {filterTab('Approved', 'approved')}
-                            {filterTab('Rejected', 'rejected')}
-                        </div>
-                    </div>
+                {/* Filters & Table */}
+                <Card className="border-muted shadow-sm overflow-hidden">
+                    <CardHeader className="pb-3 border-b bg-muted/5">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
+                                Event Proposals
+                            </CardTitle>
 
-                    {/* Table */}
-                    <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-neutral-200 dark:border-neutral-800 text-[10px] font-black uppercase tracking-widest text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/50">
-                                        <th className="p-5 pl-8">Event Details</th>
-                                        <th className="p-5">When & Where</th>
-                                        <th className="p-5 text-right pr-8">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                                    {events.data.length === 0 ? (
-                                        <tr><td colSpan={3} className="p-12 text-center">
-                                            <div className="flex flex-col items-center opacity-60">
-                                                <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3 text-neutral-400"><Activity size={20} /></div>
-                                                <h3 className="text-sm font-bold uppercase">No Events Found</h3>
-                                                <p className="text-xs text-neutral-500">Try a different filter.</p>
-                                            </div>
-                                        </td></tr>
-                                    ) : events.data.map(item => {
+                            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                                <div className="flex bg-muted/50 p-1 rounded-lg">
+                                    {filterTab('All', undefined)}
+                                    {filterTab('Pending', 'pending')}
+                                    {filterTab('Approved', 'approved')}
+                                    {filterTab('Rejected', 'rejected')}
+                                </div>
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search events..."
+                                        className="pl-9 h-9 w-full"
+                                        value={searchQuery}
+                                        onChange={(e) => handleSearch(e.target.value)}
+                                    />
+                                    {filters?.search && (
+                                        <button onClick={() => { setSearchQuery(''); navigate({}); }} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader className="bg-muted/10">
+                                <TableRow>
+                                    <TableHead className="w-[400px] font-bold py-4">Event Details</TableHead>
+                                    <TableHead className="font-bold">When & Where</TableHead>
+                                    <TableHead className="text-right font-bold pr-6">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {events.data.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="h-32 text-center text-muted-foreground italic">
+                                            No events found matching your criteria.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    events.data.map((item) => {
                                         const sc = STATUS_CONFIG[item.status];
                                         return (
-                                            <tr key={item.id} className="group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                                                <td className="p-5 pl-8 align-middle">
+                                            <TableRow key={item.id} className="hover:bg-muted/5">
+                                                <TableCell>
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0">
-                                                            {item.image_path ? <img src={`/storage/${item.image_path}`} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full flex items-center justify-center text-neutral-400"><FileText size={14} /></div>}
+                                                        <div className="h-10 w-10 shrink-0 rounded-lg border flex items-center justify-center overflow-hidden bg-muted">
+                                                            {item.image_path ? (
+                                                                <img src={`/storage/${item.image_path}`} className="w-full h-full object-cover" alt="" />
+                                                            ) : (
+                                                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                                            )}
                                                         </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-tight">{item.title}</span>
-                                                                <Badge className={`${sc.className} text-[9px] uppercase tracking-widest px-1.5 py-0`}>{sc.label}</Badge>
+                                                        <div className="flex flex-col overflow-hidden max-w-[320px]">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-sm tracking-tight truncate">{item.title}</span>
+                                                                <Badge variant="outline" className={`${sc.className} text-[9px] uppercase tracking-widest px-1.5 py-0`}>
+                                                                    {sc.label}
+                                                                </Badge>
                                                             </div>
-                                                            {item.organization && <span className="text-[10px] text-blue-500 font-bold uppercase">{item.organization.name}</span>}
-                                                            <span className="text-[10px] text-neutral-500 font-medium line-clamp-1 max-w-xs block">{item.description}</span>
+                                                            {item.organization && (
+                                                                <span className="text-[10px] text-blue-600 font-bold uppercase truncate dark:text-blue-400">
+                                                                    {item.organization.name}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[10px] text-muted-foreground font-medium truncate mt-0.5">
+                                                                {item.description}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                </td>
-                                                <td className="p-5 align-middle">
+                                                </TableCell>
+
+                                                <TableCell>
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-700 dark:text-neutral-300 uppercase">
-                                                            <Calendar size={12} className="text-neutral-400" />
+                                                        <span className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase">
+                                                            <Calendar className="h-3 w-3 text-blue-500" />
                                                             {new Date(item.event_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                                             {item.event_time && <span className="opacity-75">• {new Date(`2000-01-01T${item.event_time}`).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>}
                                                         </span>
-                                                        <span className="flex items-center gap-1.5 text-[10px] font-medium text-neutral-500"><MapPin size={12} /> {item.location}</span>
+                                                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase">
+                                                            <MapPin className="h-3 w-3 text-red-500" /> {item.location}
+                                                        </span>
                                                     </div>
-                                                </td>
-                                                <td className="p-5 pr-8 align-middle text-right">
-                                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button onClick={() => openEdit(item)} variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900"><Pencil size={14} /></Button>
+                                                </TableCell>
+
+                                                <TableCell className="text-right pr-6">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </Button>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-neutral-400 hover:text-neutral-900"><MoreHorizontal size={14} /></Button>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end" className="w-52">
                                                                 {item.status === 'pending' && <>
-                                                                    <DropdownMenuItem className="text-emerald-600 font-bold cursor-pointer" onClick={() => handleApprove(item)}>✓ Approve & Publish</DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-orange-600 font-bold cursor-pointer" onClick={() => openStatusModal(item, 'reschedule_requested')}>↺ Request Reschedule</DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-red-600 font-bold cursor-pointer" onClick={() => openStatusModal(item, 'rejected')}>✕ Reject</DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-emerald-600 font-bold cursor-pointer focus:text-emerald-700" onClick={() => handleApprove(item)}>✓ Approve & Publish</DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-orange-600 font-bold cursor-pointer focus:text-orange-700" onClick={() => openStatusModal(item, 'reschedule_requested')}>↺ Request Reschedule</DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-destructive font-bold cursor-pointer focus:text-destructive" onClick={() => openStatusModal(item, 'rejected')}>✕ Reject</DropdownMenuItem>
                                                                 </>}
-                                                                <DropdownMenuItem className="text-red-600 font-bold cursor-pointer" onClick={() => handleDelete(item)}>Delete Event</DropdownMenuItem>
+                                                                <DropdownMenuItem className="text-destructive font-bold cursor-pointer focus:text-destructive" onClick={() => handleDelete(item)}>Delete Event</DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
                                                     </div>
-                                                </td>
-                                            </tr>
+                                                </TableCell>
+                                            </TableRow>
                                         );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                    })
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
+                {/* Pagination */}
+                <div className="flex justify-center items-center gap-1 py-4">
+                    {events.links && events.links.map((link: any, i: number) => (
+                        <button
+                            key={i}
+                            onClick={() => {
+                                if (link.url) router.get(link.url, {}, { preserveState: true });
+                            }}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                            className={`px-3 py-1 text-xs font-semibold rounded-md border transition-all ${link.active
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background hover:bg-muted text-muted-foreground'
+                                } ${!link.url && 'opacity-40 cursor-not-allowed pointer-events-none'}`}
+                        />
+                    ))}
                 </div>
             </div>
 
@@ -259,7 +309,7 @@ export default function Index({ events, filters }: PageProps) {
                         </div>
                         <div className="pt-2 flex justify-end gap-2">
                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                            <Button type="submit" className="bg-neutral-900 hover:bg-neutral-800 text-white font-bold">{editingEvent ? 'Save Changes' : 'Create Event'}</Button>
+                            <Button type="submit" className="bg-primary text-primary-foreground font-bold">{editingEvent ? 'Save Changes' : 'Create Event'}</Button>
                         </div>
                     </form>
                 </DialogContent>
@@ -269,7 +319,7 @@ export default function Index({ events, filters }: PageProps) {
             <Dialog open={statusModal} onOpenChange={setStatusModal}>
                 <DialogContent className="sm:max-w-[420px]">
                     <DialogHeader>
-                        <DialogTitle className={`uppercase tracking-widest font-black ${actionType === 'rejected' ? 'text-red-600' : 'text-orange-500'}`}>
+                        <DialogTitle className={`uppercase tracking-widest font-black ${actionType === 'rejected' ? 'text-destructive' : 'text-orange-500'}`}>
                             {actionType === 'rejected' ? 'Reject Event' : 'Request Reschedule'}
                         </DialogTitle>
                     </DialogHeader>
@@ -280,7 +330,7 @@ export default function Index({ events, filters }: PageProps) {
                         </div>
                         <div className="pt-2 flex justify-end gap-2">
                             <Button type="button" variant="outline" onClick={() => setStatusModal(false)}>Cancel</Button>
-                            <Button type="submit" className={`text-white font-bold ${actionType === 'rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-500 hover:bg-orange-600'}`}>Confirm</Button>
+                            <Button type="submit" variant={actionType === 'rejected' ? 'destructive' : 'default'} className="font-bold border-none">Confirm</Button>
                         </div>
                     </form>
                 </DialogContent>

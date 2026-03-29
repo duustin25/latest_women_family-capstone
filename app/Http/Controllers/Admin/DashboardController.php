@@ -9,7 +9,7 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    private array $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV ', 'DEC'];
+    private array $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
     public function index()
     {
@@ -32,7 +32,7 @@ class DashboardController extends Controller
             ->whereIn('category', ['VAWC', 'Both'])
             ->get();
 
-        $reportsRaw = \App\Models\CaseReport::select('incident_date', 'type', 'abuse_type_id', 'case_status_id')
+        $reportsRaw = \App\Models\CaseReport::select('incident_date', 'type', 'abuse_type_id', 'lifecycle_status')
             ->where('type', 'VAWC')
             ->whereYear('incident_date', $year)
             ->whereNotNull('abuse_type_id')
@@ -86,7 +86,7 @@ class DashboardController extends Controller
             'totalCases' => \App\Models\CaseReport::count(),
             'totalOrgs' => \App\Models\Organization::count(),
             'totalUsers' => \App\Models\User::count(),
-            'totalPendingApp' => MembershipApplication::where('status', 'Pending')->count()
+            'pendingApps' => MembershipApplication::where('status', 'Pending')->count()
         ];
     }
 

@@ -31,10 +31,11 @@ class AnalyticsController extends Controller
             ->get();
 
         // Use AnalyticsService for data aggregation
-        $vawcData = $this->analyticsService->getMonthlyCaseAnalytics('VAWC', $currentYear, $vawcTypes);
-        $bcpcData = $this->analyticsService->getMonthlyCaseAnalytics('BCPC', $currentYear, $bcpcTypes);
-        $stats = $this->analyticsService->getRibbonStats($currentYear);
-        
+        $vawcData    = $this->analyticsService->getMonthlyCaseAnalytics('VAWC', $currentYear, $vawcTypes);
+        $stats       = $this->analyticsService->getRibbonStats($currentYear);
+        $bpoTrends   = $this->analyticsService->getVawcBpoTrends($currentYear);
+        $vawcStatus  = $this->analyticsService->getVawcStatusBreakdown($currentYear);
+
         $membershipStats = $this->analyticsService->getMembershipTrends($currentYear);
         $ageDemographics = $this->analyticsService->getAgeDemographics($currentYear);
         $zoneDistribution = $this->analyticsService->getZoneDistribution($currentYear);
@@ -55,7 +56,7 @@ class AnalyticsController extends Controller
             $locationDemographics[] = ['name' => $shortLoc, 'count' => $count, 'fullName' => $location];
         }
 
-        // Case Resolution Rates (keep here for now or move to service if preferred)
+        // Case Resolution Rates from VAWC lifecycle
         $caseResolutionsRaw = CaseReport::select('lifecycle_status')
             ->whereYear('created_at', $currentYear)
             ->get()
@@ -64,48 +65,35 @@ class AnalyticsController extends Controller
 
         $caseResolutionStats = [];
         $statusColors = [
-            'New' => '#f43f5e', 'Ongoing' => '#3b82f6', 'Referred' => '#a855f7',
-            'Resolved' => '#10b981', 'Closed' => '#64748b', 'Dismissed' => '#ef4444', 'Unknown' => '#94a3b8'
+            'New' => '#f43f5e',
+            'Ongoing' => '#3b82f6',
+            'Referred' => '#a855f7',
+            'Resolved' => '#10b981',
+            'Closed' => '#64748b',
+            'Dismissed' => '#ef4444',
+            'Unknown' => '#94a3b8'
         ];
         foreach ($caseResolutionsRaw as $statusName => $count) {
             $caseResolutionStats[] = ['name' => $statusName, 'value' => $count, 'fill' => $statusColors[$statusName] ?? '#94a3b8'];
         }
 
-        // Top Referral Agencies
-        $referralsRaw = \App\Models\CaseReferral::with('agency')
-            ->whereYear('created_at', $currentYear)
-            ->get()
-            ->groupBy('agency_id')
-            ->map(fn($group) => count($group));
-
         $agencyStats = [];
-        $agencyColors = ['#f43f5e', '#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#64748b'];
-        $ci = 0;
-        foreach ($referralsRaw as $agencyId => $count) {
-            $agency = \App\Models\Agency::find($agencyId);
-            if ($agency) {
-                $agencyStats[] = ['name' => $agency->name, 'value' => $count, 'fill' => $agencyColors[$ci % count($agencyColors)]];
-                $ci++;
-            }
-        }
 
         // Config for charts
         $vawcChartConfig = $vawcTypes->map(fn($t) => ['key' => strtolower($t->name), 'label' => $t->name, 'color' => $t->color ?? '#ce1126']);
-        $bcpcChartConfig = $bcpcTypes->map(fn($t) => ['key' => strtolower($t->name), 'label' => $t->name, 'color' => $t->color ?? '#0057b7']);
 
         return Inertia::render('Admin/Analytics/Index', [
-            'stats' => $stats,
-            'vawcData' => $vawcData,
-            'bcpcData' => $bcpcData,
-            'currentYear' => (int) $currentYear,
-            'vawcChartConfig' => $vawcChartConfig,
-            'bcpcChartConfig' => $bcpcChartConfig,
-            'membershipStats' => $membershipStats,
+            'stats'              => $stats,
+            'vawcData'           => $vawcData,
+            'currentYear'        => (int) $currentYear,
+            'vawcChartConfig'    => $vawcChartConfig,
+            'membershipStats'    => $membershipStats,
             'caseResolutionStats' => $caseResolutionStats,
-            'ageDemographics' => $ageDemographics,
+            'ageDemographics'    => $ageDemographics,
             'locationDemographics' => $locationDemographics,
-            'zoneDistribution' => $zoneDistribution,
-            'agencyStats' => $agencyStats,
+            'zoneDistribution'   => $zoneDistribution,
+            'bpoTrends'          => $bpoTrends,
+            'vawcStatusBreakdown' => $vawcStatus,
         ]);
     }
 

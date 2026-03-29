@@ -1,16 +1,18 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, LayoutTemplate, Settings } from "lucide-react";
+import { ArrowLeft, Save, LayoutTemplate, Settings, FileText, Loader2 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import LivePaperPreview from "@/components/Admin/LivePaperPreview";
 import OrganizationSettings from "@/components/Admin/OrganizationSettings";
 import FormBuilder from "@/components/Admin/FormBuilder";
 import PrintSettingsBuilder from "@/components/Admin/PrintSettingsBuilder";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Create({ users }: { users: any[] }) {
-    const [activeTab, setActiveTab] = useState<'settings' | 'builder' | 'print'>('settings');
+    const [activeTab, setActiveTab] = useState('settings');
 
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -24,12 +26,10 @@ export default function Create({ users }: { users: any[] }) {
         form_schema: [
             // CORE FIELDS (LOCKED)
             { id: 'fullname', type: 'text', label: 'Full Name', required: true, width: 'w-full', layout: 'block', is_core: true },
-            { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true }, // Verified: User prefers 'text' over 'textarea'
-
-            // Example Dynamic Fields
+            { id: 'address', type: 'text', label: 'Address', required: true, width: 'w-full', layout: 'block', is_core: true },
             { id: 'contact_number', type: 'number', label: 'Contact Number', required: true, width: 'w-full' },
             { id: 'email', type: 'email', label: 'Email Address', required: false, width: 'w-full' },
-        ] as any[], // Default schema to start with
+        ] as any[],
         print_settings: {
             form_title: 'APPLICATION',
             alignment: 'center',
@@ -49,74 +49,71 @@ export default function Create({ users }: { users: any[] }) {
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }, { title: 'Organizations', href: '/admin/organizations' }, { title: 'Create Profile', href: '#' }]}>
             <Head title="Create Organization" />
 
-            {/* FLOATING SAVE BUTTON */}
-            <div className="fixed bottom-8 right-8 z-50">
-                <Button
-                    onClick={handleSubmit}
-                    disabled={processing}
-                    className="h-16 w-32 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-4 border-white dark:border-neutral-900"
-                >
-                    {processing ? <span className="text-xl">SAVING...</span> : <p className="text-xl">Create</p>}
-                </Button>
-            </div>
+            <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex flex-col gap-1">
+                        <Button variant="ghost" size="sm" asChild className="-ml-2 h-8 text-muted-foreground">
+                            <Link href="/admin/organizations" className="flex items-center gap-2">
+                                <ArrowLeft className="w-4 h-4" />
+                                Back to Registry
+                            </Link>
+                        </Button>
+                        <h1 className="text-2xl font-bold tracking-tight">Create Organization Profile</h1>
+                        <p className="text-muted-foreground text-sm">Configure accreditation details, dynamic membership forms, and print templates.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" asChild>
+                            <Link href="/admin/organizations">Cancel</Link>
+                        </Button>
+                        <Button onClick={handleSubmit} disabled={processing} className="min-w-[120px]">
+                            {processing ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {processing ? 'Saving...' : 'Create Profile'}
+                        </Button>
+                    </div>
+                </div>
 
-            <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 transition-colors py-8">
-                <div className="max-w-[95%] mx-auto px-4">
+                <form onSubmit={handleSubmit} className="flex flex-col xl:flex-row gap-8 items-start">
+                    {/* LEFT COLUMN: BUILDER & SETTINGS */}
+                    <div className="flex-1 w-full min-w-0">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsList className="grid w-full grid-cols-3 max-w-md mb-6">
+                                <TabsTrigger value="settings" className="flex items-center gap-2">
+                                    <Settings className="w-3.5 h-3.5" />
+                                    General
+                                </TabsTrigger>
+                                <TabsTrigger value="builder" className="flex items-center gap-2">
+                                    <LayoutTemplate className="w-3.5 h-3.5" />
+                                    Form Builder
+                                </TabsTrigger>
+                                <TabsTrigger value="print" className="flex items-center gap-2">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    Print Template
+                                </TabsTrigger>
+                            </TabsList>
 
-                    {/* Navigation */}
-                    <div className="flex items-center justify-between mb-8">
-                        <Link href="/admin/organizations" className="flex items-center text-[10px] font-black tracking-widest text-neutral-400 hover:text-blue-600 group transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> CANCEL & RETURN
-                        </Link>
+                            <div className="min-h-[600px]">
+                                <TabsContent value="settings" className="m-0 focus-visible:outline-none">
+                                    <OrganizationSettings data={data} setData={setData} record={{}} users={users} />
+                                </TabsContent>
+                                <TabsContent value="builder" className="m-0 focus-visible:outline-none">
+                                    <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
+                                </TabsContent>
+                                <TabsContent value="print" className="m-0 focus-visible:outline-none">
+                                    <PrintSettingsBuilder data={data} setData={setData} record={null} />
+                                </TabsContent>
+                            </div>
+                        </Tabs>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col xl:flex-row gap-8 items-start">
-
-                        {/* LEFT COLUMN: BUILDER & SETTINGS */}
-                        <div className="flex-1 w-full min-w-0">
-
-                            {/* TABS NAVIGATION */}
-                            <div className="bg-white dark:bg-neutral-900 p-1 rounded-lg inline-flex gap-1 mb-6 shadow-sm border border-neutral-200 dark:border-neutral-800">
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('settings')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'settings' ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
-                                >
-                                    <Settings size={14} /> Organization Helper
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('builder')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'builder' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
-                                >
-                                    <LayoutTemplate size={14} /> Form Builder
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('print')}
-                                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'print' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
-                                >
-                                    <Settings size={14} /> Print Settings
-                                </button>
-                            </div>
-
-                            <div className="bg-transparent min-h-[500px]">
-                                {activeTab === 'settings' ? (
-                                    <OrganizationSettings data={data} setData={setData} record={{}} users={users} />
-                                ) : activeTab === 'builder' ? (
-                                    <FormBuilder schema={data.form_schema} onSchemaChange={(newSchema) => setData('form_schema', newSchema)} />
-                                ) : (
-                                    <PrintSettingsBuilder data={data} setData={setData} record={null} />
-                                )}
-                            </div>
-
-                        </div>
-
-                        {/* RIGHT COLUMN: LIVE PREVIEW (Sticky) */}
-                        <LivePaperPreview data={data as any} record={null} />
-                    </form>
-                </div>
+                    {/* RIGHT COLUMN: LIVE PREVIEW (Sticky) */}
+                    <LivePaperPreview data={data as any} record={null} />
+                </form>
             </div>
-        </AppLayout >
+        </AppLayout>
     );
 }

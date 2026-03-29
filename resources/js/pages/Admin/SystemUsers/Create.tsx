@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, UserPlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, UserPlus, Loader2, ShieldCheck } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 import { OrganizationSelector } from '@/components/Admin/OrganizationSelector';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Organization {
     id: number;
@@ -54,165 +56,151 @@ export default function Create({ organizations }: { organizations: Organization[
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create User" />
+            <Head title="Create System User" />
 
-            <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-10 transition-colors">
-                <div className="max-w-4xl mx-auto px-4 md:px-8">
+            <div className="p-6 max-w-4xl mx-auto space-y-6">
+                <div className="flex items-center justify-between">
+                    <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
+                        <Link href="/admin/system-users" className="flex items-center gap-2">
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to Registry
+                        </Link>
+                    </Button>
+                </div>
 
-                    {/* Back Link */}
-                    <Link
-                        href="/admin/system-users"
-                        className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white mb-8 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Back to Users
-                    </Link>
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-bold tracking-tight">Grant System Access</h1>
+                    <p className="text-muted-foreground text-sm">Create a new official account for administration or organization leadership.</p>
+                </div>
 
-                    <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-8 md:p-12">
-
-                        {/* Header */}
-                        <div className="flex items-center gap-4 mb-10 pb-8 border-b border-neutral-100 dark:border-neutral-800">
-                            <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-2xl text-neutral-900 dark:white">
-                                <UserPlus className="w-8 h-8" strokeWidth={1.5} />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tighter">Grant System Access</h1>
-                                <p className="text-neutral-500 text-sm font-medium">Create a new official account for System Administrators, Committee Heads, or Organization Presidents.</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-
-                            {/* Name & Email Row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                <UserPlus className="w-5 h-5 text-blue-500" />
+                                Account Credentials
+                            </CardTitle>
+                            <CardDescription>Enter the official name, email, and temporary password for the new user.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Official Name</Label>
+                                    <Label htmlFor="name">Full Name</Label>
                                     <Input
                                         id="name"
-                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900 dark:text-white"
                                         value={data.name}
                                         onChange={e => setData('name', e.target.value)}
                                         required
                                         placeholder="e.g. Hon. Juan Dela Cruz"
                                     />
-                                    {errors.name && <p className="text-red-500 text-xs font-bold mt-1">{errors.name}</p>}
+                                    {errors.name && <p className="text-destructive text-xs font-bold">{errors.name}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="email" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Official Email</Label>
+                                    <Label htmlFor="email">Email Address</Label>
                                     <Input
                                         id="email"
                                         type="email"
-                                        className="h-12 bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold text-neutral-900 dark:text-white"
                                         value={data.email}
                                         onChange={e => setData('email', e.target.value)}
                                         required
-                                        placeholder="official@brgy183.gov"
+                                        placeholder="official@system.gov"
                                     />
-                                    {errors.email && <p className="text-red-500 text-xs font-bold mt-1">{errors.email}</p>}
+                                    {errors.email && <p className="text-destructive text-xs font-bold">{errors.email}</p>}
                                 </div>
                             </div>
 
-                            {/* Password & Role Row */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Temporary Password</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            className="h-12 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold dark:text-white"
-                                            value={data.password}
-                                            onChange={e => setData('password', e.target.value)}
-                                            required
-                                        />
-                                        {errors.password && <p className="text-red-500 text-xs font-bold mt-1">{errors.password}</p>}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password_confirmation" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Confirm Password</Label>
-                                        <Input
-                                            id="password_confirmation"
-                                            type="password"
-                                            className="h-12 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 focus:ring-neutral-900 font-bold dark:text-white"
-                                            value={data.password_confirmation}
-                                            onChange={e => setData('password_confirmation', e.target.value)}
-                                            required
-                                        />
-                                    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Temporary Password</Label>
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        value={data.password}
+                                        onChange={e => setData('password', e.target.value)}
+                                        required
+                                    />
+                                    {errors.password && <p className="text-destructive text-xs font-bold">{errors.password}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="role" className="text-xs font-bold text-neutral-500 uppercase tracking-wider">System Role</Label>
-                                    <Select value={data.role} onValueChange={(val) => setData('role', val)}>
-                                        <SelectTrigger className="w-full h-12 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 font-bold text-neutral-900 dark:text-white">
-                                            <SelectValue placeholder="Select Role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="admin" className="font-bold">Super Admin (IT/Sec)</SelectItem>
-                                            <SelectItem value="head" className="font-bold">Committee Head (VAWC/BCPC)</SelectItem>
-                                            <SelectItem value="president" className="font-bold">Organization President (KALIPI/SoloP)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-
-                                    {errors.role && <p className="text-red-500 text-xs font-bold mt-1">{errors.role}</p>}
+                                    <Label htmlFor="password_confirmation">Confirm Password</Label>
+                                    <Input
+                                        id="password_confirmation"
+                                        type="password"
+                                        value={data.password_confirmation}
+                                        onChange={e => setData('password_confirmation', e.target.value)}
+                                        required
+                                    />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2 max-w-sm">
+                                <Label htmlFor="role">Assign System Role</Label>
+                                <Select value={data.role} onValueChange={(val) => setData('role', val)}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Super Admin (System/IT)</SelectItem>
+                                        <SelectItem value="head">Committee Head (VAWC/BCPC)</SelectItem>
+                                        <SelectItem value="president">Org President (KALIPI/SoloP)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.role && <p className="text-destructive text-xs font-bold">{errors.role}</p>}
                             </div>
 
                             {/* CONDITIONAL ORGANIZATION DROPDOWN */}
-                            <OrganizationSelector
-                                role={data.role}
-                                organizationId={data.organization_id}
-                                onOrganizationChange={(val) => setData('organization_id', val)}
-                                organizations={organizations}
-                                error={errors.organization_id}
+                            <div className="pt-2">
+                                <OrganizationSelector
+                                    role={data.role}
+                                    organizationId={data.organization_id}
+                                    onOrganizationChange={(val) => setData('organization_id', val)}
+                                    organizations={organizations}
+                                    error={errors.organization_id}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* ADMINISTRATIVE VERIFICATION */}
+                    <Alert className="bg-muted/50 border-muted-foreground/10">
+                        <ShieldCheck className="h-4 w-4 text-blue-500" />
+                        <AlertTitle className="text-sm font-bold uppercase tracking-tight">Administrative Authorization</AlertTitle>
+                        <AlertDescription className="text-xs text-muted-foreground mt-1">
+                            Please confirm your identity by entering **your** current administrative password to finalize this account creation.
+                        </AlertDescription>
+                        <div className="mt-4 max-w-sm">
+                            <Input
+                                id="current_admin_password"
+                                type="password"
+                                value={data.current_admin_password}
+                                onChange={e => setData('current_admin_password', e.target.value)}
+                                placeholder="Verify your password..."
+                                required
                             />
+                            {errors.current_admin_password && <p className="text-destructive text-xs font-bold mt-1">{errors.current_admin_password}</p>}
+                        </div>
+                    </Alert>
 
-                            {/* ADMINISTRATIVE VERIFICATION SECTION */}
-                            <div className="p-8 bg-neutral-900 dark:bg-black rounded-3xl border border-neutral-800 space-y-4 shadow-2xl">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                                    <h3 className="text-sm font-black text-white uppercase tracking-wider">Administrative Verification</h3>
-                                </div>
-                                <p className="text-xs font-medium text-neutral-400 leading-relaxed italic">
-                                    As a security measure, creating new system access requires your administrative authorization. Please enter **your** current password to proceed.
-                                </p>
-                                <div className="space-y-2 max-w-sm">
-                                    <Label htmlFor="current_admin_password" className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Confirm your Identity</Label>
-                                    <Input
-                                        id="current_admin_password"
-                                        type="password"
-                                        className="h-12 bg-neutral-800 border-neutral-700 focus:ring-emerald-500 font-bold text-white placeholder:text-neutral-600"
-                                        value={data.current_admin_password}
-                                        onChange={e => setData('current_admin_password', e.target.value)}
-                                        placeholder="Enter your password"
-                                        required
-                                    />
-                                    {errors.current_admin_password && <p className="text-red-500 text-xs font-bold mt-1">{errors.current_admin_password}</p>}
-                                </div>
-                            </div>
-
-                            {/* Submit Buttons */}
-                            <div className="flex items-center justify-end gap-4 pt-6 border-t border-neutral-100 dark:border-neutral-800">
-                                <Link href="/admin/system-users">
-                                    <Button variant="ghost" type="button" className="px-6 h-12 font-bold text-neutral-500 hover:text-neutral-900 uppercase tracking-wide">Cancel</Button>
-                                </Link>
-                                <Button
-                                    type="submit"
-                                    disabled={processing || isSubmitting}
-                                    className="bg-neutral-900 hover:bg-neutral-800 px-8 h-12 text-white font-black uppercase tracking-wide rounded-full shadow-lg hover:shadow-xl transition-all"
-                                >
-                                    {(processing || isSubmitting) ? (
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                        <Save className="w-4 h-4 mr-2" />
-                                    )}
-                                    {isSubmitting ? 'Creating...' : 'Create Official Account'}
-                                </Button>
-                            </div>
-
-                        </form>
+                    <div className="flex items-center justify-end gap-3 pt-4">
+                        <Button variant="ghost" type="button" asChild>
+                            <Link href="/admin/system-users">Cancel</Link>
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={processing || isSubmitting}
+                            className="px-8"
+                        >
+                            {(processing || isSubmitting) ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {isSubmitting ? 'Processing...' : 'Create Account'}
+                        </Button>
                     </div>
-                </div>
+                </form>
             </div>
         </AppLayout>
     );
