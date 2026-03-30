@@ -63,6 +63,14 @@ class CaseReport extends Model
     }
 
     /**
+     * Specialized BCPC data if this is a BCPC case.
+     */
+    public function bcpcCase(): HasOne
+    {
+        return $this->hasOne(BcpcCase::class, 'case_report_id');
+    }
+
+    /**
      * Accountability: Staff who handled this case.
      */
     public function handler(): BelongsTo

@@ -45,9 +45,14 @@ const mainNavItems: NavItem[] = [
     },
     // --- CORE SERVICES (Capstone Focus) ---
     {
-        title: 'VAWC/BCPC Cases',
-        href: '/admin/cases',
+        title: 'VAWC Registry',
+        href: '/admin/vawc/cases',
         icon: ShieldAlert,
+    },
+    {
+        title: 'BCPC Registry',
+        href: '/admin/bcpc/cases',
+        icon: Activity,
     },
     {
         title: 'GAD Programs',
@@ -127,7 +132,8 @@ export function AppSidebar() {
 
         if (role === 'president') {
             const hiddenFromPresident = [
-                'VAWC/BCPC Cases',
+                'VAWC Registry',
+                'BCPC Registry',
                 'System Users',
                 'Officials',
                 'Data Analytics',

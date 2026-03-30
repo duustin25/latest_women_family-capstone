@@ -160,6 +160,20 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'v
     Route::get('vawc/cases/{id}/complaint-form', [\App\Http\Controllers\Admin\VawcController::class, 'complaintForm'])->name('vawc.complaint-form');
     Route::post('vawc/cases/{id}/close', [\App\Http\Controllers\Admin\VawcController::class, 'closeCase'])->name('vawc.close');
     // ------------------------------------------------------------
+
+    // BCPC Diversion Program Management (RA 9344)
+    Route::get('bcpc/cases/create', [\App\Http\Controllers\Admin\BcpcController::class, 'create'])->name('bcpc.create');
+    Route::post('bcpc/cases', [\App\Http\Controllers\Admin\BcpcController::class, 'store'])->name('bcpc.store');
+    Route::get('bcpc/cases', [\App\Http\Controllers\Admin\BcpcController::class, 'index'])->name('bcpc.index');
+    Route::get('bcpc/cases/{id}', [\App\Http\Controllers\Admin\BcpcController::class, 'show'])->name('bcpc.show');
+    
+    // BCPC Lifecycle Routes
+    Route::post('bcpc/cases/{id}/proceeding', [\App\Http\Controllers\Admin\BcpcController::class, 'startProceeding'])->name('bcpc.start-proceeding');
+    Route::post('bcpc/cases/{id}/implement', [\App\Http\Controllers\Admin\BcpcController::class, 'implementProgram'])->name('bcpc.implement-program');
+    Route::post('bcpc/cases/{id}/log-compliance', [\App\Http\Controllers\Admin\BcpcController::class, 'logCompliance'])->name('bcpc.log-compliance');
+    Route::post('bcpc/cases/{id}/terminate', [\App\Http\Controllers\Admin\BcpcController::class, 'terminate'])->name('bcpc.terminate');
+    Route::post('bcpc/cases/{id}/forward', [\App\Http\Controllers\Admin\BcpcController::class, 'forward'])->name('bcpc.forward');
+    // ------------------------------------------------------------
 });
 
 // STRICT ADMIN-ONLY ROUTES: System Taxonomy & Configurations
