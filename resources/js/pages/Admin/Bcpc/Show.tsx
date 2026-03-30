@@ -105,14 +105,12 @@ export default function Show({ case: bcpcCase }: Props) {
                         const isCompleted = s.n < Math.min(stepNum, 5);
                         return (
                             <div key={s.n} className="flex flex-col gap-2">
-                                <div className={`h-1.5 rounded-full transition-all ${
-                                    isCompleted ? 'bg-primary' :
-                                    isCurrent ? (isForwarded ? 'bg-red-500 animate-pulse' : isArchived ? 'bg-slate-500' : 'bg-primary animate-pulse') :
-                                    'bg-muted'
-                                }`} />
-                                <span className={`text-[9px] uppercase font-bold tracking-tight text-center ${
-                                    isCurrent ? (isForwarded ? 'text-red-600' : isArchived ? 'text-slate-600' : 'text-primary') : 'text-muted-foreground'
-                                }`}>
+                                <div className={`h-1.5 rounded-full transition-all ${isCompleted ? 'bg-primary' :
+                                        isCurrent ? (isForwarded ? 'bg-red-500 animate-pulse' : isArchived ? 'bg-slate-500' : 'bg-primary animate-pulse') :
+                                            'bg-muted'
+                                    }`} />
+                                <span className={`text-[9px] uppercase font-bold tracking-tight text-center ${isCurrent ? (isForwarded ? 'text-red-600' : isArchived ? 'text-slate-600' : 'text-primary') : 'text-muted-foreground'
+                                    }`}>
                                     {s.label}
                                 </span>
                             </div>
